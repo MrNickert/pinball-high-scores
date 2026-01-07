@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Camera, MapPin, Upload, Image, X, Search, Check } from "lucide-react";
+import { Camera, MapPin, Upload, X, Search, Check } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,7 +48,6 @@ const Capture = () => {
       title: "Score submitted! 🎯",
       description: "Your score is pending verification.",
     });
-    // Reset form
     setStep(1);
     setSelectedLocation(null);
     setSelectedMachine("");
@@ -68,8 +67,8 @@ const Capture = () => {
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-3 mb-4">
-            <Camera className="text-primary" size={32} />
-            <h1 className="font-arcade text-xl text-foreground">CAPTURE SCORE</h1>
+            <Camera className="text-primary" size={28} />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Capture Score</h1>
           </div>
           <p className="text-muted-foreground">
             Upload your high score photo to join the leaderboard
@@ -85,13 +84,13 @@ const Capture = () => {
           {[1, 2, 3].map((s) => (
             <div key={s} className="flex items-center gap-2">
               <motion.div
-                className={`w-10 h-10 rounded-full flex items-center justify-center font-arcade text-xs ${
+                className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
                   step >= s
                     ? "bg-primary text-primary-foreground"
                     : "bg-muted text-muted-foreground"
                 }`}
-                animate={step === s ? { scale: [1, 1.1, 1] } : {}}
-                transition={{ duration: 0.5, repeat: step === s ? Infinity : 0, repeatDelay: 1 }}
+                animate={step === s ? { scale: [1, 1.05, 1] } : {}}
+                transition={{ duration: 1, repeat: step === s ? Infinity : 0 }}
               >
                 {step > s ? <Check size={16} /> : s}
               </motion.div>
@@ -107,7 +106,7 @@ const Capture = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-card rounded-2xl p-6"
+            className="bg-card rounded-2xl p-6 border border-border shadow-sm"
           >
             <div className="flex items-center gap-2 mb-6">
               <MapPin className="text-secondary" size={20} />
@@ -118,7 +117,7 @@ const Capture = () => {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
                 placeholder="Search nearby arcades..."
-                className="pl-10 bg-input border-border"
+                className="pl-10"
               />
             </div>
 
@@ -126,15 +125,15 @@ const Capture = () => {
               {mockLocations.map((location) => (
                 <motion.button
                   key={location.id}
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01 }}
+                  whileTap={{ scale: 0.99 }}
                   onClick={() => {
                     setSelectedLocation(location);
                     setStep(2);
                   }}
                   className={`w-full p-4 rounded-xl text-left transition-all ${
                     selectedLocation?.id === location.id
-                      ? "bg-primary/20 border border-primary"
+                      ? "bg-primary/10 border border-primary"
                       : "bg-muted/50 border border-transparent hover:border-border"
                   }`}
                 >
@@ -156,11 +155,11 @@ const Capture = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-card rounded-2xl p-6"
+            className="bg-card rounded-2xl p-6 border border-border shadow-sm"
           >
             <button
               onClick={() => setStep(1)}
-              className="text-muted-foreground text-sm mb-4 hover:text-primary"
+              className="text-muted-foreground text-sm mb-4 hover:text-foreground transition-colors"
             >
               ← Back to locations
             </button>
@@ -171,16 +170,16 @@ const Capture = () => {
             </div>
 
             <div className="mb-6">
-              <Label className="text-foreground mb-2 block">Select Machine</Label>
+              <Label className="text-foreground mb-3 block">Select Machine</Label>
               <div className="grid grid-cols-2 gap-2">
                 {mockMachines.map((machine) => (
                   <motion.button
                     key={machine}
-                    whileTap={{ scale: 0.95 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={() => setSelectedMachine(machine)}
                     className={`p-3 rounded-lg text-sm text-left transition-all ${
                       selectedMachine === machine
-                        ? "bg-primary/20 border border-primary text-primary"
+                        ? "bg-primary/10 border border-primary text-primary"
                         : "bg-muted/50 border border-transparent text-foreground hover:border-border"
                     }`}
                   >
@@ -195,7 +194,7 @@ const Capture = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <Label className="text-foreground mb-2 block">Upload Score Photo</Label>
+                <Label className="text-foreground mb-3 block">Upload Score Photo</Label>
                 <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
                   <Upload className="text-muted-foreground mb-2" size={32} />
                   <span className="text-sm text-muted-foreground">
@@ -221,18 +220,17 @@ const Capture = () => {
           <motion.div
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="glass-card rounded-2xl p-6"
+            className="bg-card rounded-2xl p-6 border border-border shadow-sm"
           >
             <button
               onClick={() => setStep(2)}
-              className="text-muted-foreground text-sm mb-4 hover:text-primary"
+              className="text-muted-foreground text-sm mb-4 hover:text-foreground transition-colors"
             >
               ← Back
             </button>
 
             <h2 className="font-semibold text-foreground mb-6">Confirm Your Score</h2>
 
-            {/* Image Preview */}
             {scoreImage && (
               <div className="relative mb-6">
                 <img
@@ -245,7 +243,7 @@ const Capture = () => {
                     setScoreImage(null);
                     setStep(2);
                   }}
-                  className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background"
+                  className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
                 >
                   <X size={16} />
                 </button>
@@ -268,13 +266,13 @@ const Capture = () => {
                   placeholder="12,345,678"
                   value={score}
                   onChange={(e) => setScore(e.target.value)}
-                  className="bg-input border-border font-arcade text-primary text-lg"
+                  className="text-lg font-semibold"
                 />
               </div>
             </div>
 
             <Button
-              variant="hero"
+              variant="gradient"
               className="w-full"
               size="lg"
               onClick={handleSubmit}

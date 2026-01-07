@@ -16,16 +16,16 @@ const mockLeaderboard = [
   { rank: 8, username: "NeonNinja", score: 5432100, machine: "Creature from the Black Lagoon", location: "Up-Down, KC", avatar: "🥷" },
 ];
 
-const getRankIcon = (rank: number) => {
+const getRankDisplay = (rank: number) => {
   switch (rank) {
     case 1:
-      return <Crown className="text-accent" size={24} />;
+      return <Crown className="text-amber-500" size={20} />;
     case 2:
-      return <Medal className="text-muted-foreground" size={22} />;
+      return <Medal className="text-zinc-400" size={18} />;
     case 3:
-      return <Medal className="text-amber-700" size={22} />;
+      return <Medal className="text-amber-700" size={18} />;
     default:
-      return <span className="text-muted-foreground font-arcade text-sm">#{rank}</span>;
+      return <span className="text-muted-foreground text-sm font-medium">#{rank}</span>;
   }
 };
 
@@ -50,11 +50,11 @@ const Leaderboard = () => {
           className="text-center mb-10"
         >
           <div className="inline-flex items-center gap-3 mb-4">
-            <Trophy className="text-accent" size={32} />
-            <h1 className="font-arcade text-2xl text-foreground">LEADERBOARD</h1>
+            <Trophy className="text-primary" size={28} />
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Leaderboard</h1>
           </div>
           <p className="text-muted-foreground">
-            Global rankings of the greatest pinball achievements
+            Global rankings of the greatest achievements
           </p>
         </motion.div>
 
@@ -71,7 +71,7 @@ const Leaderboard = () => {
               placeholder="Search player or machine..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10 bg-input border-border"
+              className="pl-10"
             />
           </div>
           <Button variant="outline" className="gap-2">
@@ -94,18 +94,20 @@ const Leaderboard = () => {
               <motion.div
                 key={entry.rank}
                 whileHover={{ y: -5 }}
-                className={`glass-card rounded-xl p-4 text-center ${
-                  isFirst ? "neon-border order-2" : "order-" + (orderIndex === 1 ? "1" : "3")
+                className={`bg-card rounded-2xl p-4 text-center border border-border shadow-sm ${
+                  isFirst ? "ring-2 ring-primary/20 order-2" : "order-" + (orderIndex === 1 ? "1" : "3")
                 }`}
               >
                 <div className={`mb-2 ${isFirst ? "text-5xl" : "text-4xl"}`}>
                   {entry.avatar}
                 </div>
-                {getRankIcon(entry.rank)}
-                <p className="font-semibold text-foreground mt-2 truncate">
+                <div className="flex justify-center mb-2">
+                  {getRankDisplay(entry.rank)}
+                </div>
+                <p className="font-semibold text-foreground truncate">
                   {entry.username}
                 </p>
-                <p className="font-arcade text-xs text-primary mt-1">
+                <p className="text-lg font-bold text-primary mt-1">
                   {entry.score.toLocaleString()}
                 </p>
                 <p className="text-xs text-muted-foreground mt-1 truncate">
@@ -121,7 +123,7 @@ const Leaderboard = () => {
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ delay: 0.3 }}
-          className="glass-card rounded-2xl overflow-hidden max-w-4xl mx-auto"
+          className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm max-w-4xl mx-auto"
         >
           <div className="p-4 border-b border-border">
             <h2 className="font-semibold text-foreground">All Rankings</h2>
@@ -133,11 +135,10 @@ const Leaderboard = () => {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: 0.05 * index }}
-                whileHover={{ backgroundColor: "hsl(var(--muted) / 0.3)" }}
-                className="flex items-center gap-4 p-4 transition-colors"
+                className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
               >
                 <div className="w-10 flex justify-center">
-                  {getRankIcon(entry.rank)}
+                  {getRankDisplay(entry.rank)}
                 </div>
                 <div className="text-2xl">{entry.avatar}</div>
                 <div className="flex-1 min-w-0">
@@ -149,7 +150,7 @@ const Leaderboard = () => {
                   </p>
                 </div>
                 <div className="text-right">
-                  <p className="font-arcade text-sm text-primary">
+                  <p className="font-bold text-primary">
                     {entry.score.toLocaleString()}
                   </p>
                 </div>
