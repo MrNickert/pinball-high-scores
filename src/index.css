@@ -1,100 +1,102 @@
-@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Inter:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
 
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
 
-/* Pinball Arcade Design System - Neon on Dark */
+/* Multiball Modern Design System */
 
 @layer base {
   :root {
-    --background: 240 20% 6%;
-    --foreground: 180 100% 97%;
+    --background: 0 0% 100%;
+    --foreground: 222 47% 11%;
 
-    --card: 240 15% 10%;
-    --card-foreground: 180 100% 97%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 47% 11%;
 
-    --popover: 240 15% 10%;
-    --popover-foreground: 180 100% 97%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 47% 11%;
 
-    --primary: 180 100% 50%;
-    --primary-foreground: 240 20% 6%;
+    --primary: 250 89% 62%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 320 100% 60%;
-    --secondary-foreground: 240 20% 6%;
+    --secondary: 172 66% 50%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 10% 18%;
-    --muted-foreground: 240 10% 60%;
+    --muted: 220 14% 96%;
+    --muted-foreground: 220 9% 46%;
 
-    --accent: 45 100% 55%;
-    --accent-foreground: 240 20% 6%;
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
 
     --destructive: 0 84% 60%;
     --destructive-foreground: 0 0% 100%;
 
-    --border: 240 15% 20%;
-    --input: 240 15% 15%;
-    --ring: 180 100% 50%;
+    --border: 220 13% 91%;
+    --input: 220 13% 91%;
+    --ring: 250 89% 62%;
 
     --radius: 0.75rem;
 
-    /* Custom arcade colors */
-    --neon-cyan: 180 100% 50%;
-    --neon-magenta: 320 100% 60%;
-    --neon-yellow: 45 100% 55%;
-    --neon-green: 145 100% 50%;
-    --arcade-dark: 240 20% 6%;
-    --arcade-surface: 240 15% 10%;
-    --arcade-border: 240 15% 20%;
-
-    /* Gradients */
-    --gradient-neon: linear-gradient(135deg, hsl(var(--neon-cyan)), hsl(var(--neon-magenta)));
-    --gradient-gold: linear-gradient(135deg, hsl(45 100% 55%), hsl(35 100% 45%));
-    --gradient-surface: linear-gradient(180deg, hsl(240 15% 12%), hsl(240 20% 6%));
+    /* Custom colors */
+    --gradient-primary: linear-gradient(135deg, hsl(250 89% 62%), hsl(280 85% 60%));
+    --gradient-secondary: linear-gradient(135deg, hsl(172 66% 50%), hsl(190 70% 55%));
+    --gradient-accent: linear-gradient(135deg, hsl(38 92% 50%), hsl(25 95% 55%));
+    --gradient-surface: linear-gradient(180deg, hsl(220 14% 98%), hsl(0 0% 100%));
 
     /* Shadows */
-    --shadow-neon-cyan: 0 0 20px hsl(180 100% 50% / 0.5), 0 0 40px hsl(180 100% 50% / 0.3);
-    --shadow-neon-magenta: 0 0 20px hsl(320 100% 60% / 0.5), 0 0 40px hsl(320 100% 60% / 0.3);
-    --shadow-neon-yellow: 0 0 20px hsl(45 100% 55% / 0.5), 0 0 40px hsl(45 100% 55% / 0.3);
+    --shadow-sm: 0 1px 2px hsl(220 13% 91% / 0.3);
+    --shadow-md: 0 4px 12px hsl(220 13% 91% / 0.4);
+    --shadow-lg: 0 8px 30px hsl(220 13% 91% / 0.5);
+    --shadow-primary: 0 4px 20px hsl(250 89% 62% / 0.25);
 
-    --sidebar-background: 240 15% 10%;
-    --sidebar-foreground: 180 100% 97%;
-    --sidebar-primary: 180 100% 50%;
-    --sidebar-primary-foreground: 240 20% 6%;
-    --sidebar-accent: 240 15% 15%;
-    --sidebar-accent-foreground: 180 100% 97%;
-    --sidebar-border: 240 15% 20%;
-    --sidebar-ring: 180 100% 50%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: 222 47% 11%;
+    --sidebar-primary: 250 89% 62%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 220 14% 96%;
+    --sidebar-accent-foreground: 222 47% 11%;
+    --sidebar-border: 220 13% 91%;
+    --sidebar-ring: 250 89% 62%;
   }
 
   .dark {
-    --background: 240 20% 6%;
-    --foreground: 180 100% 97%;
-    --card: 240 15% 10%;
-    --card-foreground: 180 100% 97%;
-    --popover: 240 15% 10%;
-    --popover-foreground: 180 100% 97%;
-    --primary: 180 100% 50%;
-    --primary-foreground: 240 20% 6%;
-    --secondary: 320 100% 60%;
-    --secondary-foreground: 240 20% 6%;
-    --muted: 240 10% 18%;
-    --muted-foreground: 240 10% 60%;
-    --accent: 45 100% 55%;
-    --accent-foreground: 240 20% 6%;
+    --background: 224 71% 4%;
+    --foreground: 213 31% 91%;
+
+    --card: 224 71% 6%;
+    --card-foreground: 213 31% 91%;
+
+    --popover: 224 71% 6%;
+    --popover-foreground: 213 31% 91%;
+
+    --primary: 250 89% 65%;
+    --primary-foreground: 0 0% 100%;
+
+    --secondary: 172 66% 50%;
+    --secondary-foreground: 0 0% 100%;
+
+    --muted: 223 47% 11%;
+    --muted-foreground: 218 11% 65%;
+
+    --accent: 38 92% 50%;
+    --accent-foreground: 0 0% 100%;
+
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 100%;
-    --border: 240 15% 20%;
-    --input: 240 15% 15%;
-    --ring: 180 100% 50%;
-    --sidebar-background: 240 15% 10%;
-    --sidebar-foreground: 180 100% 97%;
-    --sidebar-primary: 180 100% 50%;
-    --sidebar-primary-foreground: 240 20% 6%;
-    --sidebar-accent: 240 15% 15%;
-    --sidebar-accent-foreground: 180 100% 97%;
-    --sidebar-border: 240 15% 20%;
-    --sidebar-ring: 180 100% 50%;
+
+    --border: 216 34% 17%;
+    --input: 216 34% 17%;
+    --ring: 250 89% 65%;
+
+    --sidebar-background: 224 71% 6%;
+    --sidebar-foreground: 213 31% 91%;
+    --sidebar-primary: 250 89% 65%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 223 47% 11%;
+    --sidebar-accent-foreground: 213 31% 91%;
+    --sidebar-border: 216 34% 17%;
+    --sidebar-ring: 250 89% 65%;
   }
 }
 
@@ -105,51 +107,44 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Inter', sans-serif;
-  }
-
-  .font-arcade {
-    font-family: 'Press Start 2P', cursive;
+    font-family: 'Plus Jakarta Sans', sans-serif;
   }
 }
 
 @layer components {
-  .neon-text {
-    text-shadow: 0 0 10px currentColor, 0 0 20px currentColor, 0 0 40px currentColor;
-  }
-
-  .neon-border {
-    box-shadow: inset 0 0 10px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.2);
-  }
-
-  .glass-card {
-    background: linear-gradient(135deg, hsl(240 15% 12% / 0.8), hsl(240 20% 8% / 0.9));
-    backdrop-filter: blur(10px);
-    border: 1px solid hsl(var(--border));
-  }
-
-  .arcade-gradient {
-    background: var(--gradient-neon);
+  .gradient-text {
+    background: var(--gradient-primary);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  .glow-pulse {
-    animation: glow-pulse 2s ease-in-out infinite;
+  .glass-card {
+    @apply bg-card/80 backdrop-blur-xl border border-border shadow-sm;
   }
 
-  @keyframes glow-pulse {
-    0%, 100% {
-      filter: brightness(1) drop-shadow(0 0 10px currentColor);
-    }
-    50% {
-      filter: brightness(1.2) drop-shadow(0 0 20px currentColor);
-    }
+  .gradient-border {
+    position: relative;
+    background: hsl(var(--card));
+    border-radius: var(--radius);
+  }
+
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 1px;
+    background: var(--gradient-primary);
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
   }
 
   .score-display {
-    font-family: 'Press Start 2P', cursive;
-    letter-spacing: 0.1em;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
 }

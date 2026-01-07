@@ -1,6 +1,6 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, User, Camera, Home, LogIn } from "lucide-react";
+import { Trophy, User, Camera, Home, LogIn, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
@@ -17,20 +17,17 @@ export const Navbar = () => {
     <motion.nav 
       initial={{ y: -100 }}
       animate={{ y: 0 }}
-      className="fixed top-0 left-0 right-0 z-50 glass-card border-b border-border"
+      className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border"
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-3">
-            <motion.div 
-              className="text-primary text-2xl"
-              animate={{ rotate: [0, -10, 10, -10, 0] }}
-              transition={{ duration: 2, repeat: Infinity, repeatDelay: 3 }}
-            >
-              🎯
-            </motion.div>
-            <span className="font-arcade text-xs text-primary neon-text hidden sm:block">
-              PINBALL
+          <Link to="/" className="flex items-center gap-2.5">
+            <div className="relative">
+              <Circle className="w-8 h-8 text-primary fill-primary/20" strokeWidth={2.5} />
+              <Circle className="w-3 h-3 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" strokeWidth={0} />
+            </div>
+            <span className="font-bold text-lg text-foreground">
+              Multiball
             </span>
           </Link>
 
@@ -40,12 +37,12 @@ export const Navbar = () => {
               return (
                 <Link key={item.path} to={item.path}>
                   <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
                     className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       isActive 
-                        ? "bg-primary/20 text-primary neon-border" 
-                        : "text-muted-foreground hover:text-primary"
+                        ? "bg-primary/10 text-primary" 
+                        : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
                     <item.icon size={18} />
@@ -57,7 +54,7 @@ export const Navbar = () => {
           </div>
 
           <Link to="/auth">
-            <Button variant="neon" size="sm">
+            <Button variant="gradient" size="sm">
               <LogIn size={16} />
               <span className="hidden sm:inline">Sign In</span>
             </Button>
@@ -66,7 +63,7 @@ export const Navbar = () => {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 glass-card border-t border-border">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border">
         <div className="flex justify-around py-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
@@ -81,7 +78,7 @@ export const Navbar = () => {
                   }`}
                 >
                   <item.icon size={20} />
-                  <span className="text-[10px] mt-1">{item.label}</span>
+                  <span className="text-[10px] mt-1 font-medium">{item.label}</span>
                 </motion.div>
               </Link>
             );
