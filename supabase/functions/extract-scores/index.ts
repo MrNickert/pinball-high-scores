@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { imageBase64 } = await req.json();
+    const { imageBase64, validateMachine, validateScore } = await req.json();
 
     if (!imageBase64) {
       return new Response(
@@ -26,21 +26,36 @@ serve(async (req) => {
       throw new Error("LOVABLE_API_KEY not configured");
     }
 
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          {
-            role: "user",
-            content: [
-              {
-                type: "text",
-                text: `Analyze this pinball machine backglass photo and extract ALL visible scores. 
+    // If validation is requested, use a different prompt
+    const isValidation = validateMachine && validateScore !== undefined;
+    
+    const prompt = isValidation
+      ? `Analyze this pinball machine backglass/display photo and validate the following:
+
+1. MACHINE NAME: Does this image show the pinball machine "${validateMachine}"? Look for:
+   - The machine's name/title on the backglass
+   - Recognizable artwork, characters, or themes associated with this machine
+   - Any text or branding that identifies the machine
+
+2. SCORE: Is the score ${validateScore.toLocaleString()} visible in this image? Look for:
+   - Player score displays (usually numbered 1, 2, 3, 4)
+   - High score displays
+   - Any numeric displays showing this exact score
+
+Return ONLY a JSON object with:
+{
+  "machineMatch": boolean (true if the machine name matches or is clearly this machine),
+  "scoreMatch": boolean (true if the exact score ${validateScore.toLocaleString()} is visible),
+  "detectedMachine": string (the machine name you can see, or null if unclear),
+  "detectedScores": array of numbers (all scores visible in the image),
+  "confidence": {
+    "machine": "high" | "medium" | "low" | "none",
+    "score": "high" | "medium" | "low" | "none"
+  }
+}
+
+IMPORTANT: Return ONLY the JSON object, no other text.`
+      : `Analyze this pinball machine backglass photo and extract ALL visible scores. 
                 
 Look for:
 - Player scores (usually numbered 1, 2, 3, 4 on the left side)
@@ -60,7 +75,23 @@ Example response:
 
 If no scores are found, return an empty array: []
 
-IMPORTANT: Return ONLY the JSON array, no other text.`,
+IMPORTANT: Return ONLY the JSON array, no other text.`;
+
+    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        model: "google/gemini-2.5-flash",
+        messages: [
+          {
+            role: "user",
+            content: [
+              {
+                type: "text",
+                text: prompt,
               },
               {
                 type: "image_url",
@@ -82,32 +113,57 @@ IMPORTANT: Return ONLY the JSON array, no other text.`,
     }
 
     const data = await response.json();
-    const content = data.choices?.[0]?.message?.content || "[]";
+    const content = data.choices?.[0]?.message?.content || (isValidation ? "{}" : "[]");
 
-    // Parse the JSON response
-    let scores = [];
-    try {
-      // Clean up the response - remove markdown code blocks if present
-      let cleanedContent = content.trim();
-      if (cleanedContent.startsWith("```json")) {
-        cleanedContent = cleanedContent.slice(7);
-      }
-      if (cleanedContent.startsWith("```")) {
-        cleanedContent = cleanedContent.slice(3);
-      }
-      if (cleanedContent.endsWith("```")) {
-        cleanedContent = cleanedContent.slice(0, -3);
-      }
-      scores = JSON.parse(cleanedContent.trim());
-    } catch (parseError) {
-      console.error("Failed to parse AI response:", content);
-      scores = [];
+    // Clean up the response - remove markdown code blocks if present
+    let cleanedContent = content.trim();
+    if (cleanedContent.startsWith("```json")) {
+      cleanedContent = cleanedContent.slice(7);
     }
+    if (cleanedContent.startsWith("```")) {
+      cleanedContent = cleanedContent.slice(3);
+    }
+    if (cleanedContent.endsWith("```")) {
+      cleanedContent = cleanedContent.slice(0, -3);
+    }
+    cleanedContent = cleanedContent.trim();
 
-    return new Response(
-      JSON.stringify({ scores }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    if (isValidation) {
+      // Parse validation response
+      try {
+        const validation = JSON.parse(cleanedContent);
+        return new Response(
+          JSON.stringify({ validation }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      } catch (parseError) {
+        console.error("Failed to parse validation response:", content);
+        return new Response(
+          JSON.stringify({ 
+            validation: { 
+              machineMatch: false, 
+              scoreMatch: false, 
+              confidence: { machine: "none", score: "none" } 
+            } 
+          }),
+          { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      // Parse score extraction response
+      let scores = [];
+      try {
+        scores = JSON.parse(cleanedContent);
+      } catch (parseError) {
+        console.error("Failed to parse AI response:", content);
+        scores = [];
+      }
+
+      return new Response(
+        JSON.stringify({ scores }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
   } catch (error: unknown) {
     const errorMessage = error instanceof Error ? error.message : "Unknown error";
     console.error("Error in extract-scores:", error);
