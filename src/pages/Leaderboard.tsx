@@ -1,20 +1,19 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Crown, Search, Filter } from "lucide-react";
+import { Trophy, Medal, Crown, Search, Filter, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { supabase } from "@/integrations/supabase/client";
 
-const mockLeaderboard = [
-  { rank: 1, username: "PinballWizard", score: 12847500, machine: "Medieval Madness", location: "Flynn's Arcade, LA", avatar: "🧙‍♂️" },
-  { rank: 2, username: "FlipperMaster", score: 11234000, machine: "The Addams Family", location: "Pinball Pete's, Detroit", avatar: "👨‍🎤" },
-  { rank: 3, username: "SilverBallQueen", score: 10892300, machine: "Attack From Mars", location: "Ground Kontrol, Portland", avatar: "👸" },
-  { rank: 4, username: "TiltWarrior", score: 9876500, machine: "Twilight Zone", location: "Barcade, Brooklyn", avatar: "⚔️" },
-  { rank: 5, username: "BumperKing", score: 8765400, machine: "Theatre of Magic", location: "Logan Arcade, Chicago", avatar: "👑" },
-  { rank: 6, username: "MultiballMike", score: 7654300, machine: "Monster Bash", location: "Cidercade, Dallas", avatar: "🎱" },
-  { rank: 7, username: "ComboBreaker", score: 6543200, machine: "Indiana Jones", location: "Orbit Room, SF", avatar: "💥" },
-  { rank: 8, username: "NeonNinja", score: 5432100, machine: "Creature from the Black Lagoon", location: "Up-Down, KC", avatar: "🥷" },
-];
+interface LeaderboardEntry {
+  id: string;
+  score: number;
+  machine_name: string;
+  location_name: string | null;
+  created_at: string;
+  username: string;
+}
 
 const getRankDisplay = (rank: number) => {
   switch (rank) {
@@ -29,14 +28,84 @@ const getRankDisplay = (rank: number) => {
   }
 };
 
+const getAvatar = (username: string) => {
+  const avatars = ["🎯", "🎮", "🎪", "🎨", "🎭", "🎲", "🎳", "🎰"];
+  const index = username.charCodeAt(0) % avatars.length;
+  return avatars[index];
+};
+
 const Leaderboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
+  const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const filteredScores = mockLeaderboard.filter(
+  useEffect(() => {
+    fetchLeaderboard();
+  }, []);
+
+  const fetchLeaderboard = async () => {
+    try {
+      const { data: scores, error } = await supabase
+        .from("scores")
+        .select(`
+          id,
+          score,
+          machine_name,
+          location_name,
+          created_at,
+          user_id
+        `)
+        .order("score", { ascending: false })
+        .limit(50);
+
+      if (error) throw error;
+
+      if (scores && scores.length > 0) {
+        // Fetch profiles for all users
+        const userIds = [...new Set(scores.map(s => s.user_id))];
+        const { data: profiles } = await supabase
+          .from("profiles")
+          .select("user_id, username")
+          .in("user_id", userIds);
+
+        const profileMap = new Map(profiles?.map(p => [p.user_id, p.username]) || []);
+
+        const entriesWithUsernames = scores.map(score => ({
+          id: score.id,
+          score: score.score,
+          machine_name: score.machine_name,
+          location_name: score.location_name,
+          created_at: score.created_at,
+          username: profileMap.get(score.user_id) || "Anonymous",
+        }));
+
+        setEntries(entriesWithUsernames);
+      }
+    } catch (error) {
+      console.error("Error fetching leaderboard:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const filteredScores = entries.filter(
     (entry) =>
       entry.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.machine.toLowerCase().includes(searchTerm.toLowerCase())
+      entry.machine_name.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <Loader2 className="animate-spin text-primary" size={32} />
+        </div>
+      </div>
+    );
+  }
+
+  const topThree = filteredScores.slice(0, 3);
 
   return (
     <div className="min-h-screen bg-background">
@@ -80,84 +149,101 @@ const Leaderboard = () => {
           </Button>
         </motion.div>
 
-        {/* Top 3 Podium */}
-        <motion.div
-          initial={{ opacity: 0, scale: 0.95 }}
-          animate={{ opacity: 1, scale: 1 }}
-          transition={{ delay: 0.2 }}
-          className="grid grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto"
-        >
-          {[1, 0, 2].map((orderIndex) => {
-            const entry = mockLeaderboard[orderIndex];
-            const isFirst = orderIndex === 0;
-            return (
+        {entries.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <Trophy className="mx-auto mb-4 text-muted-foreground" size={64} />
+            <h2 className="text-xl font-semibold text-foreground mb-2">No scores yet</h2>
+            <p className="text-muted-foreground">Be the first to submit a score!</p>
+          </motion.div>
+        ) : (
+          <>
+            {/* Top 3 Podium */}
+            {topThree.length >= 3 && (
               <motion.div
-                key={entry.rank}
-                whileHover={{ y: -5 }}
-                className={`bg-card rounded-2xl p-4 text-center border border-border shadow-sm ${
-                  isFirst ? "ring-2 ring-primary/20 order-2" : "order-" + (orderIndex === 1 ? "1" : "3")
-                }`}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ delay: 0.2 }}
+                className="grid grid-cols-3 gap-4 mb-10 max-w-3xl mx-auto"
               >
-                <div className={`mb-2 ${isFirst ? "text-5xl" : "text-4xl"}`}>
-                  {entry.avatar}
-                </div>
-                <div className="flex justify-center mb-2">
-                  {getRankDisplay(entry.rank)}
-                </div>
-                <p className="font-semibold text-foreground truncate">
-                  {entry.username}
-                </p>
-                <p className="text-lg font-bold text-primary mt-1">
-                  {entry.score.toLocaleString()}
-                </p>
-                <p className="text-xs text-muted-foreground mt-1 truncate">
-                  {entry.machine}
-                </p>
+                {[1, 0, 2].map((orderIndex) => {
+                  const entry = topThree[orderIndex];
+                  if (!entry) return null;
+                  const isFirst = orderIndex === 0;
+                  return (
+                    <motion.div
+                      key={entry.id}
+                      whileHover={{ y: -5 }}
+                      className={`bg-card rounded-2xl p-4 text-center border border-border shadow-sm ${
+                        isFirst ? "ring-2 ring-primary/20 order-2" : "order-" + (orderIndex === 1 ? "1" : "3")
+                      }`}
+                    >
+                      <div className={`mb-2 ${isFirst ? "text-5xl" : "text-4xl"}`}>
+                        {getAvatar(entry.username)}
+                      </div>
+                      <div className="flex justify-center mb-2">
+                        {getRankDisplay(orderIndex === 0 ? 1 : orderIndex === 1 ? 2 : 3)}
+                      </div>
+                      <p className="font-semibold text-foreground truncate">
+                        {entry.username}
+                      </p>
+                      <p className="text-lg font-bold text-primary mt-1">
+                        {entry.score.toLocaleString()}
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1 truncate">
+                        {entry.machine_name}
+                      </p>
+                    </motion.div>
+                  );
+                })}
               </motion.div>
-            );
-          })}
-        </motion.div>
+            )}
 
-        {/* Full Leaderboard */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm max-w-4xl mx-auto"
-        >
-          <div className="p-4 border-b border-border">
-            <h2 className="font-semibold text-foreground">All Rankings</h2>
-          </div>
-          <div className="divide-y divide-border">
-            {filteredScores.map((entry, index) => (
-              <motion.div
-                key={entry.rank}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.05 * index }}
-                className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
-              >
-                <div className="w-10 flex justify-center">
-                  {getRankDisplay(entry.rank)}
-                </div>
-                <div className="text-2xl">{entry.avatar}</div>
-                <div className="flex-1 min-w-0">
-                  <p className="font-medium text-foreground truncate">
-                    {entry.username}
-                  </p>
-                  <p className="text-sm text-muted-foreground truncate">
-                    {entry.machine} • {entry.location}
-                  </p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-primary">
-                    {entry.score.toLocaleString()}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-        </motion.div>
+            {/* Full Leaderboard */}
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3 }}
+              className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm max-w-4xl mx-auto"
+            >
+              <div className="p-4 border-b border-border">
+                <h2 className="font-semibold text-foreground">All Rankings</h2>
+              </div>
+              <div className="divide-y divide-border">
+                {filteredScores.map((entry, index) => (
+                  <motion.div
+                    key={entry.id}
+                    initial={{ opacity: 0, x: -20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ delay: 0.05 * Math.min(index, 10) }}
+                    className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
+                  >
+                    <div className="w-10 flex justify-center">
+                      {getRankDisplay(index + 1)}
+                    </div>
+                    <div className="text-2xl">{getAvatar(entry.username)}</div>
+                    <div className="flex-1 min-w-0">
+                      <p className="font-medium text-foreground truncate">
+                        {entry.username}
+                      </p>
+                      <p className="text-sm text-muted-foreground truncate">
+                        {entry.machine_name} {entry.location_name && `• ${entry.location_name}`}
+                      </p>
+                    </div>
+                    <div className="text-right">
+                      <p className="font-bold text-primary">
+                        {entry.score.toLocaleString()}
+                      </p>
+                    </div>
+                  </motion.div>
+                ))}
+              </div>
+            </motion.div>
+          </>
+        )}
       </div>
 
       <div className="h-20 md:h-0" />
