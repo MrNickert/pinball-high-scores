@@ -108,6 +108,7 @@ export type Database = {
           photo_url: string | null
           score: number
           user_id: string
+          user_notified_at: string | null
           validation_status: string | null
           verified: boolean | null
         }
@@ -121,6 +122,7 @@ export type Database = {
           photo_url?: string | null
           score: number
           user_id: string
+          user_notified_at?: string | null
           validation_status?: string | null
           verified?: boolean | null
         }
@@ -134,6 +136,7 @@ export type Database = {
           photo_url?: string | null
           score?: number
           user_id?: string
+          user_notified_at?: string | null
           validation_status?: string | null
           verified?: boolean | null
         }

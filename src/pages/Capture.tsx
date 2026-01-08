@@ -400,7 +400,7 @@ const Capture = () => {
         }
       }
 
-      // Insert score
+      // Insert score (mark as notified if AI validated, since user sees immediate feedback)
       const { error } = await supabase.from("scores").insert({
         user_id: user.id,
         score: numericScore,
@@ -410,6 +410,7 @@ const Capture = () => {
         longitude: parseFloat(selectedLocation.lon),
         photo_url: photoUrl,
         validation_status: validationStatus,
+        user_notified_at: validationStatus === "ai_validated" ? new Date().toISOString() : null,
       });
 
       if (error) throw error;
