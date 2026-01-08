@@ -1,26 +1,93 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Trophy, Target, Calendar, Settings, LogOut } from "lucide-react";
+import { User, Trophy, Target, Calendar, Settings, LogOut, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
-const mockStats = [
-  { label: "Total Scores", value: "47", icon: Target },
-  { label: "Best Rank", value: "#3", icon: Trophy },
-  { label: "Machines Played", value: "12", icon: Target },
-  { label: "Member Since", value: "2024", icon: Calendar },
-];
+interface Profile {
+  username: string;
+  avatar_url: string | null;
+  created_at: string;
+}
 
-const mockRecentScores = [
-  { machine: "Medieval Madness", score: 8765400, rank: 5, date: "2 days ago" },
-  { machine: "Attack From Mars", score: 6543200, rank: 12, date: "1 week ago" },
-  { machine: "The Addams Family", score: 5432100, rank: 8, date: "2 weeks ago" },
-];
+interface Score {
+  id: string;
+  machine_name: string;
+  score: number;
+  created_at: string;
+}
 
 const Profile = () => {
-  const isLoggedIn = false; // TODO: Replace with actual auth state
+  const { user, loading, signOut } = useAuth();
+  const navigate = useNavigate();
+  const [profile, setProfile] = useState<Profile | null>(null);
+  const [scores, setScores] = useState<Score[]>([]);
+  const [loadingData, setLoadingData] = useState(true);
 
-  if (!isLoggedIn) {
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+      return;
+    }
+
+    if (user) {
+      fetchProfileAndScores();
+    }
+  }, [user, loading, navigate]);
+
+  const fetchProfileAndScores = async () => {
+    if (!user) return;
+
+    try {
+      // Fetch profile
+      const { data: profileData } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profileData) {
+        setProfile(profileData);
+      }
+
+      // Fetch user's scores
+      const { data: scoresData } = await supabase
+        .from("scores")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (scoresData) {
+        setScores(scoresData);
+      }
+    } catch (error) {
+      console.error("Error fetching data:", error);
+    } finally {
+      setLoadingData(false);
+    }
+  };
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/");
+  };
+
+  if (loading || loadingData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <Loader2 className="animate-spin text-primary" size={32} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -50,6 +117,13 @@ const Profile = () => {
     );
   }
 
+  const stats = [
+    { label: "Total Scores", value: scores.length.toString(), icon: Target },
+    { label: "Best Score", value: scores.length > 0 ? Math.max(...scores.map(s => s.score)).toLocaleString() : "0", icon: Trophy },
+    { label: "Machines Played", value: new Set(scores.map(s => s.machine_name)).size.toString(), icon: Target },
+    { label: "Member Since", value: profile?.created_at ? new Date(profile.created_at).getFullYear().toString() : "2025", icon: Calendar },
+  ];
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
@@ -66,19 +140,16 @@ const Profile = () => {
               whileHover={{ scale: 1.05 }}
               className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-purple-500 flex items-center justify-center text-4xl"
             >
-              🧙‍♂️
+              🎯
             </motion.div>
             <div className="text-center sm:text-left flex-1">
               <h1 className="text-xl font-bold text-foreground mb-1">
-                PinballWizard
+                {profile?.username || "Player"}
               </h1>
-              <p className="text-muted-foreground text-sm">wizard@example.com</p>
+              <p className="text-muted-foreground text-sm">{user.email}</p>
               <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
-                <span className="px-3 py-1 bg-accent/10 text-accent text-xs font-medium rounded-full">
-                  Pro Player
-                </span>
                 <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                  Top 10
+                  {scores.length > 10 ? "Pro Player" : "New Player"}
                 </span>
               </div>
             </div>
@@ -86,7 +157,7 @@ const Profile = () => {
               <Button variant="outline" size="icon">
                 <Settings size={18} />
               </Button>
-              <Button variant="ghost" size="icon">
+              <Button variant="ghost" size="icon" onClick={handleSignOut}>
                 <LogOut size={18} />
               </Button>
             </div>
@@ -95,7 +166,7 @@ const Profile = () => {
 
         {/* Stats Grid */}
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-          {mockStats.map((stat, index) => (
+          {stats.map((stat, index) => (
             <motion.div
               key={stat.label}
               initial={{ opacity: 0, y: 20 }}
@@ -121,33 +192,46 @@ const Profile = () => {
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h2 className="font-semibold text-foreground">Recent Scores</h2>
-            <Button variant="ghost" size="sm">View All</Button>
+            <Link to="/capture">
+              <Button variant="ghost" size="sm">Add Score</Button>
+            </Link>
           </div>
-          <div className="divide-y divide-border">
-            {mockRecentScores.map((score, index) => (
-              <motion.div
-                key={index}
-                initial={{ opacity: 0, x: -20 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.1 * index }}
-                className="flex items-center gap-4 p-4"
-              >
-                <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                  <Trophy className="text-primary" size={18} />
-                </div>
-                <div className="flex-1">
-                  <p className="font-medium text-foreground">{score.machine}</p>
-                  <p className="text-sm text-muted-foreground">{score.date}</p>
-                </div>
-                <div className="text-right">
-                  <p className="font-bold text-primary">
-                    {score.score.toLocaleString()}
-                  </p>
-                  <p className="text-xs text-muted-foreground">Rank #{score.rank}</p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
+          {scores.length === 0 ? (
+            <div className="p-8 text-center">
+              <Trophy className="mx-auto mb-4 text-muted-foreground" size={48} />
+              <p className="text-muted-foreground mb-4">No scores yet</p>
+              <Link to="/capture">
+                <Button variant="gradient">Submit Your First Score</Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {scores.map((score, index) => (
+                <motion.div
+                  key={score.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 * index }}
+                  className="flex items-center gap-4 p-4"
+                >
+                  <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Trophy className="text-primary" size={18} />
+                  </div>
+                  <div className="flex-1">
+                    <p className="font-medium text-foreground">{score.machine_name}</p>
+                    <p className="text-sm text-muted-foreground">
+                      {new Date(score.created_at).toLocaleDateString()}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="font-bold text-primary">
+                      {score.score.toLocaleString()}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
       </div>
 

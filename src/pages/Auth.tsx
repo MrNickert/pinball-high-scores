@@ -1,11 +1,12 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Mail, Lock, User, ArrowLeft, Loader2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -14,20 +15,64 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const [username, setUsername] = useState("");
   const { toast } = useToast();
+  const { signIn, signUp, user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && user) {
+      navigate("/profile");
+    }
+  }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
-    
-    // TODO: Implement actual auth
-    setTimeout(() => {
-      setIsLoading(false);
+
+    try {
+      if (isLogin) {
+        const { error } = await signIn(email, password);
+        if (error) throw error;
+        toast({
+          title: "Welcome back!",
+          description: "You've successfully signed in.",
+        });
+        navigate("/profile");
+      } else {
+        if (!username.trim()) {
+          toast({
+            title: "Username required",
+            description: "Please enter a username.",
+            variant: "destructive",
+          });
+          setIsLoading(false);
+          return;
+        }
+        const { error } = await signUp(email, password, username);
+        if (error) throw error;
+        toast({
+          title: "Account created!",
+          description: "Welcome to Multiball!",
+        });
+        navigate("/profile");
+      }
+    } catch (error: any) {
       toast({
-        title: isLogin ? "Welcome back!" : "Account created!",
-        description: "Authentication will be implemented with the backend.",
+        title: "Error",
+        description: error.message || "Something went wrong",
+        variant: "destructive",
       });
-    }, 1500);
+    } finally {
+      setIsLoading(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">

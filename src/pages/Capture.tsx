@@ -1,11 +1,14 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Camera, MapPin, Upload, X, Search, Check } from "lucide-react";
+import { Camera, MapPin, Upload, X, Search, Check, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { useNavigate, Link } from "react-router-dom";
 
 const mockLocations = [
   { id: 1, name: "Flynn's Arcade", address: "123 Arcade Blvd, Los Angeles, CA", distance: "0.3 mi" },
@@ -27,33 +30,136 @@ const Capture = () => {
   const [step, setStep] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState<typeof mockLocations[0] | null>(null);
   const [selectedMachine, setSelectedMachine] = useState("");
-  const [scoreImage, setScoreImage] = useState<string | null>(null);
+  const [scoreImage, setScoreImage] = useState<File | null>(null);
+  const [scoreImagePreview, setScoreImagePreview] = useState<string | null>(null);
   const [score, setScore] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const { toast } = useToast();
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+    }
+  }, [user, loading, navigate]);
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setScoreImage(file);
       const reader = new FileReader();
       reader.onloadend = () => {
-        setScoreImage(reader.result as string);
+        setScoreImagePreview(reader.result as string);
         setStep(3);
       };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = () => {
-    toast({
-      title: "Score submitted! 🎯",
-      description: "Your score is pending verification.",
-    });
-    setStep(1);
-    setSelectedLocation(null);
-    setSelectedMachine("");
-    setScoreImage(null);
-    setScore("");
+  const handleSubmit = async () => {
+    if (!user || !selectedLocation || !selectedMachine || !score) return;
+
+    setIsSubmitting(true);
+
+    try {
+      let photoUrl = null;
+
+      // Upload photo if present
+      if (scoreImage) {
+        const fileExt = scoreImage.name.split(".").pop();
+        const fileName = `${user.id}/${Date.now()}.${fileExt}`;
+
+        const { error: uploadError, data } = await supabase.storage
+          .from("score-photos")
+          .upload(fileName, scoreImage);
+
+        if (uploadError) throw uploadError;
+
+        const { data: urlData } = supabase.storage
+          .from("score-photos")
+          .getPublicUrl(fileName);
+
+        photoUrl = urlData.publicUrl;
+      }
+
+      // Parse score (remove commas)
+      const numericScore = parseInt(score.replace(/,/g, ""), 10);
+
+      // Insert score
+      const { error } = await supabase.from("scores").insert({
+        user_id: user.id,
+        score: numericScore,
+        machine_name: selectedMachine,
+        location_name: selectedLocation.name,
+        photo_url: photoUrl,
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "Score submitted! 🎯",
+        description: "Your score has been added to the leaderboard.",
+      });
+
+      // Reset form
+      setStep(1);
+      setSelectedLocation(null);
+      setSelectedMachine("");
+      setScoreImage(null);
+      setScoreImagePreview(null);
+      setScore("");
+
+      navigate("/leaderboard");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to submit score",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="flex items-center justify-center min-h-[80vh]">
+          <Loader2 className="animate-spin text-primary" size={32} />
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 pt-24 pb-24 flex items-center justify-center min-h-[80vh]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center bg-card rounded-2xl p-10 max-w-md border border-border shadow-sm"
+          >
+            <Camera className="mx-auto mb-4 text-primary" size={48} />
+            <h1 className="text-xl font-bold text-foreground mb-2">
+              Sign in required
+            </h1>
+            <p className="text-muted-foreground mb-6">
+              Sign in to capture and submit your high scores.
+            </p>
+            <Link to="/auth">
+              <Button variant="gradient" size="lg">
+                Sign In
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -231,16 +337,17 @@ const Capture = () => {
 
             <h2 className="font-semibold text-foreground mb-6">Confirm Your Score</h2>
 
-            {scoreImage && (
+            {scoreImagePreview && (
               <div className="relative mb-6">
                 <img
-                  src={scoreImage}
+                  src={scoreImagePreview}
                   alt="Score"
                   className="w-full h-64 object-cover rounded-xl"
                 />
                 <button
                   onClick={() => {
                     setScoreImage(null);
+                    setScoreImagePreview(null);
                     setStep(2);
                   }}
                   className="absolute top-2 right-2 p-2 bg-background/80 rounded-full hover:bg-background transition-colors"
@@ -276,10 +383,16 @@ const Capture = () => {
               className="w-full"
               size="lg"
               onClick={handleSubmit}
-              disabled={!score}
+              disabled={!score || isSubmitting}
             >
-              <Upload size={18} />
-              Submit Score
+              {isSubmitting ? (
+                <Loader2 className="animate-spin" size={20} />
+              ) : (
+                <>
+                  <Upload size={18} />
+                  Submit Score
+                </>
+              )}
             </Button>
           </motion.div>
         )}
