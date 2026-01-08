@@ -80,9 +80,10 @@ const Capture = () => {
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(1)
-        .single();
+        .maybeSingle();
       
-      if (data && !error) {
+      if (data && !error && data.location_name) {
+        console.log("Setting lastScoreLocation:", data.location_name);
         setLastScoreLocation(data.location_name);
       }
     };
@@ -118,7 +119,7 @@ const Capture = () => {
 
   // Auto-select last location if nearby
   useEffect(() => {
-    if (lastScoreLocation && locations.length > 0 && step === 1 && !selectedLocation) {
+    if (lastScoreLocation && locations.length > 0 && step === 1 && !selectedLocation && !skippedLocationStep) {
       const matchingLocation = locations.find(
         (loc) => loc.name.toLowerCase() === lastScoreLocation.toLowerCase()
       );
@@ -134,7 +135,7 @@ const Capture = () => {
         });
       }
     }
-  }, [lastScoreLocation, locations]);
+  }, [lastScoreLocation, locations, step, selectedLocation, skippedLocationStep]);
   const fetchNearbyLocations = async (lat: number, lon: number) => {
     setIsLoadingLocations(true);
     try {
