@@ -351,6 +351,10 @@ const Capture = () => {
 
     try {
       let photoUrl = null;
+      let validationStatus: string | null = null;
+
+      // Parse score (remove commas)
+      const numericScore = parseInt(score.replace(/,/g, ""), 10);
 
       // Upload photo if present
       if (scoreImage) {
@@ -368,10 +372,45 @@ const Capture = () => {
           .getPublicUrl(fileName);
 
         photoUrl = urlData.publicUrl;
-      }
 
-      // Parse score (remove commas)
-      const numericScore = parseInt(score.replace(/,/g, ""), 10);
+        // Validate the image with AI
+        try {
+          const { data: validationData, error: validationError } = await supabase.functions.invoke("extract-scores", {
+            body: { 
+              imageBase64: scoreImagePreview, 
+              validateMachine: selectedMachine,
+              validateScore: numericScore 
+            },
+          });
+          
+          if (!validationError && validationData?.validation) {
+            const { machineMatch, scoreMatch } = validationData.validation;
+            
+            if (machineMatch && scoreMatch) {
+              validationStatus = "ai_validated";
+              toast({
+                title: "AI Verified! ✅",
+                description: "Both machine and score confirmed by AI",
+              });
+            } else if (scoreMatch) {
+              validationStatus = "score_only";
+              toast({
+                title: "Score Verified 🎯",
+                description: "Score confirmed, machine could not be verified",
+              });
+            } else {
+              validationStatus = "not_validated";
+              toast({
+                title: "Pending Review",
+                description: "Score will be reviewed by the community",
+              });
+            }
+          }
+        } catch (validationErr) {
+          console.error("AI validation failed:", validationErr);
+          // Continue without validation
+        }
+      }
 
       // Insert score
       const { error } = await supabase.from("scores").insert({
@@ -382,6 +421,7 @@ const Capture = () => {
         latitude: parseFloat(selectedLocation.lat),
         longitude: parseFloat(selectedLocation.lon),
         photo_url: photoUrl,
+        validation_status: validationStatus,
       });
 
       if (error) throw error;

@@ -67,6 +67,7 @@ export type Database = {
           photo_url: string | null
           score: number
           user_id: string
+          validation_status: string | null
           verified: boolean | null
         }
         Insert: {
@@ -79,6 +80,7 @@ export type Database = {
           photo_url?: string | null
           score: number
           user_id: string
+          validation_status?: string | null
           verified?: boolean | null
         }
         Update: {
@@ -91,6 +93,7 @@ export type Database = {
           photo_url?: string | null
           score?: number
           user_id?: string
+          validation_status?: string | null
           verified?: boolean | null
         }
         Relationships: []
