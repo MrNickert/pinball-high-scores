@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Camera, MapPin, Upload, X, Search, Check, Loader2 } from "lucide-react";
+import { Camera, MapPin, Upload, X, Search, Check, Loader2, Navigation } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,30 +10,41 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 
-const mockLocations = [
-  { id: 1, name: "Flynn's Arcade", address: "123 Arcade Blvd, Los Angeles, CA", distance: "0.3 mi" },
-  { id: 2, name: "Pinball Paradise", address: "456 Game St, Los Angeles, CA", distance: "0.8 mi" },
-  { id: 3, name: "Retro Gaming Lounge", address: "789 Vintage Ave, Los Angeles, CA", distance: "1.2 mi" },
-];
+interface PinballLocation {
+  id: number;
+  name: string;
+  street: string;
+  city: string;
+  state: string;
+  zip: string;
+  lat: string;
+  lon: string;
+  num_machines: number;
+  distance?: number;
+}
 
-const mockMachines = [
-  "Medieval Madness",
-  "The Addams Family",
-  "Attack From Mars",
-  "Twilight Zone",
-  "Theatre of Magic",
-  "Monster Bash",
-  "Indiana Jones",
-];
+interface PinballMachine {
+  id: number;
+  name: string;
+  manufacturer: string;
+  year: number;
+}
 
 const Capture = () => {
   const [step, setStep] = useState(1);
-  const [selectedLocation, setSelectedLocation] = useState<typeof mockLocations[0] | null>(null);
+  const [selectedLocation, setSelectedLocation] = useState<PinballLocation | null>(null);
   const [selectedMachine, setSelectedMachine] = useState("");
   const [scoreImage, setScoreImage] = useState<File | null>(null);
   const [scoreImagePreview, setScoreImagePreview] = useState<string | null>(null);
   const [score, setScore] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isLoadingLocations, setIsLoadingLocations] = useState(false);
+  const [isLoadingMachines, setIsLoadingMachines] = useState(false);
+  const [locations, setLocations] = useState<PinballLocation[]>([]);
+  const [machines, setMachines] = useState<PinballMachine[]>([]);
+  const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
+  const [locationError, setLocationError] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -43,6 +54,128 @@ const Capture = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Get user's GPS location on mount
+  useEffect(() => {
+    if (navigator.geolocation) {
+      setIsLoadingLocations(true);
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          const coords = {
+            lat: position.coords.latitude,
+            lon: position.coords.longitude,
+          };
+          setUserLocation(coords);
+          fetchNearbyLocations(coords.lat, coords.lon);
+        },
+        (error) => {
+          setLocationError("Unable to get your location. Please enable location services.");
+          setIsLoadingLocations(false);
+          toast({
+            title: "Location Error",
+            description: "Please enable location services to find nearby arcades.",
+            variant: "destructive",
+          });
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+      );
+    } else {
+      setLocationError("Geolocation is not supported by your browser.");
+      setIsLoadingLocations(false);
+    }
+  }, []);
+
+  const fetchNearbyLocations = async (lat: number, lon: number) => {
+    setIsLoadingLocations(true);
+    try {
+      const response = await fetch(
+        `https://pinballmap.com/api/v1/locations/closest_by_lat_lon.json?lat=${lat}&lon=${lon}&max_distance=50&send_all_within_distance=1`
+      );
+      const data = await response.json();
+      
+      if (data.locations && Array.isArray(data.locations)) {
+        // Calculate distance for each location
+        const locationsWithDistance = data.locations.map((loc: PinballLocation) => ({
+          ...loc,
+          distance: calculateDistance(lat, lon, parseFloat(loc.lat), parseFloat(loc.lon)),
+        }));
+        setLocations(locationsWithDistance.slice(0, 20)); // Limit to 20 closest
+      } else if (data.location) {
+        // Single location returned
+        const loc = data.location;
+        setLocations([{
+          ...loc,
+          distance: calculateDistance(lat, lon, parseFloat(loc.lat), parseFloat(loc.lon)),
+        }]);
+      } else {
+        setLocations([]);
+      }
+    } catch (error) {
+      console.error("Error fetching locations:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch nearby arcades",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingLocations(false);
+    }
+  };
+
+  const fetchMachinesForLocation = async (locationId: number) => {
+    setIsLoadingMachines(true);
+    try {
+      const response = await fetch(
+        `https://pinballmap.com/api/v1/locations/${locationId}/machine_details.json`
+      );
+      const data = await response.json();
+      
+      if (data.machines && Array.isArray(data.machines)) {
+        setMachines(data.machines.map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          manufacturer: m.manufacturer || "",
+          year: m.year || 0,
+        })));
+      } else {
+        setMachines([]);
+      }
+    } catch (error) {
+      console.error("Error fetching machines:", error);
+      toast({
+        title: "Error",
+        description: "Failed to fetch machines for this location",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingMachines(false);
+    }
+  };
+
+  const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    const R = 3959; // Earth's radius in miles
+    const dLat = (lat2 - lat1) * (Math.PI / 180);
+    const dLon = (lon2 - lon1) * (Math.PI / 180);
+    const a =
+      Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+      Math.cos(lat1 * (Math.PI / 180)) *
+        Math.cos(lat2 * (Math.PI / 180)) *
+        Math.sin(dLon / 2) *
+        Math.sin(dLon / 2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    return R * c;
+  };
+
+  const formatDistance = (distance?: number): string => {
+    if (!distance) return "";
+    return distance < 1 ? `${(distance * 5280).toFixed(0)} ft` : `${distance.toFixed(1)} mi`;
+  };
+
+  const handleLocationSelect = (location: PinballLocation) => {
+    setSelectedLocation(location);
+    fetchMachinesForLocation(location.id);
+    setStep(2);
+  };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -92,6 +225,8 @@ const Capture = () => {
         score: numericScore,
         machine_name: selectedMachine,
         location_name: selectedLocation.name,
+        latitude: parseFloat(selectedLocation.lat),
+        longitude: parseFloat(selectedLocation.lon),
         photo_url: photoUrl,
       });
 
@@ -121,6 +256,12 @@ const Capture = () => {
       setIsSubmitting(false);
     }
   };
+
+  const filteredLocations = locations.filter(
+    (loc) =>
+      loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      loc.city.toLowerCase().includes(searchQuery.toLowerCase())
+  );
 
   if (loading) {
     return (
@@ -214,9 +355,17 @@ const Capture = () => {
             animate={{ opacity: 1, x: 0 }}
             className="bg-card rounded-2xl p-6 border border-border shadow-sm"
           >
-            <div className="flex items-center gap-2 mb-6">
-              <MapPin className="text-secondary" size={20} />
-              <h2 className="font-semibold text-foreground">Select Location</h2>
+            <div className="flex items-center justify-between mb-6">
+              <div className="flex items-center gap-2">
+                <MapPin className="text-secondary" size={20} />
+                <h2 className="font-semibold text-foreground">Select Location</h2>
+              </div>
+              {userLocation && (
+                <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                  <Navigation size={12} />
+                  <span>GPS Active</span>
+                </div>
+              )}
             </div>
 
             <div className="relative mb-4">
@@ -224,35 +373,56 @@ const Capture = () => {
               <Input
                 placeholder="Search nearby arcades..."
                 className="pl-10"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
               />
             </div>
 
-            <div className="space-y-3">
-              {mockLocations.map((location) => (
-                <motion.button
-                  key={location.id}
-                  whileHover={{ scale: 1.01 }}
-                  whileTap={{ scale: 0.99 }}
-                  onClick={() => {
-                    setSelectedLocation(location);
-                    setStep(2);
-                  }}
-                  className={`w-full p-4 rounded-xl text-left transition-all ${
-                    selectedLocation?.id === location.id
-                      ? "bg-primary/10 border border-primary"
-                      : "bg-muted/50 border border-transparent hover:border-border"
-                  }`}
-                >
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <p className="font-medium text-foreground">{location.name}</p>
-                      <p className="text-sm text-muted-foreground">{location.address}</p>
+            {locationError && (
+              <div className="p-4 bg-destructive/10 rounded-lg mb-4 text-center">
+                <p className="text-destructive text-sm">{locationError}</p>
+              </div>
+            )}
+
+            {isLoadingLocations ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="animate-spin text-primary mb-3" size={32} />
+                <p className="text-muted-foreground text-sm">Finding nearby arcades...</p>
+              </div>
+            ) : filteredLocations.length === 0 ? (
+              <div className="text-center py-12">
+                <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
+                <p className="text-muted-foreground">No arcades found nearby</p>
+                <p className="text-muted-foreground text-sm mt-1">Try expanding your search area</p>
+              </div>
+            ) : (
+              <div className="space-y-3 max-h-96 overflow-y-auto">
+                {filteredLocations.map((location) => (
+                  <motion.button
+                    key={location.id}
+                    whileHover={{ scale: 1.01 }}
+                    whileTap={{ scale: 0.99 }}
+                    onClick={() => handleLocationSelect(location)}
+                    className="w-full p-4 rounded-xl text-left transition-all bg-muted/50 border border-transparent hover:border-border"
+                  >
+                    <div className="flex justify-between items-start">
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-foreground truncate">{location.name}</p>
+                        <p className="text-sm text-muted-foreground truncate">
+                          {location.street}, {location.city}, {location.state}
+                        </p>
+                        <p className="text-xs text-primary mt-1">
+                          {location.num_machines} machine{location.num_machines !== 1 ? "s" : ""}
+                        </p>
+                      </div>
+                      <span className="text-xs text-secondary font-medium ml-2 whitespace-nowrap">
+                        {formatDistance(location.distance)}
+                      </span>
                     </div>
-                    <span className="text-xs text-primary font-medium">{location.distance}</span>
-                  </div>
-                </motion.button>
-              ))}
-            </div>
+                  </motion.button>
+                ))}
+              </div>
+            )}
           </motion.div>
         )}
 
@@ -272,27 +442,45 @@ const Capture = () => {
 
             <div className="p-3 bg-muted/50 rounded-lg mb-6">
               <p className="font-medium text-foreground">{selectedLocation?.name}</p>
-              <p className="text-sm text-muted-foreground">{selectedLocation?.address}</p>
+              <p className="text-sm text-muted-foreground">
+                {selectedLocation?.street}, {selectedLocation?.city}, {selectedLocation?.state}
+              </p>
             </div>
 
             <div className="mb-6">
               <Label className="text-foreground mb-3 block">Select Machine</Label>
-              <div className="grid grid-cols-2 gap-2">
-                {mockMachines.map((machine) => (
-                  <motion.button
-                    key={machine}
-                    whileTap={{ scale: 0.98 }}
-                    onClick={() => setSelectedMachine(machine)}
-                    className={`p-3 rounded-lg text-sm text-left transition-all ${
-                      selectedMachine === machine
-                        ? "bg-primary/10 border border-primary text-primary"
-                        : "bg-muted/50 border border-transparent text-foreground hover:border-border"
-                    }`}
-                  >
-                    {machine}
-                  </motion.button>
-                ))}
-              </div>
+              
+              {isLoadingMachines ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="animate-spin text-primary" size={24} />
+                </div>
+              ) : machines.length === 0 ? (
+                <div className="text-center py-8">
+                  <p className="text-muted-foreground">No machines found at this location</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+                  {machines.map((machine) => (
+                    <motion.button
+                      key={machine.id}
+                      whileTap={{ scale: 0.98 }}
+                      onClick={() => setSelectedMachine(machine.name)}
+                      className={`p-3 rounded-lg text-sm text-left transition-all ${
+                        selectedMachine === machine.name
+                          ? "bg-primary/10 border border-primary text-primary"
+                          : "bg-muted/50 border border-transparent text-foreground hover:border-border"
+                      }`}
+                    >
+                      <span className="font-medium">{machine.name}</span>
+                      {(machine.manufacturer || machine.year > 0) && (
+                        <span className="text-xs text-muted-foreground ml-2">
+                          {machine.manufacturer} {machine.year > 0 && `(${machine.year})`}
+                        </span>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              )}
             </div>
 
             {selectedMachine && (
