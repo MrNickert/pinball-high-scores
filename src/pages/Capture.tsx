@@ -388,22 +388,10 @@ const Capture = () => {
             
             if (machineMatch && scoreMatch) {
               validationStatus = "ai_validated";
-              toast({
-                title: "AI Verified! ✅",
-                description: "Both machine and score confirmed by AI",
-              });
             } else if (scoreMatch) {
               validationStatus = "score_only";
-              toast({
-                title: "Score Verified 🎯",
-                description: "Score confirmed, machine could not be verified",
-              });
             } else {
               validationStatus = "not_validated";
-              toast({
-                title: "Pending Review",
-                description: "Score will be reviewed by the community",
-              });
             }
           }
         } catch (validationErr) {
@@ -442,10 +430,18 @@ const Capture = () => {
       setLastScoreLocationId(selectedLocation.id);
       setLastScoreLocationCoords({ lat: parseFloat(selectedLocation.lat), lon: parseFloat(selectedLocation.lon) });
 
-      toast({
-        title: "Score submitted! 🎯",
-        description: "Your score has been added to the leaderboard.",
-      });
+      // Show single toast based on validation status
+      if (validationStatus === "ai_validated") {
+        toast({
+          title: "Score accepted! ✅",
+          description: "Your score has been verified and added to the leaderboard.",
+        });
+      } else if (validationStatus === "score_only" || validationStatus === "not_validated" || !validationStatus) {
+        toast({
+          title: "Score submitted! 👀",
+          description: "The community will review and validate your score.",
+        });
+      }
 
       // Reset form
       setStep(1);
