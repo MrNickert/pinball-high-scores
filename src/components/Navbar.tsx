@@ -2,6 +2,9 @@ import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy, User, Camera, Home, LogIn, Circle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/contexts/AuthContext";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
@@ -13,6 +16,37 @@ const navItems = [
 
 export const Navbar = () => {
   const location = useLocation();
+  const { user } = useAuth();
+  const [pendingCount, setPendingCount] = useState(0);
+
+  useEffect(() => {
+    const fetchPendingCount = async () => {
+      try {
+        let query = supabase
+          .from("scores")
+          .select("id", { count: "exact", head: true })
+          .in("validation_status", ["not_validated", "score_only"]);
+
+        // Exclude user's own scores if logged in
+        if (user) {
+          query = query.neq("user_id", user.id);
+        }
+
+        const { count, error } = await query;
+        if (!error && count !== null) {
+          setPendingCount(count);
+        }
+      } catch (error) {
+        console.error("Error fetching pending count:", error);
+      }
+    };
+
+    fetchPendingCount();
+
+    // Refresh count when route changes (in case user just voted)
+    const interval = setInterval(fetchPendingCount, 30000);
+    return () => clearInterval(interval);
+  }, [user, location.pathname]);
 
   return (
     <motion.nav 
@@ -35,12 +69,13 @@ export const Navbar = () => {
           <div className="hidden md:flex items-center gap-1">
             {navItems.map((item) => {
               const isActive = location.pathname === item.path;
+              const showBadge = item.path === "/verify" && pendingCount > 0;
               return (
                 <Link key={item.path} to={item.path}>
                   <motion.div
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
-                    className={`flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
+                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       isActive 
                         ? "bg-primary/10 text-primary" 
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
@@ -48,6 +83,11 @@ export const Navbar = () => {
                   >
                     <item.icon size={18} />
                     <span className="text-sm font-medium">{item.label}</span>
+                    {showBadge && (
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full px-1">
+                        {pendingCount > 99 ? "99+" : pendingCount}
+                      </span>
+                    )}
                   </motion.div>
                 </Link>
               );
@@ -68,11 +108,12 @@ export const Navbar = () => {
         <div className="flex justify-around py-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
+            const showBadge = item.path === "/verify" && pendingCount > 0;
             return (
               <Link key={item.path} to={item.path}>
                 <motion.div
                   whileTap={{ scale: 0.9 }}
-                  className={`flex flex-col items-center p-2 rounded-lg ${
+                  className={`relative flex flex-col items-center p-2 rounded-lg ${
                     isActive 
                       ? "text-primary" 
                       : "text-muted-foreground"
@@ -80,6 +121,11 @@ export const Navbar = () => {
                 >
                   <item.icon size={20} />
                   <span className="text-[10px] mt-1 font-medium">{item.label}</span>
+                  {showBadge && (
+                    <span className="absolute -top-0.5 right-0 min-w-[16px] h-[16px] flex items-center justify-center bg-primary text-primary-foreground text-[9px] font-bold rounded-full px-1">
+                      {pendingCount > 99 ? "99+" : pendingCount}
+                    </span>
+                  )}
                 </motion.div>
               </Link>
             );
