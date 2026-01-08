@@ -115,25 +115,51 @@ const Verify = () => {
           }
         });
 
-        const scoresWithData = pendingScores.map(score => {
-          const voteData = voteMap.get(score.id) || { approve: 0, reject: 0, userVote: null };
-          return {
-            id: score.id,
-            score: score.score,
-            machine_name: score.machine_name,
-            location_name: score.location_name,
-            photo_url: score.photo_url,
-            created_at: score.created_at,
-            user_id: score.user_id,
-            username: profileMap.get(score.user_id) || "Anonymous",
-            validation_status: score.validation_status as PendingScore["validation_status"],
-            user_vote: voteData.userVote as PendingScore["user_vote"],
-            approve_count: voteData.approve,
-            reject_count: voteData.reject,
-          };
-        });
+        // Check for scores that should be auto-validated/invalidated
+        const scoresToUpdate: { id: string; status: string; verified: boolean }[] = [];
+        
+        for (const [scoreId, voteData] of voteMap.entries()) {
+          if (voteData.approve >= VOTES_REQUIRED) {
+            scoresToUpdate.push({ id: scoreId, status: "ai_validated", verified: true });
+          } else if (voteData.reject >= VOTES_REQUIRED) {
+            scoresToUpdate.push({ id: scoreId, status: "invalid", verified: false });
+          }
+        }
+
+        // Update any scores that need it
+        for (const update of scoresToUpdate) {
+          await supabase
+            .from("scores")
+            .update({ validation_status: update.status, verified: update.verified })
+            .eq("id", update.id);
+        }
+
+        // Filter out scores that were just updated
+        const updatedIds = new Set(scoresToUpdate.map(s => s.id));
+
+        const scoresWithData = pendingScores
+          .filter(score => !updatedIds.has(score.id))
+          .map(score => {
+            const voteData = voteMap.get(score.id) || { approve: 0, reject: 0, userVote: null };
+            return {
+              id: score.id,
+              score: score.score,
+              machine_name: score.machine_name,
+              location_name: score.location_name,
+              photo_url: score.photo_url,
+              created_at: score.created_at,
+              user_id: score.user_id,
+              username: profileMap.get(score.user_id) || "Anonymous",
+              validation_status: score.validation_status as PendingScore["validation_status"],
+              user_vote: voteData.userVote as PendingScore["user_vote"],
+              approve_count: voteData.approve,
+              reject_count: voteData.reject,
+            };
+          });
 
         setScores(scoresWithData);
+      } else {
+        setScores([]);
       }
     } catch (error) {
       console.error("Error fetching pending scores:", error);
