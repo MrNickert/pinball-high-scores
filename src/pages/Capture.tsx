@@ -58,6 +58,8 @@ const Capture = () => {
   const [detectedScores, setDetectedScores] = useState<DetectedScore[]>([]);
   const [isExtractingScores, setIsExtractingScores] = useState(false);
   const [lastScoreLocation, setLastScoreLocation] = useState<string | null>(null);
+  const [lastScoreLocationId, setLastScoreLocationId] = useState<number | null>(null);
+  const [lastScoreLocationCoords, setLastScoreLocationCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [skippedLocationStep, setSkippedLocationStep] = useState(false);
   const { toast } = useToast();
   const { user, loading } = useAuth();
@@ -73,18 +75,22 @@ const Capture = () => {
   useEffect(() => {
     const fetchLastLocation = async () => {
       if (!user) return;
-      
+
       const { data, error } = await supabase
         .from("profiles")
-        .select("last_location_name")
+        .select("last_location_id, last_location_name, last_location_lat, last_location_lon")
         .eq("user_id", user.id)
         .maybeSingle();
-      
-      if (data && !error && data.last_location_name) {
-        setLastScoreLocation(data.last_location_name);
+
+      if (error) return;
+
+      if (data?.last_location_name) setLastScoreLocation(data.last_location_name);
+      if (typeof data?.last_location_id === "number") setLastScoreLocationId(data.last_location_id);
+      if (typeof data?.last_location_lat === "number" && typeof data?.last_location_lon === "number") {
+        setLastScoreLocationCoords({ lat: data.last_location_lat, lon: data.last_location_lon });
       }
     };
-    
+
     fetchLastLocation();
   }, [user]);
 
@@ -114,25 +120,37 @@ const Capture = () => {
     }
   }, []);
 
-  // Auto-select last location if nearby
+  // Auto-select last location when user is still near it
   useEffect(() => {
-    if (lastScoreLocation && locations.length > 0 && step === 1 && !selectedLocation && !skippedLocationStep) {
-      const matchingLocation = locations.find(
-        (loc) => loc.name.toLowerCase() === lastScoreLocation.toLowerCase()
+    const maybeAutoSelect = async () => {
+      if (step !== 1 || selectedLocation || skippedLocationStep) return;
+      if (!lastScoreLocationId || !lastScoreLocationCoords || !userLocation) return;
+
+      const distanceToLast = calculateDistance(
+        userLocation.lat,
+        userLocation.lon,
+        lastScoreLocationCoords.lat,
+        lastScoreLocationCoords.lon
       );
-      
-      if (matchingLocation) {
-        setSelectedLocation(matchingLocation);
-        fetchMachinesForLocation(matchingLocation.id);
-        setSkippedLocationStep(true);
-        setStep(2);
-        toast({
-          title: "Welcome back! 🎮",
-          description: `Continuing at ${matchingLocation.name}`,
-        });
-      }
-    }
-  }, [lastScoreLocation, locations, step, selectedLocation, skippedLocationStep]);
+
+      // Consider "same location" if within ~0.25 miles
+      if (distanceToLast > 0.25) return;
+
+      const locationDetails = await fetchLocationDetails(lastScoreLocationId);
+      if (!locationDetails) return;
+
+      setSelectedLocation(locationDetails);
+      fetchMachinesForLocation(locationDetails.id);
+      setSkippedLocationStep(true);
+      setStep(2);
+      toast({
+        title: "Welcome back! 🎮",
+        description: `Continuing at ${locationDetails.name}`,
+      });
+    };
+
+    maybeAutoSelect();
+  }, [userLocation, lastScoreLocationId, lastScoreLocationCoords, step, selectedLocation, skippedLocationStep]);
   const fetchNearbyLocations = async (lat: number, lon: number) => {
     setIsLoadingLocations(true);
     try {
@@ -202,6 +220,32 @@ const Capture = () => {
       });
     } finally {
       setIsLoadingMachines(false);
+    }
+  };
+
+  const fetchLocationDetails = async (locationId: number): Promise<PinballLocation | null> => {
+    try {
+      const response = await fetch(
+        `https://pinballmap.com/api/v1/locations/${locationId}.json`
+      );
+      const data = await response.json();
+      const loc = data?.location;
+      if (!loc) return null;
+
+      return {
+        id: loc.id,
+        name: loc.name,
+        street: loc.street || "",
+        city: loc.city || "",
+        state: loc.state || "",
+        zip: loc.zip || "",
+        lat: String(loc.lat ?? ""),
+        lon: String(loc.lon ?? ""),
+        num_machines: loc.num_machines || 0,
+      };
+    } catch (e) {
+      console.error("Error fetching location details:", e);
+      return null;
     }
   };
 
@@ -345,13 +389,18 @@ const Capture = () => {
       // Save last location to user profile (persists across sessions)
       await supabase
         .from("profiles")
-        .update({ 
+        .update({
+          last_location_id: selectedLocation.id,
           last_location_name: selectedLocation.name,
-          last_location_updated_at: new Date().toISOString()
+          last_location_lat: parseFloat(selectedLocation.lat),
+          last_location_lon: parseFloat(selectedLocation.lon),
+          last_location_updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
 
       setLastScoreLocation(selectedLocation.name);
+      setLastScoreLocationId(selectedLocation.id);
+      setLastScoreLocationCoords({ lat: parseFloat(selectedLocation.lat), lon: parseFloat(selectedLocation.lon) });
 
       toast({
         title: "Score submitted! 🎯",

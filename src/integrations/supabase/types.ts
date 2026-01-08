@@ -19,6 +19,7 @@ export type Database = {
           avatar_url: string | null
           created_at: string
           id: string
+          last_location_id: number | null
           last_location_lat: number | null
           last_location_lon: number | null
           last_location_name: string | null
@@ -31,6 +32,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          last_location_id?: number | null
           last_location_lat?: number | null
           last_location_lon?: number | null
           last_location_name?: string | null
@@ -43,6 +45,7 @@ export type Database = {
           avatar_url?: string | null
           created_at?: string
           id?: string
+          last_location_id?: number | null
           last_location_lat?: number | null
           last_location_lon?: number | null
           last_location_name?: string | null

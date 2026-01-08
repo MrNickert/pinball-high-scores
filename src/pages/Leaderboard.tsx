@@ -61,10 +61,10 @@ const Leaderboard = () => {
       if (error) throw error;
 
       if (scores && scores.length > 0) {
-        // Fetch profiles for all users
+        // Fetch public profiles (safe fields only)
         const userIds = [...new Set(scores.map(s => s.user_id))];
         const { data: profiles } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("user_id, username")
           .in("user_id", userIds);
 
