@@ -9,6 +9,7 @@ import Auth from "./pages/Auth";
 import Leaderboard from "./pages/Leaderboard";
 import Capture from "./pages/Capture";
 import Profile from "./pages/Profile";
+import Verify from "./pages/Verify";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -26,6 +27,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/capture" element={<Capture />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/verify" element={<Verify />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>

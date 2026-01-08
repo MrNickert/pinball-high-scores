@@ -1,12 +1,13 @@
 import { Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, User, Camera, Home, LogIn, Circle } from "lucide-react";
+import { Trophy, User, Camera, Home, LogIn, Circle, Eye } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 const navItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/capture", label: "Capture", icon: Camera },
+  { path: "/verify", label: "Verify", icon: Eye },
   { path: "/profile", label: "Profile", icon: User },
 ];
 

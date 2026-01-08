@@ -1,11 +1,24 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Trophy, Medal, Crown, Search, Filter, Loader2 } from "lucide-react";
+import { Trophy, Medal, Crown, Search, Loader2, ChevronDown, Filter, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge, ValidationIndicator } from "@/components/ValidationBadge";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuCheckboxItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
 interface LeaderboardEntry {
   id: string;
@@ -39,13 +52,53 @@ const getAvatar = (username: string) => {
 const Leaderboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
+  const [machines, setMachines] = useState<string[]>([]);
+  const [selectedMachine, setSelectedMachine] = useState<string>("");
   const [loading, setLoading] = useState(true);
+  const [loadingScores, setLoadingScores] = useState(false);
+  
+  // Validation filters - only ai_validated shown by default
+  const [showAiValidated, setShowAiValidated] = useState(true);
+  const [showScoreOnly, setShowScoreOnly] = useState(false);
+  const [showNotValidated, setShowNotValidated] = useState(false);
+  const [showUnknown, setShowUnknown] = useState(false);
 
   useEffect(() => {
-    fetchLeaderboard();
+    fetchMachines();
   }, []);
 
-  const fetchLeaderboard = async () => {
+  useEffect(() => {
+    if (selectedMachine) {
+      fetchScoresForMachine(selectedMachine);
+    }
+  }, [selectedMachine]);
+
+  const fetchMachines = async () => {
+    try {
+      const { data, error } = await supabase
+        .from("scores")
+        .select("machine_name")
+        .order("machine_name");
+
+      if (error) throw error;
+
+      // Get unique machine names
+      const uniqueMachines = [...new Set(data?.map(d => d.machine_name) || [])];
+      setMachines(uniqueMachines);
+      
+      // Auto-select first machine if available
+      if (uniqueMachines.length > 0) {
+        setSelectedMachine(uniqueMachines[0]);
+      }
+    } catch (error) {
+      console.error("Error fetching machines:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const fetchScoresForMachine = async (machineName: string) => {
+    setLoadingScores(true);
     try {
       const { data: scores, error } = await supabase
         .from("scores")
@@ -58,13 +111,13 @@ const Leaderboard = () => {
           user_id,
           validation_status
         `)
+        .eq("machine_name", machineName)
         .order("score", { ascending: false })
         .limit(50);
 
       if (error) throw error;
 
       if (scores && scores.length > 0) {
-        // Fetch public profiles (safe fields only)
         const userIds = [...new Set(scores.map(s => s.user_id))];
         const { data: profiles } = await supabase
           .from("public_profiles")
@@ -84,19 +137,33 @@ const Leaderboard = () => {
         }));
 
         setEntries(entriesWithUsernames);
+      } else {
+        setEntries([]);
       }
     } catch (error) {
-      console.error("Error fetching leaderboard:", error);
+      console.error("Error fetching scores:", error);
     } finally {
-      setLoading(false);
+      setLoadingScores(false);
     }
   };
 
-  const filteredScores = entries.filter(
+  // Filter entries based on validation status toggles
+  const filteredByValidation = entries.filter(entry => {
+    if (entry.validation_status === "ai_validated" && showAiValidated) return true;
+    if (entry.validation_status === "score_only" && showScoreOnly) return true;
+    if (entry.validation_status === "not_validated" && showNotValidated) return true;
+    if (!entry.validation_status && showUnknown) return true;
+    return false;
+  });
+
+  // Then filter by search term
+  const filteredScores = filteredByValidation.filter(
     (entry) =>
       entry.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      entry.machine_name.toLowerCase().includes(searchTerm.toLowerCase())
+      (entry.location_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
+
+  const activeFilterCount = [showAiValidated, showScoreOnly, showNotValidated, showUnknown].filter(Boolean).length;
 
   if (loading) {
     return (
@@ -120,40 +187,98 @@ const Leaderboard = () => {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-10"
+          className="text-center mb-8"
         >
           <div className="inline-flex items-center gap-3 mb-4">
             <Trophy className="text-primary" size={28} />
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Leaderboard</h1>
           </div>
           <p className="text-muted-foreground">
-            Global rankings of the greatest achievements
+            Select a machine to view high scores
           </p>
         </motion.div>
 
-        {/* Search & Filters */}
+        {/* Machine Selector */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl mx-auto"
+          className="max-w-md mx-auto mb-8"
         >
-          <div className="relative flex-1">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-            <Input
-              placeholder="Search player or machine..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
-          </div>
-          <Button variant="outline" className="gap-2">
-            <Filter size={16} />
-            Filters
-          </Button>
+          <Select value={selectedMachine} onValueChange={setSelectedMachine}>
+            <SelectTrigger className="w-full h-12 text-base">
+              <SelectValue placeholder="Select a pinball machine" />
+            </SelectTrigger>
+            <SelectContent>
+              {machines.map((machine) => (
+                <SelectItem key={machine} value={machine}>
+                  🎰 {machine}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </motion.div>
 
-        {entries.length === 0 ? (
+        {/* Search & Filters */}
+        {selectedMachine && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="flex flex-col sm:flex-row gap-4 mb-8 max-w-2xl mx-auto"
+          >
+            <div className="relative flex-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+              <Input
+                placeholder="Search player or location..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="outline" className="gap-2">
+                  <Filter size={16} />
+                  Validation
+                  {activeFilterCount > 0 && (
+                    <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
+                      {activeFilterCount}
+                    </span>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuCheckboxItem
+                  checked={showAiValidated}
+                  onCheckedChange={setShowAiValidated}
+                >
+                  ✅ AI Verified
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={showScoreOnly}
+                  onCheckedChange={setShowScoreOnly}
+                >
+                  🎯 Score Verified
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={showNotValidated}
+                  onCheckedChange={setShowNotValidated}
+                >
+                  👀 Pending Review
+                </DropdownMenuCheckboxItem>
+                <DropdownMenuCheckboxItem
+                  checked={showUnknown}
+                  onCheckedChange={setShowUnknown}
+                >
+                  ❓ Legacy (no status)
+                </DropdownMenuCheckboxItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
+          </motion.div>
+        )}
+
+        {machines.length === 0 ? (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -162,6 +287,31 @@ const Leaderboard = () => {
             <Trophy className="mx-auto mb-4 text-muted-foreground" size={64} />
             <h2 className="text-xl font-semibold text-foreground mb-2">No scores yet</h2>
             <p className="text-muted-foreground">Be the first to submit a score!</p>
+          </motion.div>
+        ) : loadingScores ? (
+          <div className="flex items-center justify-center py-20">
+            <Loader2 className="animate-spin text-primary" size={32} />
+          </div>
+        ) : filteredScores.length === 0 ? (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="text-center py-20"
+          >
+            <Eye className="mx-auto mb-4 text-muted-foreground" size={48} />
+            <h2 className="text-lg font-semibold text-foreground mb-2">No verified scores</h2>
+            <p className="text-muted-foreground mb-4">Adjust filters to see more scores</p>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setShowAiValidated(true);
+                setShowScoreOnly(true);
+                setShowNotValidated(true);
+                setShowUnknown(true);
+              }}
+            >
+              Show All Scores
+            </Button>
           </motion.div>
         ) : (
           <>
@@ -201,7 +351,7 @@ const Leaderboard = () => {
                         <ValidationIndicator status={entry.validation_status} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 truncate">
-                        {entry.machine_name}
+                        {entry.location_name || "Unknown location"}
                       </p>
                     </motion.div>
                   );
@@ -217,7 +367,7 @@ const Leaderboard = () => {
               className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm max-w-4xl mx-auto"
             >
               <div className="p-4 border-b border-border">
-                <h2 className="font-semibold text-foreground">All Rankings</h2>
+                <h2 className="font-semibold text-foreground">{selectedMachine} Rankings</h2>
               </div>
               <div className="divide-y divide-border">
                 {filteredScores.map((entry, index) => (
@@ -237,7 +387,7 @@ const Leaderboard = () => {
                         {entry.username}
                       </p>
                       <p className="text-sm text-muted-foreground truncate">
-                        {entry.machine_name} {entry.location_name && `• ${entry.location_name}`}
+                        {entry.location_name || "Unknown location"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
