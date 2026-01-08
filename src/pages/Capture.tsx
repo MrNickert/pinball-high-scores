@@ -344,6 +344,9 @@ const Capture = () => {
 
       if (error) throw error;
 
+      // Update last score location to the one just submitted
+      setLastScoreLocation(selectedLocation.name);
+
       toast({
         title: "Score submitted! 🎯",
         description: "Your score has been added to the leaderboard.",
@@ -356,6 +359,7 @@ const Capture = () => {
       setScoreImage(null);
       setScoreImagePreview(null);
       setScore("");
+      setSkippedLocationStep(false);
 
       navigate("/leaderboard");
     } catch (error: any) {
