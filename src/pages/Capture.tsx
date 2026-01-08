@@ -46,6 +46,7 @@ const Capture = () => {
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [machineSearchQuery, setMachineSearchQuery] = useState("");
   const [isSearchingApi, setIsSearchingApi] = useState(false);
   const [searchedViaApi, setSearchedViaApi] = useState(false);
   const { toast } = useToast();
@@ -516,7 +517,10 @@ const Capture = () => {
             className="bg-card rounded-2xl p-6 border border-border shadow-sm"
           >
             <button
-              onClick={() => setStep(1)}
+              onClick={() => {
+                setStep(1);
+                setMachineSearchQuery("");
+              }}
               className="text-muted-foreground text-sm mb-4 hover:text-foreground transition-colors"
             >
               ← Back to locations
@@ -530,7 +534,7 @@ const Capture = () => {
             </div>
 
             <div className="mb-6">
-              <Label className="text-foreground mb-3 block">Select Machine</Label>
+              <Label className="text-foreground mb-3 block">Select Machine ({machines.length} available)</Label>
               
               {isLoadingMachines ? (
                 <div className="flex items-center justify-center py-8">
@@ -541,27 +545,51 @@ const Capture = () => {
                   <p className="text-muted-foreground">No machines found at this location</p>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
-                  {machines.map((machine) => (
-                    <motion.button
-                      key={machine.id}
-                      whileTap={{ scale: 0.98 }}
-                      onClick={() => setSelectedMachine(machine.name)}
-                      className={`p-3 rounded-lg text-sm text-left transition-all ${
-                        selectedMachine === machine.name
-                          ? "bg-primary/10 border border-primary text-primary"
-                          : "bg-muted/50 border border-transparent text-foreground hover:border-border"
-                      }`}
-                    >
-                      <span className="font-medium">{machine.name}</span>
-                      {(machine.manufacturer || machine.year > 0) && (
-                        <span className="text-xs text-muted-foreground ml-2">
-                          {machine.manufacturer} {machine.year > 0 && `(${machine.year})`}
-                        </span>
-                      )}
-                    </motion.button>
-                  ))}
-                </div>
+                <>
+                  <div className="relative mb-3">
+                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+                    <Input
+                      placeholder="Filter machines..."
+                      className="pl-9"
+                      value={machineSearchQuery}
+                      onChange={(e) => setMachineSearchQuery(e.target.value)}
+                    />
+                  </div>
+                  <div className="grid grid-cols-1 gap-2 max-h-64 overflow-y-auto">
+                    {machines
+                      .filter((m) => 
+                        m.name.toLowerCase().includes(machineSearchQuery.toLowerCase()) ||
+                        m.manufacturer?.toLowerCase().includes(machineSearchQuery.toLowerCase())
+                      )
+                      .map((machine) => (
+                        <motion.button
+                          key={machine.id}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setSelectedMachine(machine.name)}
+                          className={`p-3 rounded-lg text-sm text-left transition-all ${
+                            selectedMachine === machine.name
+                              ? "bg-primary/10 border border-primary text-primary"
+                              : "bg-muted/50 border border-transparent text-foreground hover:border-border"
+                          }`}
+                        >
+                          <span className="font-medium">{machine.name}</span>
+                          {(machine.manufacturer || machine.year > 0) && (
+                            <span className="text-xs text-muted-foreground ml-2">
+                              {machine.manufacturer} {machine.year > 0 && `(${machine.year})`}
+                            </span>
+                          )}
+                        </motion.button>
+                      ))}
+                    {machines.filter((m) => 
+                      m.name.toLowerCase().includes(machineSearchQuery.toLowerCase()) ||
+                      m.manufacturer?.toLowerCase().includes(machineSearchQuery.toLowerCase())
+                    ).length === 0 && (
+                      <p className="text-center text-muted-foreground text-sm py-4">
+                        No machines match "{machineSearchQuery}"
+                      </p>
+                    )}
+                  </div>
+                </>
               )}
             </div>
 
