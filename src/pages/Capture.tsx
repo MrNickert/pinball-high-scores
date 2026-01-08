@@ -30,6 +30,12 @@ interface PinballMachine {
   year: number;
 }
 
+interface DetectedScore {
+  player: string;
+  score: number;
+  formatted: string;
+}
+
 const Capture = () => {
   const [step, setStep] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState<PinballLocation | null>(null);
@@ -49,6 +55,8 @@ const Capture = () => {
   const [machineSearchQuery, setMachineSearchQuery] = useState("");
   const [isSearchingApi, setIsSearchingApi] = useState(false);
   const [searchedViaApi, setSearchedViaApi] = useState(false);
+  const [detectedScores, setDetectedScores] = useState<DetectedScore[]>([]);
+  const [isExtractingScores, setIsExtractingScores] = useState(false);
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -214,14 +222,39 @@ const Capture = () => {
     setStep(2);
   };
 
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setScoreImage(file);
       const reader = new FileReader();
-      reader.onloadend = () => {
-        setScoreImagePreview(reader.result as string);
+      reader.onloadend = async () => {
+        const base64 = reader.result as string;
+        setScoreImagePreview(base64);
         setStep(3);
+        
+        // Extract scores from image using AI
+        setIsExtractingScores(true);
+        setDetectedScores([]);
+        try {
+          const { data, error } = await supabase.functions.invoke("extract-scores", {
+            body: { imageBase64: base64 },
+          });
+          
+          if (error) throw error;
+          
+          if (data.scores && Array.isArray(data.scores) && data.scores.length > 0) {
+            setDetectedScores(data.scores);
+            toast({
+              title: "Scores detected! 🎯",
+              description: `Found ${data.scores.length} score(s) in your photo`,
+            });
+          }
+        } catch (error) {
+          console.error("Failed to extract scores:", error);
+          // Silently fail - user can still enter score manually
+        } finally {
+          setIsExtractingScores(false);
+        }
       };
       reader.readAsDataURL(file);
     }
@@ -665,7 +698,42 @@ const Capture = () => {
                 <span className="text-foreground font-medium">{selectedMachine}</span>
               </div>
               <div>
-                <Label className="text-foreground mb-2 block">Enter Your Score</Label>
+                <Label className="text-foreground mb-2 block">
+                  {isExtractingScores ? "Analyzing photo..." : detectedScores.length > 0 ? "Select or enter your score" : "Enter Your Score"}
+                </Label>
+                
+                {isExtractingScores && (
+                  <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg mb-3">
+                    <Loader2 className="animate-spin text-primary" size={16} />
+                    <span className="text-sm text-primary">Detecting scores from photo...</span>
+                  </div>
+                )}
+                
+                {detectedScores.length > 0 && (
+                  <div className="space-y-2 mb-3">
+                    <p className="text-xs text-muted-foreground">Detected scores (tap to select):</p>
+                    <div className="grid grid-cols-2 gap-2">
+                      {detectedScores.map((detected, index) => (
+                        <motion.button
+                          key={index}
+                          whileTap={{ scale: 0.98 }}
+                          onClick={() => setScore(detected.formatted)}
+                          className={`p-3 rounded-lg text-left transition-all ${
+                            score === detected.formatted
+                              ? "bg-primary/10 border border-primary"
+                              : "bg-muted/50 border border-transparent hover:border-border"
+                          }`}
+                        >
+                          <span className="text-xs text-muted-foreground block">Player {detected.player}</span>
+                          <span className={`font-bold ${score === detected.formatted ? "text-primary" : "text-foreground"}`}>
+                            {detected.formatted}
+                          </span>
+                        </motion.button>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
                 <Input
                   type="text"
                   placeholder="12,345,678"
