@@ -1,12 +1,22 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Loader2, MapPin, Calendar, ExternalLink } from "lucide-react";
+import { Eye, Loader2, MapPin, Calendar, ExternalLink, ThumbsUp, ThumbsDown, CheckCircle } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge } from "@/components/ValidationBadge";
 import { useAuth } from "@/contexts/AuthContext";
+import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 interface PendingScore {
   id: string;
@@ -16,17 +26,35 @@ interface PendingScore {
   photo_url: string | null;
   created_at: string;
   username: string;
+  user_id: string;
   validation_status: "ai_validated" | "score_only" | "not_validated" | null;
+  user_vote?: "approve" | "reject" | null;
+  approve_count: number;
+  reject_count: number;
 }
+
+const rejectionReasons = [
+  { value: "score_not_visible", label: "Score not visible in photo" },
+  { value: "score_mismatch", label: "Score doesn't match claim" },
+  { value: "wrong_machine", label: "Wrong machine shown" },
+  { value: "photo_unclear", label: "Photo too blurry/unclear" },
+  { value: "suspected_fake", label: "Suspected manipulation" },
+  { value: "other", label: "Other reason" },
+] as const;
 
 const Verify = () => {
   const [scores, setScores] = useState<PendingScore[]>([]);
   const [loading, setLoading] = useState(true);
+  const [votingScoreId, setVotingScoreId] = useState<string | null>(null);
+  const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
+  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [rejectingScoreId, setRejectingScoreId] = useState<string | null>(null);
   const { user } = useAuth();
+  const { toast } = useToast();
 
   useEffect(() => {
     fetchPendingScores();
-  }, []);
+  }, [user]);
 
   const fetchPendingScores = async () => {
     try {
@@ -44,13 +72,16 @@ const Verify = () => {
           validation_status
         `)
         .in("validation_status", ["not_validated", "score_only"])
-        .order("created_at", { ascending: true }) // Oldest first
+        .order("created_at", { ascending: true })
         .limit(50);
 
       if (error) throw error;
 
       if (pendingScores && pendingScores.length > 0) {
         const userIds = [...new Set(pendingScores.map(s => s.user_id))];
+        const scoreIds = pendingScores.map(s => s.id);
+
+        // Fetch profiles
         const { data: profiles } = await supabase
           .from("public_profiles")
           .select("user_id, username")
@@ -58,23 +89,200 @@ const Verify = () => {
 
         const profileMap = new Map(profiles?.map(p => [p.user_id, p.username]) || []);
 
-        const scoresWithUsernames = pendingScores.map(score => ({
-          id: score.id,
-          score: score.score,
-          machine_name: score.machine_name,
-          location_name: score.location_name,
-          photo_url: score.photo_url,
-          created_at: score.created_at,
-          username: profileMap.get(score.user_id) || "Anonymous",
-          validation_status: score.validation_status as PendingScore["validation_status"],
-        }));
+        // Fetch all votes for these scores
+        const { data: votes } = await supabase
+          .from("score_votes")
+          .select("score_id, user_id, vote")
+          .in("score_id", scoreIds);
 
-        setScores(scoresWithUsernames);
+        // Calculate vote counts and user's vote
+        const voteMap = new Map<string, { approve: number; reject: number; userVote: string | null }>();
+        
+        scoreIds.forEach(id => {
+          voteMap.set(id, { approve: 0, reject: 0, userVote: null });
+        });
+
+        votes?.forEach(vote => {
+          const current = voteMap.get(vote.score_id);
+          if (current) {
+            if (vote.vote === "approve") current.approve++;
+            if (vote.vote === "reject") current.reject++;
+            if (user && vote.user_id === user.id) {
+              current.userVote = vote.vote;
+            }
+          }
+        });
+
+        const scoresWithData = pendingScores.map(score => {
+          const voteData = voteMap.get(score.id) || { approve: 0, reject: 0, userVote: null };
+          return {
+            id: score.id,
+            score: score.score,
+            machine_name: score.machine_name,
+            location_name: score.location_name,
+            photo_url: score.photo_url,
+            created_at: score.created_at,
+            user_id: score.user_id,
+            username: profileMap.get(score.user_id) || "Anonymous",
+            validation_status: score.validation_status as PendingScore["validation_status"],
+            user_vote: voteData.userVote as PendingScore["user_vote"],
+            approve_count: voteData.approve,
+            reject_count: voteData.reject,
+          };
+        });
+
+        setScores(scoresWithData);
       }
     } catch (error) {
       console.error("Error fetching pending scores:", error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleApprove = async (scoreId: string) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to verify scores",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setVotingScoreId(scoreId);
+
+    try {
+      // First try to update existing vote
+      const { data: existingVote } = await supabase
+        .from("score_votes")
+        .select("id")
+        .eq("score_id", scoreId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingVote) {
+        const { error } = await supabase
+          .from("score_votes")
+          .update({
+            vote: "approve",
+            rejection_reason: null,
+          })
+          .eq("id", existingVote.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("score_votes")
+          .insert({
+            score_id: scoreId,
+            user_id: user.id,
+            vote: "approve",
+          });
+        if (error) throw error;
+      }
+
+      // Update local state
+      setScores(prev => prev.map(s => 
+        s.id === scoreId 
+          ? { 
+              ...s, 
+              user_vote: "approve",
+              approve_count: s.user_vote === "reject" ? s.approve_count + 1 : (s.user_vote === null ? s.approve_count + 1 : s.approve_count),
+              reject_count: s.user_vote === "reject" ? s.reject_count - 1 : s.reject_count,
+            }
+          : s
+      ));
+
+      toast({
+        title: "Vote recorded! ✅",
+        description: "Thanks for helping verify this score",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to record vote",
+        variant: "destructive",
+      });
+    } finally {
+      setVotingScoreId(null);
+    }
+  };
+
+  const openRejectDialog = (scoreId: string) => {
+    if (!user) {
+      toast({
+        title: "Sign in required",
+        description: "Please sign in to verify scores",
+        variant: "destructive",
+      });
+      return;
+    }
+    setRejectingScoreId(scoreId);
+    setSelectedReason("");
+    setRejectDialogOpen(true);
+  };
+
+  const handleReject = async () => {
+    if (!user || !rejectingScoreId || !selectedReason) return;
+
+    setVotingScoreId(rejectingScoreId);
+    setRejectDialogOpen(false);
+
+    try {
+      // First try to update existing vote
+      const { data: existingVote } = await supabase
+        .from("score_votes")
+        .select("id")
+        .eq("score_id", rejectingScoreId)
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (existingVote) {
+        const { error } = await supabase
+          .from("score_votes")
+          .update({
+            vote: "reject",
+            rejection_reason: selectedReason as any,
+          })
+          .eq("id", existingVote.id);
+        if (error) throw error;
+      } else {
+        const { error } = await supabase
+          .from("score_votes")
+          .insert({
+            score_id: rejectingScoreId,
+            user_id: user.id,
+            vote: "reject",
+            rejection_reason: selectedReason as any,
+          });
+        if (error) throw error;
+      }
+
+      // Update local state
+      setScores(prev => prev.map(s => 
+        s.id === rejectingScoreId 
+          ? { 
+              ...s, 
+              user_vote: "reject",
+              reject_count: s.user_vote === "approve" ? s.reject_count + 1 : (s.user_vote === null ? s.reject_count + 1 : s.reject_count),
+              approve_count: s.user_vote === "approve" ? s.approve_count - 1 : s.approve_count,
+            }
+          : s
+      ));
+
+      toast({
+        title: "Vote recorded! 👎",
+        description: "Thanks for your feedback",
+      });
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to record vote",
+        variant: "destructive",
+      });
+    } finally {
+      setVotingScoreId(null);
+      setRejectingScoreId(null);
     }
   };
 
@@ -133,6 +341,18 @@ const Verify = () => {
             <p className="text-xs text-muted-foreground">Pending Review</p>
           </div>
         </motion.div>
+
+        {!user && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 max-w-4xl mx-auto text-center"
+          >
+            <p className="text-amber-600 dark:text-amber-400">
+              <Link to="/auth" className="font-semibold underline">Sign in</Link> to vote on scores
+            </p>
+          </motion.div>
+        )}
 
         {scores.length === 0 ? (
           <motion.div
@@ -208,37 +428,111 @@ const Verify = () => {
                     </div>
 
                     <div className="flex items-center justify-between">
-                      <p className="text-2xl font-bold text-primary">
-                        {score.score.toLocaleString()}
-                      </p>
+                      <div>
+                        <p className="text-2xl font-bold text-primary">
+                          {score.score.toLocaleString()}
+                        </p>
+                        {/* Vote counts */}
+                        <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                          <span className="text-emerald-600 dark:text-emerald-400">
+                            👍 {score.approve_count}
+                          </span>
+                          <span className="text-red-600 dark:text-red-400">
+                            👎 {score.reject_count}
+                          </span>
+                        </div>
+                      </div>
                       
-                      {/* Future: Add verification buttons here */}
+                      {/* Voting buttons */}
                       <div className="flex gap-2">
-                        <Button variant="outline" size="sm" disabled>
-                          👎 Reject
-                        </Button>
-                        <Button variant="default" size="sm" disabled>
-                          👍 Verify
-                        </Button>
+                        {score.user_vote ? (
+                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-sm">
+                            <CheckCircle size={16} />
+                            Voted {score.user_vote === "approve" ? "👍" : "👎"}
+                          </div>
+                        ) : (
+                          <>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => openRejectDialog(score.id)}
+                              disabled={!user || votingScoreId === score.id || score.user_id === user?.id}
+                              className="gap-1 hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/30"
+                            >
+                              {votingScoreId === score.id ? (
+                                <Loader2 className="animate-spin" size={14} />
+                              ) : (
+                                <ThumbsDown size={14} />
+                              )}
+                              Reject
+                            </Button>
+                            <Button 
+                              variant="default" 
+                              size="sm"
+                              onClick={() => handleApprove(score.id)}
+                              disabled={!user || votingScoreId === score.id || score.user_id === user?.id}
+                              className="gap-1"
+                            >
+                              {votingScoreId === score.id ? (
+                                <Loader2 className="animate-spin" size={14} />
+                              ) : (
+                                <ThumbsUp size={14} />
+                              )}
+                              Verify
+                            </Button>
+                          </>
+                        )}
                       </div>
                     </div>
+                    
+                    {score.user_id === user?.id && (
+                      <p className="text-xs text-muted-foreground mt-2 italic">
+                        This is your score - you can't vote on it
+                      </p>
+                    )}
                   </div>
                 </div>
               </motion.div>
             ))}
           </div>
         )}
-
-        {/* Info note */}
-        <motion.p
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 0.4 }}
-          className="text-center text-sm text-muted-foreground mt-8 max-w-lg mx-auto"
-        >
-          💡 Community verification coming soon! For now, browse scores that need review.
-        </motion.p>
       </div>
+
+      {/* Rejection Reason Dialog */}
+      <Dialog open={rejectDialogOpen} onOpenChange={setRejectDialogOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Why are you rejecting this score?</DialogTitle>
+            <DialogDescription>
+              Select the main reason for rejecting this submission
+            </DialogDescription>
+          </DialogHeader>
+          
+          <RadioGroup value={selectedReason} onValueChange={setSelectedReason} className="mt-4">
+            {rejectionReasons.map((reason) => (
+              <div key={reason.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted">
+                <RadioGroupItem value={reason.value} id={reason.value} />
+                <Label htmlFor={reason.value} className="flex-1 cursor-pointer">
+                  {reason.label}
+                </Label>
+              </div>
+            ))}
+          </RadioGroup>
+
+          <div className="flex justify-end gap-2 mt-4">
+            <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              variant="destructive" 
+              onClick={handleReject}
+              disabled={!selectedReason}
+            >
+              Reject Score
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
 
       <div className="h-20 md:h-0" />
     </div>
