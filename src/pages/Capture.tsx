@@ -636,11 +636,11 @@ const Capture = () => {
             <h2 className="font-semibold text-foreground mb-6">Confirm Your Score</h2>
 
             {scoreImagePreview && (
-              <div className="relative mb-6">
+              <div className="relative mb-6 bg-muted/30 rounded-xl overflow-hidden">
                 <img
                   src={scoreImagePreview}
                   alt="Score"
-                  className="w-full h-64 object-cover rounded-xl"
+                  className="w-full max-h-96 object-contain"
                 />
                 <button
                   onClick={() => {
