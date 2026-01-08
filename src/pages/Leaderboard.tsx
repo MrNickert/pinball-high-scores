@@ -5,6 +5,7 @@ import { Navbar } from "@/components/Navbar";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
+import { ValidationBadge, ValidationIndicator } from "@/components/ValidationBadge";
 
 interface LeaderboardEntry {
   id: string;
@@ -13,6 +14,7 @@ interface LeaderboardEntry {
   location_name: string | null;
   created_at: string;
   username: string;
+  validation_status: "ai_validated" | "score_only" | "not_validated" | null;
 }
 
 const getRankDisplay = (rank: number) => {
@@ -53,7 +55,8 @@ const Leaderboard = () => {
           machine_name,
           location_name,
           created_at,
-          user_id
+          user_id,
+          validation_status
         `)
         .order("score", { ascending: false })
         .limit(50);
@@ -77,6 +80,7 @@ const Leaderboard = () => {
           location_name: score.location_name,
           created_at: score.created_at,
           username: profileMap.get(score.user_id) || "Anonymous",
+          validation_status: score.validation_status as LeaderboardEntry["validation_status"],
         }));
 
         setEntries(entriesWithUsernames);
@@ -190,9 +194,12 @@ const Leaderboard = () => {
                       <p className="font-semibold text-foreground truncate">
                         {entry.username}
                       </p>
-                      <p className="text-lg font-bold text-primary mt-1">
-                        {entry.score.toLocaleString()}
-                      </p>
+                      <div className="flex items-center justify-center gap-1 mt-1">
+                        <p className="text-lg font-bold text-primary">
+                          {entry.score.toLocaleString()}
+                        </p>
+                        <ValidationIndicator status={entry.validation_status} />
+                      </div>
                       <p className="text-xs text-muted-foreground mt-1 truncate">
                         {entry.machine_name}
                       </p>
@@ -233,7 +240,8 @@ const Leaderboard = () => {
                         {entry.machine_name} {entry.location_name && `• ${entry.location_name}`}
                       </p>
                     </div>
-                    <div className="text-right">
+                    <div className="flex items-center gap-2">
+                      <ValidationBadge status={entry.validation_status} size="sm" />
                       <p className="font-bold text-primary">
                         {entry.score.toLocaleString()}
                       </p>

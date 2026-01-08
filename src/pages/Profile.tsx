@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
+import { ValidationBadge } from "@/components/ValidationBadge";
 
 interface Profile {
   username: string;
@@ -18,6 +19,7 @@ interface Score {
   machine_name: string;
   score: number;
   created_at: string;
+  validation_status: "ai_validated" | "score_only" | "not_validated" | null;
 }
 
 const Profile = () => {
@@ -56,13 +58,13 @@ const Profile = () => {
       // Fetch user's scores
       const { data: scoresData } = await supabase
         .from("scores")
-        .select("*")
+        .select("id, machine_name, score, created_at, validation_status")
         .eq("user_id", user.id)
         .order("created_at", { ascending: false })
         .limit(10);
 
       if (scoresData) {
-        setScores(scoresData);
+        setScores(scoresData as Score[]);
       }
     } catch (error) {
       console.error("Error fetching data:", error);
@@ -223,7 +225,8 @@ const Profile = () => {
                       {new Date(score.created_at).toLocaleDateString()}
                     </p>
                   </div>
-                  <div className="text-right">
+                  <div className="flex items-center gap-2">
+                    <ValidationBadge status={score.validation_status} size="sm" />
                     <p className="font-bold text-primary">
                       {score.score.toLocaleString()}
                     </p>
