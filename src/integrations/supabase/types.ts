@@ -56,6 +56,47 @@ export type Database = {
         }
         Relationships: []
       }
+      score_votes: {
+        Row: {
+          created_at: string
+          id: string
+          rejection_reason:
+            | Database["public"]["Enums"]["rejection_reason"]
+            | null
+          score_id: string
+          user_id: string
+          vote: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          rejection_reason?:
+            | Database["public"]["Enums"]["rejection_reason"]
+            | null
+          score_id: string
+          user_id: string
+          vote: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          rejection_reason?:
+            | Database["public"]["Enums"]["rejection_reason"]
+            | null
+          score_id?: string
+          user_id?: string
+          vote?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "score_votes_score_id_fkey"
+            columns: ["score_id"]
+            isOneToOne: false
+            referencedRelation: "scores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       scores: {
         Row: {
           created_at: string
@@ -132,7 +173,13 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      rejection_reason:
+        | "score_not_visible"
+        | "score_mismatch"
+        | "wrong_machine"
+        | "photo_unclear"
+        | "suspected_fake"
+        | "other"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -259,6 +306,15 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      rejection_reason: [
+        "score_not_visible",
+        "score_mismatch",
+        "wrong_machine",
+        "photo_unclear",
+        "suspected_fake",
+        "other",
+      ],
+    },
   },
 } as const
