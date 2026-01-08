@@ -57,6 +57,8 @@ const Capture = () => {
   const [searchedViaApi, setSearchedViaApi] = useState(false);
   const [detectedScores, setDetectedScores] = useState<DetectedScore[]>([]);
   const [isExtractingScores, setIsExtractingScores] = useState(false);
+  const [lastScoreLocation, setLastScoreLocation] = useState<string | null>(null);
+  const [skippedLocationStep, setSkippedLocationStep] = useState(false);
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -66,6 +68,27 @@ const Capture = () => {
       navigate("/auth");
     }
   }, [user, loading, navigate]);
+
+  // Fetch user's last score location
+  useEffect(() => {
+    const fetchLastScore = async () => {
+      if (!user) return;
+      
+      const { data, error } = await supabase
+        .from("scores")
+        .select("location_name")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .single();
+      
+      if (data && !error) {
+        setLastScoreLocation(data.location_name);
+      }
+    };
+    
+    fetchLastScore();
+  }, [user]);
 
   // Get user's GPS location on mount
   useEffect(() => {
@@ -93,6 +116,25 @@ const Capture = () => {
     }
   }, []);
 
+  // Auto-select last location if nearby
+  useEffect(() => {
+    if (lastScoreLocation && locations.length > 0 && step === 1 && !selectedLocation) {
+      const matchingLocation = locations.find(
+        (loc) => loc.name.toLowerCase() === lastScoreLocation.toLowerCase()
+      );
+      
+      if (matchingLocation) {
+        setSelectedLocation(matchingLocation);
+        fetchMachinesForLocation(matchingLocation.id);
+        setSkippedLocationStep(true);
+        setStep(2);
+        toast({
+          title: "Welcome back! 🎮",
+          description: `Continuing at ${matchingLocation.name}`,
+        });
+      }
+    }
+  }, [lastScoreLocation, locations]);
   const fetchNearbyLocations = async (lat: number, lon: number) => {
     setIsLoadingLocations(true);
     try {
@@ -553,17 +595,27 @@ const Capture = () => {
               onClick={() => {
                 setStep(1);
                 setMachineSearchQuery("");
+                setSkippedLocationStep(false);
               }}
               className="text-muted-foreground text-sm mb-4 hover:text-foreground transition-colors"
             >
-              ← Back to locations
+              ← {skippedLocationStep ? "Choose different location" : "Back to locations"}
             </button>
 
             <div className="p-3 bg-muted/50 rounded-lg mb-6">
-              <p className="font-medium text-foreground">{selectedLocation?.name}</p>
-              <p className="text-sm text-muted-foreground">
-                {selectedLocation?.street}, {selectedLocation?.city}, {selectedLocation?.state}
-              </p>
+              <div className="flex justify-between items-start">
+                <div>
+                  <p className="font-medium text-foreground">{selectedLocation?.name}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {selectedLocation?.street}, {selectedLocation?.city}, {selectedLocation?.state}
+                  </p>
+                </div>
+                {skippedLocationStep && (
+                  <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
+                    Last visit
+                  </span>
+                )}
+              </div>
             </div>
 
             <div className="mb-6">
