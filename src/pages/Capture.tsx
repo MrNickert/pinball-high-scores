@@ -41,10 +41,13 @@ const Capture = () => {
   const [isLoadingLocations, setIsLoadingLocations] = useState(false);
   const [isLoadingMachines, setIsLoadingMachines] = useState(false);
   const [locations, setLocations] = useState<PinballLocation[]>([]);
+  const [nearbyLocations, setNearbyLocations] = useState<PinballLocation[]>([]);
   const [machines, setMachines] = useState<PinballMachine[]>([]);
   const [userLocation, setUserLocation] = useState<{ lat: number; lon: number } | null>(null);
   const [locationError, setLocationError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState("");
+  const [isSearchingApi, setIsSearchingApi] = useState(false);
+  const [searchedViaApi, setSearchedViaApi] = useState(false);
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -99,16 +102,21 @@ const Capture = () => {
           ...loc,
           distance: calculateDistance(lat, lon, parseFloat(loc.lat), parseFloat(loc.lon)),
         }));
-        setLocations(locationsWithDistance.slice(0, 20)); // Limit to 20 closest
+        const limitedLocations = locationsWithDistance.slice(0, 20);
+        setLocations(limitedLocations);
+        setNearbyLocations(limitedLocations); // Keep original nearby list
       } else if (data.location) {
         // Single location returned
         const loc = data.location;
-        setLocations([{
+        const singleLocation = [{
           ...loc,
           distance: calculateDistance(lat, lon, parseFloat(loc.lat), parseFloat(loc.lon)),
-        }]);
+        }];
+        setLocations(singleLocation);
+        setNearbyLocations(singleLocation);
       } else {
         setLocations([]);
+        setNearbyLocations([]);
       }
     } catch (error) {
       console.error("Error fetching locations:", error);
@@ -149,6 +157,40 @@ const Capture = () => {
       });
     } finally {
       setIsLoadingMachines(false);
+    }
+  };
+
+  const searchLocationsViaApi = async (query: string) => {
+    if (!query.trim()) return;
+    
+    setIsSearchingApi(true);
+    try {
+      const response = await fetch(
+        `https://pinballmap.com/api/v1/locations.json?by_location_name=${encodeURIComponent(query)}`
+      );
+      const data = await response.json();
+      
+      if (data.locations && Array.isArray(data.locations)) {
+        const locationsWithDistance = data.locations.map((loc: PinballLocation) => ({
+          ...loc,
+          distance: userLocation 
+            ? calculateDistance(userLocation.lat, userLocation.lon, parseFloat(loc.lat), parseFloat(loc.lon))
+            : undefined,
+        }));
+        setLocations(locationsWithDistance.slice(0, 20));
+        setSearchedViaApi(true);
+      } else {
+        setLocations([]);
+      }
+    } catch (error) {
+      console.error("Error searching locations:", error);
+      toast({
+        title: "Search Error",
+        description: "Failed to search for locations",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSearchingApi(false);
     }
   };
 
@@ -257,11 +299,24 @@ const Capture = () => {
     }
   };
 
+  // Filter from current list (nearby or API results)
   const filteredLocations = locations.filter(
     (loc) =>
       loc.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
       loc.city.toLowerCase().includes(searchQuery.toLowerCase())
   );
+
+  // Check if we should show "search wider" option
+  const showSearchWider = searchQuery.trim().length >= 2 && filteredLocations.length === 0 && !isSearchingApi && !searchedViaApi;
+
+  // Reset to nearby when search is cleared
+  const handleSearchChange = (value: string) => {
+    setSearchQuery(value);
+    if (!value.trim()) {
+      setLocations(nearbyLocations);
+      setSearchedViaApi(false);
+    }
+  };
 
   if (loading) {
     return (
@@ -371,10 +426,10 @@ const Capture = () => {
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
-                placeholder="Search nearby arcades..."
+                placeholder="Search arcades..."
                 className="pl-10"
                 value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
+                onChange={(e) => handleSearchChange(e.target.value)}
               />
             </div>
 
@@ -389,11 +444,33 @@ const Capture = () => {
                 <Loader2 className="animate-spin text-primary mb-3" size={32} />
                 <p className="text-muted-foreground text-sm">Finding nearby arcades...</p>
               </div>
+            ) : isSearchingApi ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="animate-spin text-primary mb-3" size={32} />
+                <p className="text-muted-foreground text-sm">Searching "{searchQuery}"...</p>
+              </div>
+            ) : showSearchWider ? (
+              <div className="text-center py-12">
+                <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
+                <p className="text-muted-foreground">No nearby arcades match "{searchQuery}"</p>
+                <Button 
+                  variant="outline" 
+                  className="mt-4"
+                  onClick={() => searchLocationsViaApi(searchQuery)}
+                >
+                  <Search size={16} className="mr-2" />
+                  Search all locations
+                </Button>
+              </div>
             ) : filteredLocations.length === 0 ? (
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
-                <p className="text-muted-foreground">No arcades found nearby</p>
-                <p className="text-muted-foreground text-sm mt-1">Try expanding your search area</p>
+                <p className="text-muted-foreground">
+                  {searchedViaApi ? `No arcades found for "${searchQuery}"` : "No arcades found nearby"}
+                </p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  {searchedViaApi ? "Try a different search term" : "Try expanding your search area"}
+                </p>
               </div>
             ) : (
               <div className="space-y-3 max-h-96 overflow-y-auto">
