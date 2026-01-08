@@ -15,7 +15,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Label } from "@/components/ui/label";
 
 interface PendingScore {
@@ -42,12 +42,14 @@ const rejectionReasons = [
   { value: "other", label: "Other reason" },
 ] as const;
 
+const VOTES_REQUIRED = 2;
+
 const Verify = () => {
   const [scores, setScores] = useState<PendingScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingScoreId, setVotingScoreId] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
-  const [selectedReason, setSelectedReason] = useState<string>("");
+  const [selectedReasons, setSelectedReasons] = useState<string[]>([]);
   const [rejectingScoreId, setRejectingScoreId] = useState<string | null>(null);
   const { user } = useAuth();
   const { toast } = useToast();
@@ -140,6 +142,44 @@ const Verify = () => {
     }
   };
 
+  const checkAndUpdateValidation = async (scoreId: string, newApproveCount: number, newRejectCount: number) => {
+    if (newApproveCount >= VOTES_REQUIRED) {
+      // Auto-validate: update score to validated
+      await supabase
+        .from("scores")
+        .update({ validation_status: "ai_validated", verified: true })
+        .eq("id", scoreId);
+      
+      // Remove from local list
+      setScores(prev => prev.filter(s => s.id !== scoreId));
+      
+      toast({
+        title: "Score validated! ✅",
+        description: "This score has been verified by the community",
+      });
+      return true;
+    }
+    
+    if (newRejectCount >= VOTES_REQUIRED) {
+      // Auto-invalidate: update score to invalid
+      await supabase
+        .from("scores")
+        .update({ validation_status: "invalid", verified: false })
+        .eq("id", scoreId);
+      
+      // Remove from local list
+      setScores(prev => prev.filter(s => s.id !== scoreId));
+      
+      toast({
+        title: "Score rejected ❌",
+        description: "This score has been marked as invalid",
+      });
+      return true;
+    }
+    
+    return false;
+  };
+
   const handleApprove = async (scoreId: string) => {
     if (!user) {
       toast({
@@ -153,6 +193,9 @@ const Verify = () => {
     setVotingScoreId(scoreId);
 
     try {
+      const score = scores.find(s => s.id === scoreId);
+      if (!score) return;
+
       // First try to update existing vote
       const { data: existingVote } = await supabase
         .from("score_votes")
@@ -181,22 +224,35 @@ const Verify = () => {
         if (error) throw error;
       }
 
-      // Update local state
-      setScores(prev => prev.map(s => 
-        s.id === scoreId 
-          ? { 
-              ...s, 
-              user_vote: "approve",
-              approve_count: s.user_vote === "reject" ? s.approve_count + 1 : (s.user_vote === null ? s.approve_count + 1 : s.approve_count),
-              reject_count: s.user_vote === "reject" ? s.reject_count - 1 : s.reject_count,
-            }
-          : s
-      ));
+      // Calculate new counts
+      const newApproveCount = score.user_vote === "reject" 
+        ? score.approve_count + 1 
+        : (score.user_vote === null ? score.approve_count + 1 : score.approve_count);
+      const newRejectCount = score.user_vote === "reject" 
+        ? score.reject_count - 1 
+        : score.reject_count;
 
-      toast({
-        title: "Vote recorded! ✅",
-        description: "Thanks for helping verify this score",
-      });
+      // Check if we should auto-validate/invalidate
+      const wasUpdated = await checkAndUpdateValidation(scoreId, newApproveCount, newRejectCount);
+
+      if (!wasUpdated) {
+        // Update local state
+        setScores(prev => prev.map(s => 
+          s.id === scoreId 
+            ? { 
+                ...s, 
+                user_vote: "approve",
+                approve_count: newApproveCount,
+                reject_count: newRejectCount,
+              }
+            : s
+        ));
+
+        toast({
+          title: "Vote recorded! ✅",
+          description: "Thanks for helping verify this score",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -218,22 +274,37 @@ const Verify = () => {
       return;
     }
     setRejectingScoreId(scoreId);
-    setSelectedReason("");
+    setSelectedReasons([]);
     setRejectDialogOpen(true);
   };
 
-  const handleReject = async () => {
-    if (!user || !rejectingScoreId || !selectedReason) return;
+  const toggleReason = (value: string) => {
+    setSelectedReasons(prev => 
+      prev.includes(value) 
+        ? prev.filter(r => r !== value)
+        : [...prev, value]
+    );
+  };
 
-    setVotingScoreId(rejectingScoreId);
+  const handleReject = async () => {
+    if (!user || !rejectingScoreId || selectedReasons.length === 0) return;
+
+    const scoreId = rejectingScoreId;
+    const score = scores.find(s => s.id === scoreId);
+    if (!score) return;
+
+    setVotingScoreId(scoreId);
     setRejectDialogOpen(false);
 
     try {
+      // Use the first reason for the database (since column only stores one)
+      const primaryReason = selectedReasons[0];
+
       // First try to update existing vote
       const { data: existingVote } = await supabase
         .from("score_votes")
         .select("id")
-        .eq("score_id", rejectingScoreId)
+        .eq("score_id", scoreId)
         .eq("user_id", user.id)
         .maybeSingle();
 
@@ -242,7 +313,7 @@ const Verify = () => {
           .from("score_votes")
           .update({
             vote: "reject",
-            rejection_reason: selectedReason as any,
+            rejection_reason: primaryReason as any,
           })
           .eq("id", existingVote.id);
         if (error) throw error;
@@ -250,30 +321,43 @@ const Verify = () => {
         const { error } = await supabase
           .from("score_votes")
           .insert({
-            score_id: rejectingScoreId,
+            score_id: scoreId,
             user_id: user.id,
             vote: "reject",
-            rejection_reason: selectedReason as any,
+            rejection_reason: primaryReason as any,
           });
         if (error) throw error;
       }
 
-      // Update local state
-      setScores(prev => prev.map(s => 
-        s.id === rejectingScoreId 
-          ? { 
-              ...s, 
-              user_vote: "reject",
-              reject_count: s.user_vote === "approve" ? s.reject_count + 1 : (s.user_vote === null ? s.reject_count + 1 : s.reject_count),
-              approve_count: s.user_vote === "approve" ? s.approve_count - 1 : s.approve_count,
-            }
-          : s
-      ));
+      // Calculate new counts
+      const newRejectCount = score.user_vote === "approve" 
+        ? score.reject_count + 1 
+        : (score.user_vote === null ? score.reject_count + 1 : score.reject_count);
+      const newApproveCount = score.user_vote === "approve" 
+        ? score.approve_count - 1 
+        : score.approve_count;
 
-      toast({
-        title: "Vote recorded! 👎",
-        description: "Thanks for your feedback",
-      });
+      // Check if we should auto-validate/invalidate
+      const wasUpdated = await checkAndUpdateValidation(scoreId, newApproveCount, newRejectCount);
+
+      if (!wasUpdated) {
+        // Update local state
+        setScores(prev => prev.map(s => 
+          s.id === scoreId 
+            ? { 
+                ...s, 
+                user_vote: "reject",
+                reject_count: newRejectCount,
+                approve_count: newApproveCount,
+              }
+            : s
+        ));
+
+        toast({
+          title: "Vote recorded! 👎",
+          description: "Thanks for your feedback",
+        });
+      }
     } catch (error: any) {
       toast({
         title: "Error",
@@ -504,20 +588,28 @@ const Verify = () => {
           <DialogHeader>
             <DialogTitle>Why are you rejecting this score?</DialogTitle>
             <DialogDescription>
-              Select the main reason for rejecting this submission
+              Select all reasons that apply
             </DialogDescription>
           </DialogHeader>
           
-          <RadioGroup value={selectedReason} onValueChange={setSelectedReason} className="mt-4">
+          <div className="mt-4 space-y-2">
             {rejectionReasons.map((reason) => (
-              <div key={reason.value} className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted">
-                <RadioGroupItem value={reason.value} id={reason.value} />
+              <div 
+                key={reason.value} 
+                className="flex items-center space-x-3 p-2 rounded-lg hover:bg-muted cursor-pointer"
+                onClick={() => toggleReason(reason.value)}
+              >
+                <Checkbox 
+                  id={reason.value} 
+                  checked={selectedReasons.includes(reason.value)}
+                  onCheckedChange={() => toggleReason(reason.value)}
+                />
                 <Label htmlFor={reason.value} className="flex-1 cursor-pointer">
                   {reason.label}
                 </Label>
               </div>
             ))}
-          </RadioGroup>
+          </div>
 
           <div className="flex justify-end gap-2 mt-4">
             <Button variant="outline" onClick={() => setRejectDialogOpen(false)}>
@@ -526,7 +618,7 @@ const Verify = () => {
             <Button 
               variant="destructive" 
               onClick={handleReject}
-              disabled={!selectedReason}
+              disabled={selectedReasons.length === 0}
             >
               Reject Score
             </Button>
