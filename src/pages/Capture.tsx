@@ -72,18 +72,14 @@ const Capture = () => {
           fetchNearbyLocations(coords.lat, coords.lon);
         },
         (error) => {
-          setLocationError("Unable to get your location. Please enable location services.");
+          console.log("Geolocation error:", error.code, error.message);
+          // Don't show error - just show empty state with search option
           setIsLoadingLocations(false);
-          toast({
-            title: "Location Error",
-            description: "Please enable location services to find nearby arcades.",
-            variant: "destructive",
-          });
+          setLocationError(null); // Clear any previous error
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+        { enableHighAccuracy: false, timeout: 5000, maximumAge: 300000 }
       );
     } else {
-      setLocationError("Geolocation is not supported by your browser.");
       setIsLoadingLocations(false);
     }
   }, []);
@@ -461,11 +457,21 @@ const Capture = () => {
                   Search arcades in "{searchQuery}"
                 </Button>
               </div>
+            ) : filteredLocations.length === 0 && !searchQuery ? (
+              <div className="text-center py-12">
+                <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
+                <p className="text-muted-foreground">
+                  {userLocation ? "No arcades found nearby" : "Enter a city to find arcades"}
+                </p>
+                <p className="text-muted-foreground text-sm mt-1">
+                  Search by city name above
+                </p>
+              </div>
             ) : filteredLocations.length === 0 ? (
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
                 <p className="text-muted-foreground">
-                  {searchedViaApi ? `No arcades found in "${searchQuery}"` : "No arcades found nearby"}
+                  {searchedViaApi ? `No arcades found in "${searchQuery}"` : `No results for "${searchQuery}"`}
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
                   {searchedViaApi ? "Try a different city name" : "Try searching by city name"}
