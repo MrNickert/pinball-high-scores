@@ -69,26 +69,23 @@ const Capture = () => {
     }
   }, [user, loading, navigate]);
 
-  // Fetch user's last score location
+  // Fetch user's last location from profile
   useEffect(() => {
-    const fetchLastScore = async () => {
+    const fetchLastLocation = async () => {
       if (!user) return;
       
       const { data, error } = await supabase
-        .from("scores")
-        .select("location_name")
+        .from("profiles")
+        .select("last_location_name")
         .eq("user_id", user.id)
-        .order("created_at", { ascending: false })
-        .limit(1)
         .maybeSingle();
       
-      if (data && !error && data.location_name) {
-        console.log("Setting lastScoreLocation:", data.location_name);
-        setLastScoreLocation(data.location_name);
+      if (data && !error && data.last_location_name) {
+        setLastScoreLocation(data.last_location_name);
       }
     };
     
-    fetchLastScore();
+    fetchLastLocation();
   }, [user]);
 
   // Get user's GPS location on mount
@@ -345,7 +342,15 @@ const Capture = () => {
 
       if (error) throw error;
 
-      // Update last score location to the one just submitted
+      // Save last location to user profile (persists across sessions)
+      await supabase
+        .from("profiles")
+        .update({ 
+          last_location_name: selectedLocation.name,
+          last_location_updated_at: new Date().toISOString()
+        })
+        .eq("user_id", user.id);
+
       setLastScoreLocation(selectedLocation.name);
 
       toast({
