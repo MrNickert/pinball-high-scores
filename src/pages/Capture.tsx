@@ -160,33 +160,31 @@ const Capture = () => {
     }
   };
 
-  const searchLocationsViaApi = async (query: string) => {
-    if (!query.trim()) return;
+  const searchLocationsByCity = async (city: string) => {
+    if (!city.trim()) return;
     
     setIsSearchingApi(true);
     try {
       const response = await fetch(
-        `https://pinballmap.com/api/v1/locations.json?by_location_name=${encodeURIComponent(query)}`
+        `https://pinballmap.com/api/v1/locations/closest_by_address.json?address=${encodeURIComponent(city)}&max_distance=50&send_all_within_distance=1`
       );
       const data = await response.json();
       
       if (data.locations && Array.isArray(data.locations)) {
-        const locationsWithDistance = data.locations.map((loc: PinballLocation) => ({
-          ...loc,
-          distance: userLocation 
-            ? calculateDistance(userLocation.lat, userLocation.lon, parseFloat(loc.lat), parseFloat(loc.lon))
-            : undefined,
-        }));
-        setLocations(locationsWithDistance.slice(0, 20));
+        setLocations(data.locations.slice(0, 20));
+        setSearchedViaApi(true);
+      } else if (data.location) {
+        setLocations([data.location]);
         setSearchedViaApi(true);
       } else {
         setLocations([]);
+        setSearchedViaApi(true);
       }
     } catch (error) {
       console.error("Error searching locations:", error);
       toast({
         title: "Search Error",
-        description: "Failed to search for locations",
+        description: "Failed to search for locations in that city",
         variant: "destructive",
       });
     } finally {
@@ -426,7 +424,7 @@ const Capture = () => {
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
-                placeholder="Search arcades..."
+                placeholder="Filter nearby or search by city..."
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
@@ -453,23 +451,24 @@ const Capture = () => {
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
                 <p className="text-muted-foreground">No nearby arcades match "{searchQuery}"</p>
+                <p className="text-muted-foreground text-sm mt-2">Enter a city name to search elsewhere</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
-                  onClick={() => searchLocationsViaApi(searchQuery)}
+                  onClick={() => searchLocationsByCity(searchQuery)}
                 >
                   <Search size={16} className="mr-2" />
-                  Search all locations
+                  Search arcades in "{searchQuery}"
                 </Button>
               </div>
             ) : filteredLocations.length === 0 ? (
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
                 <p className="text-muted-foreground">
-                  {searchedViaApi ? `No arcades found for "${searchQuery}"` : "No arcades found nearby"}
+                  {searchedViaApi ? `No arcades found in "${searchQuery}"` : "No arcades found nearby"}
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {searchedViaApi ? "Try a different search term" : "Try expanding your search area"}
+                  {searchedViaApi ? "Try a different city name" : "Try searching by city name"}
                 </p>
               </div>
             ) : (
