@@ -36,6 +36,7 @@ export const Navbar = () => {
   const { user } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
 
   const navItems = user ? authNavItems : publicNavItems;
 
@@ -69,22 +70,23 @@ export const Navbar = () => {
       }
     };
 
-    const fetchUsername = async () => {
+    const fetchUserProfile = async () => {
       if (!user) return;
       
       const { data } = await supabase
         .from("profiles")
-        .select("username")
+        .select("username, avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
       
       if (data) {
         setUsername(data.username);
+        setAvatarUrl(data.avatar_url);
       }
     };
 
     fetchPendingCount();
-    fetchUsername();
+    fetchUserProfile();
 
     const interval = setInterval(fetchPendingCount, 30000);
     return () => clearInterval(interval);
@@ -143,8 +145,12 @@ export const Navbar = () => {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="outline" size="sm" className="gap-2">
-                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
-                        <User size={14} className="text-primary" />
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                        {avatarUrl ? (
+                          <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                        ) : (
+                          <User size={14} className="text-primary" />
+                        )}
                       </div>
                       <span className="hidden sm:inline max-w-[100px] truncate">
                         {username || "Account"}
@@ -232,7 +238,13 @@ export const Navbar = () => {
                     : "text-muted-foreground"
                 }`}
               >
-                <User size={20} />
+                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                  {avatarUrl ? (
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <User size={12} />
+                  )}
+                </div>
                 <span className="text-[10px] mt-1 font-medium">Profile</span>
               </motion.div>
             </Link>
