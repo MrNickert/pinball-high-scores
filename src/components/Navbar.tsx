@@ -116,9 +116,8 @@ export const Navbar = () => {
     >
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src={logo} alt="Multiball" className="w-8 h-8" />
-            <span className="font-bold text-lg text-foreground">Multiball</span>
+          <Link to="/" className="flex items-center">
+            <img src={logo} alt="Multiball" className="h-16 w-auto py-1" />
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
