@@ -585,7 +585,7 @@ const Capture = () => {
       setScore("");
       setSkippedLocationStep(false);
 
-      navigate("/leaderboard");
+      navigate(`/leaderboard?machine=${encodeURIComponent(selectedMachine)}`);
     } catch (error: any) {
       toast({
         title: "Error",

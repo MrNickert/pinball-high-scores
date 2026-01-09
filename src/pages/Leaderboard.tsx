@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Crown, Search, Loader2, ChevronDown, Filter, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -50,6 +51,9 @@ const getAvatar = (username: string) => {
 };
 
 const Leaderboard = () => {
+  const [searchParams] = useSearchParams();
+  const machineFromUrl = searchParams.get("machine");
+  
   const [searchTerm, setSearchTerm] = useState("");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [machines, setMachines] = useState<string[]>([]);
@@ -85,8 +89,10 @@ const Leaderboard = () => {
       const uniqueMachines = [...new Set(data?.map(d => d.machine_name) || [])];
       setMachines(uniqueMachines);
       
-      // Auto-select first machine if available
-      if (uniqueMachines.length > 0) {
+      // Select machine from URL param if available, otherwise first machine
+      if (machineFromUrl && uniqueMachines.includes(machineFromUrl)) {
+        setSelectedMachine(machineFromUrl);
+      } else if (uniqueMachines.length > 0) {
         setSelectedMachine(uniqueMachines[0]);
       }
     } catch (error) {
