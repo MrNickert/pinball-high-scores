@@ -1,20 +1,34 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, User, Camera, Home, LogIn, LogOut, Circle, Eye, Users } from "lucide-react";
+import { Trophy, User, Camera, Home, LogIn, LogOut, Circle, Eye, Users, Settings, ChevronDown } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { NotificationBell } from "@/components/NotificationBell";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-const navItems = [
+// Nav items for non-authenticated users
+const publicNavItems = [
+  { path: "/", label: "Home", icon: Home },
+  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
+  { path: "/capture", label: "Capture", icon: Camera },
+];
+
+// Nav items for authenticated users
+const authNavItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/capture", label: "Capture", icon: Camera },
   { path: "/verify", label: "Verify", icon: Eye },
   { path: "/friends", label: "Friends", icon: Users },
-  { path: "/profile", label: "Profile", icon: User },
 ];
 
 export const Navbar = () => {
@@ -22,6 +36,9 @@ export const Navbar = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const [pendingCount, setPendingCount] = useState(0);
+  const [username, setUsername] = useState<string | null>(null);
+
+  const navItems = user ? authNavItems : publicNavItems;
 
   const handleSignOut = async () => {
     const { error } = await supabase.auth.signOut();
@@ -35,16 +52,14 @@ export const Navbar = () => {
 
   useEffect(() => {
     const fetchPendingCount = async () => {
+      if (!user) return;
+      
       try {
         let query = supabase
           .from("scores")
           .select("id", { count: "exact", head: true })
-          .in("validation_status", ["not_validated", "score_only"]);
-
-        // Exclude user's own scores if logged in
-        if (user) {
-          query = query.neq("user_id", user.id);
-        }
+          .in("validation_status", ["not_validated", "score_only"])
+          .neq("user_id", user.id);
 
         const { count, error } = await query;
         if (!error && count !== null) {
@@ -55,9 +70,23 @@ export const Navbar = () => {
       }
     };
 
-    fetchPendingCount();
+    const fetchUsername = async () => {
+      if (!user) return;
+      
+      const { data } = await supabase
+        .from("profiles")
+        .select("username")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (data) {
+        setUsername(data.username);
+      }
+    };
 
-    // Refresh count when route changes (in case user just voted)
+    fetchPendingCount();
+    fetchUsername();
+
     const interval = setInterval(fetchPendingCount, 30000);
     return () => clearInterval(interval);
   }, [user, location.pathname]);
@@ -109,12 +138,45 @@ export const Navbar = () => {
           </div>
 
           <div className="flex items-center gap-2">
-            <NotificationBell />
             {user ? (
-              <Button variant="outline" size="sm" onClick={handleSignOut}>
-                <LogOut size={16} />
-                <span className="hidden sm:inline">Sign Out</span>
-              </Button>
+              <>
+                <NotificationBell />
+                <DropdownMenu>
+                  <DropdownMenuTrigger asChild>
+                    <Button variant="outline" size="sm" className="gap-2">
+                      <div className="w-6 h-6 rounded-full bg-primary/20 flex items-center justify-center">
+                        <User size={14} className="text-primary" />
+                      </div>
+                      <span className="hidden sm:inline max-w-[100px] truncate">
+                        {username || "Account"}
+                      </span>
+                      <ChevronDown size={14} className="text-muted-foreground" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-48">
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                        <User size={16} />
+                        Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+                        <Settings size={16} />
+                        Settings
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem 
+                      onClick={handleSignOut}
+                      className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    >
+                      <LogOut size={16} />
+                      Sign Out
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </>
             ) : (
               <Link to="/auth">
                 <Button variant="gradient" size="sm">
@@ -154,6 +216,22 @@ export const Navbar = () => {
               </Link>
             );
           })}
+          {/* Mobile user menu icon */}
+          {user && (
+            <Link to="/profile">
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                className={`relative flex flex-col items-center p-2 rounded-lg ${
+                  location.pathname === "/profile" 
+                    ? "text-primary" 
+                    : "text-muted-foreground"
+                }`}
+              >
+                <User size={20} />
+                <span className="text-[10px] mt-1 font-medium">Profile</span>
+              </motion.div>
+            </Link>
+          )}
         </div>
       </div>
     </motion.nav>
