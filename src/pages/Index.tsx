@@ -75,16 +75,12 @@ const Index = () => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1 }}
               className="inline-block mb-6"
-            >
-              <span className="text-sm font-medium text-primary bg-primary/10 px-4 py-2 rounded-full">
-                ✨ Track your gaming achievements
-              </span>
-            </motion.div>
+            ></motion.div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
-              <span className="text-foreground">Unleash your scores.</span>
+              <span className="text-foreground">Play. Score.</span>
               <br />
-              <span className="gradient-text">Own the leaderboard</span>
+              <span className="gradient-text">Multiball.</span>
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
