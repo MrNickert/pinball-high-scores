@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Trophy, Target, Calendar, Settings, LogOut, Loader2 } from "lucide-react";
+import { User, Trophy, Target, Calendar, Settings, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate } from "react-router-dom";
@@ -23,7 +23,7 @@ interface Score {
 }
 
 const Profile = () => {
-  const { user, loading, signOut } = useAuth();
+  const { user, loading } = useAuth();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [scores, setScores] = useState<Score[]>([]);
@@ -73,10 +73,6 @@ const Profile = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-    navigate("/");
-  };
 
   if (loading || loadingData) {
     return (
@@ -155,14 +151,12 @@ const Profile = () => {
                 </span>
               </div>
             </div>
-            <div className="flex gap-2">
-              <Button variant="outline" size="icon">
-                <Settings size={18} />
+            <Link to="/settings">
+              <Button variant="outline" size="sm" className="gap-2">
+                <Settings size={16} />
+                Edit Profile
               </Button>
-              <Button variant="ghost" size="icon" onClick={handleSignOut}>
-                <LogOut size={18} />
-              </Button>
-            </div>
+            </Link>
           </div>
         </motion.div>
 
