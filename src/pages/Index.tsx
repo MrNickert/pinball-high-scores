@@ -75,11 +75,7 @@ const Index = () => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1 }}
               className="inline-block mb-6"
-            >
-              <span className="text-sm font-medium text-primary bg-primary/10 px-4 py-2 rounded-full">
-                ✨ Track your gaming achievements
-              </span>
-            </motion.div>
+            ></motion.div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
               <span className="text-foreground">Every high score</span>
@@ -88,8 +84,8 @@ const Index = () => {
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
-              Capture, compete, and climb the leaderboards. The ultimate platform 
-              for tracking your greatest gaming achievements.
+              Capture, compete, and climb the leaderboards. The ultimate platform for tracking your greatest gaming
+              achievements.
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -143,9 +139,7 @@ const Index = () => {
             className="text-center mb-12"
           >
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">How it works</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">
-              Simple steps to immortalize your achievements
-            </p>
+            <p className="text-muted-foreground max-w-xl mx-auto">Simple steps to immortalize your achievements</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -179,9 +173,7 @@ const Index = () => {
             viewport={{ once: true }}
             className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl p-10 md:p-16 text-center border border-border"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
-              Ready to start tracking?
-            </h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Ready to start tracking?</h2>
             <p className="text-muted-foreground max-w-lg mx-auto mb-8">
               Join players tracking their scores and competing globally.
             </p>
