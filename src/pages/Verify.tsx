@@ -179,12 +179,28 @@ const Verify = () => {
   };
 
   const checkAndUpdateValidation = async (scoreId: string, newApproveCount: number, newRejectCount: number) => {
+    // Get the score owner info for notification
+    const score = [...communityScores, ...myPendingScores].find(s => s.id === scoreId);
+    
     if (newApproveCount >= VOTES_REQUIRED) {
       // Auto-validate: update score to accepted
       await supabase
         .from("scores")
         .update({ validation_status: "accepted", verified: true })
         .eq("id", scoreId);
+      
+      // Create a notification for the score owner
+      if (score) {
+        await supabase
+          .from("notifications")
+          .insert({
+            user_id: score.user_id,
+            type: "score_accepted",
+            title: "Score accepted! 🎉",
+            message: `Your ${score.machine_name} score of ${score.score.toLocaleString()} was verified by the community!`,
+            data: { score_id: scoreId, machine_name: score.machine_name, score: score.score },
+          });
+      }
       
       // Remove from local lists
       setCommunityScores(prev => prev.filter(s => s.id !== scoreId));
@@ -203,6 +219,19 @@ const Verify = () => {
         .from("scores")
         .update({ validation_status: "declined", verified: false })
         .eq("id", scoreId);
+      
+      // Create a notification for the score owner
+      if (score) {
+        await supabase
+          .from("notifications")
+          .insert({
+            user_id: score.user_id,
+            type: "score_declined",
+            title: "Score not verified ❌",
+            message: `Your ${score.machine_name} score could not be verified by the community.`,
+            data: { score_id: scoreId, machine_name: score.machine_name, score: score.score },
+          });
+      }
       
       // Remove from local lists
       setCommunityScores(prev => prev.filter(s => s.id !== scoreId));
