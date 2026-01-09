@@ -227,8 +227,8 @@ export const Navbar = () => {
               </Link>
             );
           })}
-          {/* Mobile user menu icon */}
-          {user && (
+          {/* Mobile user/sign in icon */}
+          {user ? (
             <Link to="/profile">
               <motion.div
                 whileTap={{ scale: 0.9 }}
@@ -246,6 +246,20 @@ export const Navbar = () => {
                   )}
                 </div>
                 <span className="text-[10px] mt-1 font-medium">Profile</span>
+              </motion.div>
+            </Link>
+          ) : (
+            <Link to="/auth">
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                className={`relative flex flex-col items-center p-2 rounded-lg ${
+                  location.pathname === "/auth" 
+                    ? "text-primary" 
+                    : "text-muted-foreground"
+                }`}
+              >
+                <LogIn size={20} />
+                <span className="text-[10px] mt-1 font-medium">Sign In</span>
               </motion.div>
             </Link>
           )}
