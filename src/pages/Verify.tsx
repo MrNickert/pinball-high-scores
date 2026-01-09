@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Eye, Loader2, MapPin, Calendar, ExternalLink, ThumbsUp, ThumbsDown, CheckCircle } from "lucide-react";
+import { Eye, Loader2, MapPin, Calendar, ExternalLink, ThumbsUp, ThumbsDown, CheckCircle, Clock } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -8,6 +8,7 @@ import { ValidationBadge } from "@/components/ValidationBadge";
 import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
   Dialog,
   DialogContent,
@@ -45,7 +46,8 @@ const rejectionReasons = [
 const VOTES_REQUIRED = 2;
 
 const Verify = () => {
-  const [scores, setScores] = useState<PendingScore[]>([]);
+  const [communityScores, setCommunityScores] = useState<PendingScore[]>([]);
+  const [myPendingScores, setMyPendingScores] = useState<PendingScore[]>([]);
   const [loading, setLoading] = useState(true);
   const [votingScoreId, setVotingScoreId] = useState<string | null>(null);
   const [rejectDialogOpen, setRejectDialogOpen] = useState(false);
@@ -157,9 +159,17 @@ const Verify = () => {
             };
           });
 
-        setScores(scoresWithData);
+        // Split into community scores (can review) and my pending scores
+        const community = scoresWithData.filter(s => 
+          s.user_id !== user?.id && !s.user_vote
+        );
+        const myPending = scoresWithData.filter(s => s.user_id === user?.id);
+
+        setCommunityScores(community);
+        setMyPendingScores(myPending);
       } else {
-        setScores([]);
+        setCommunityScores([]);
+        setMyPendingScores([]);
       }
     } catch (error) {
       console.error("Error fetching pending scores:", error);
@@ -176,8 +186,9 @@ const Verify = () => {
         .update({ validation_status: "ai_validated", verified: true })
         .eq("id", scoreId);
       
-      // Remove from local list
-      setScores(prev => prev.filter(s => s.id !== scoreId));
+      // Remove from local lists
+      setCommunityScores(prev => prev.filter(s => s.id !== scoreId));
+      setMyPendingScores(prev => prev.filter(s => s.id !== scoreId));
       
       toast({
         title: "Score validated! ✅",
@@ -193,8 +204,9 @@ const Verify = () => {
         .update({ validation_status: "invalid", verified: false })
         .eq("id", scoreId);
       
-      // Remove from local list
-      setScores(prev => prev.filter(s => s.id !== scoreId));
+      // Remove from local lists
+      setCommunityScores(prev => prev.filter(s => s.id !== scoreId));
+      setMyPendingScores(prev => prev.filter(s => s.id !== scoreId));
       
       toast({
         title: "Score rejected ❌",
@@ -219,7 +231,7 @@ const Verify = () => {
     setVotingScoreId(scoreId);
 
     try {
-      const score = scores.find(s => s.id === scoreId);
+      const score = communityScores.find(s => s.id === scoreId);
       if (!score) return;
 
       // First try to update existing vote
@@ -262,17 +274,8 @@ const Verify = () => {
       const wasUpdated = await checkAndUpdateValidation(scoreId, newApproveCount, newRejectCount);
 
       if (!wasUpdated) {
-        // Update local state
-        setScores(prev => prev.map(s => 
-          s.id === scoreId 
-            ? { 
-                ...s, 
-                user_vote: "approve",
-                approve_count: newApproveCount,
-                reject_count: newRejectCount,
-              }
-            : s
-        ));
+        // Remove from community list (user has voted)
+        setCommunityScores(prev => prev.filter(s => s.id !== scoreId));
 
         toast({
           title: "Vote recorded! ✅",
@@ -316,7 +319,7 @@ const Verify = () => {
     if (!user || !rejectingScoreId || selectedReasons.length === 0) return;
 
     const scoreId = rejectingScoreId;
-    const score = scores.find(s => s.id === scoreId);
+    const score = communityScores.find(s => s.id === scoreId);
     if (!score) return;
 
     setVotingScoreId(scoreId);
@@ -367,17 +370,8 @@ const Verify = () => {
       const wasUpdated = await checkAndUpdateValidation(scoreId, newApproveCount, newRejectCount);
 
       if (!wasUpdated) {
-        // Update local state
-        setScores(prev => prev.map(s => 
-          s.id === scoreId 
-            ? { 
-                ...s, 
-                user_vote: "reject",
-                reject_count: newRejectCount,
-                approve_count: newApproveCount,
-              }
-            : s
-        ));
+        // Remove from community list (user has voted)
+        setCommunityScores(prev => prev.filter(s => s.id !== scoreId));
 
         toast({
           title: "Vote recorded! 👎",
@@ -407,6 +401,129 @@ const Verify = () => {
     return date.toLocaleDateString();
   };
 
+  const renderScoreCard = (score: PendingScore, isMyScore: boolean = false) => (
+    <motion.div
+      key={score.id}
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden"
+    >
+      <div className="flex flex-col md:flex-row">
+        {/* Photo */}
+        {score.photo_url ? (
+          <a
+            href={score.photo_url}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="md:w-48 h-48 md:h-auto flex-shrink-0 bg-muted relative group"
+          >
+            <img
+              src={score.photo_url}
+              alt="Score photo"
+              className="w-full h-full object-cover"
+            />
+            <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
+              <ExternalLink className="text-white" size={24} />
+            </div>
+          </a>
+        ) : (
+          <div className="md:w-48 h-48 md:h-auto flex-shrink-0 bg-muted flex items-center justify-center">
+            <p className="text-muted-foreground text-sm">No photo</p>
+          </div>
+        )}
+
+        {/* Details */}
+        <div className="flex-1 p-4">
+          <div className="flex items-start justify-between gap-4 mb-3">
+            <div>
+              <h3 className="font-semibold text-foreground text-lg">
+                {score.machine_name}
+              </h3>
+              {!isMyScore && (
+                <p className="text-sm text-muted-foreground">
+                  by {score.username}
+                </p>
+              )}
+            </div>
+            <ValidationBadge status={score.validation_status} size="md" showLabel />
+          </div>
+
+          <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
+            {score.location_name && (
+              <div className="flex items-center gap-1">
+                <MapPin size={14} />
+                <span>{score.location_name}</span>
+              </div>
+            )}
+            <div className="flex items-center gap-1">
+              <Calendar size={14} />
+              <span>{formatDate(score.created_at)}</span>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-2xl font-bold text-primary">
+                {score.score.toLocaleString()}
+              </p>
+              {/* Vote counts */}
+              <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
+                <span className="text-emerald-600 dark:text-emerald-400">
+                  👍 {score.approve_count}
+                </span>
+                <span className="text-red-600 dark:text-red-400">
+                  👎 {score.reject_count}
+                </span>
+              </div>
+            </div>
+            
+            {/* Voting buttons - only show for community scores */}
+            {!isMyScore && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => openRejectDialog(score.id)}
+                  disabled={!user || votingScoreId === score.id}
+                  className="gap-1 hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/30"
+                >
+                  {votingScoreId === score.id ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <ThumbsDown size={14} />
+                  )}
+                  Reject
+                </Button>
+                <Button 
+                  variant="default" 
+                  size="sm"
+                  onClick={() => handleApprove(score.id)}
+                  disabled={!user || votingScoreId === score.id}
+                  className="gap-1"
+                >
+                  {votingScoreId === score.id ? (
+                    <Loader2 className="animate-spin" size={14} />
+                  ) : (
+                    <ThumbsUp size={14} />
+                  )}
+                  Verify
+                </Button>
+              </div>
+            )}
+
+            {/* Status for my scores */}
+            {isMyScore && (
+              <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-sm">
+                <Clock size={16} />
+                Awaiting {VOTES_REQUIRED - score.approve_count} more votes
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
@@ -434,22 +551,8 @@ const Verify = () => {
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Verify Scores</h1>
           </div>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Help the community by verifying scores that couldn't be automatically validated. 
-            Oldest submissions are shown first.
+            Help the community by verifying scores that couldn't be automatically validated.
           </p>
-        </motion.div>
-
-        {/* Stats */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.1 }}
-          className="flex justify-center gap-6 mb-8"
-        >
-          <div className="bg-card rounded-xl px-6 py-3 border border-border">
-            <p className="text-2xl font-bold text-primary">{scores.length}</p>
-            <p className="text-xs text-muted-foreground">Pending Review</p>
-          </div>
         </motion.div>
 
         {!user && (
@@ -464,148 +567,101 @@ const Verify = () => {
           </motion.div>
         )}
 
-        {scores.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
-            <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
-              <span className="text-4xl">✅</span>
-            </div>
-            <h2 className="text-xl font-semibold text-foreground mb-2">All caught up!</h2>
-            <p className="text-muted-foreground">No scores pending verification</p>
-          </motion.div>
-        ) : (
-          <div className="grid gap-4 max-w-4xl mx-auto">
-            {scores.map((score, index) => (
-              <motion.div
-                key={score.id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: 0.05 * Math.min(index, 10) }}
-                className="bg-card rounded-2xl border border-border shadow-sm overflow-hidden"
-              >
-                <div className="flex flex-col md:flex-row">
-                  {/* Photo */}
-                  {score.photo_url ? (
-                    <a
-                      href={score.photo_url}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="md:w-48 h-48 md:h-auto flex-shrink-0 bg-muted relative group"
-                    >
-                      <img
-                        src={score.photo_url}
-                        alt="Score photo"
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center">
-                        <ExternalLink className="text-white" size={24} />
-                      </div>
-                    </a>
-                  ) : (
-                    <div className="md:w-48 h-48 md:h-auto flex-shrink-0 bg-muted flex items-center justify-center">
-                      <p className="text-muted-foreground text-sm">No photo</p>
-                    </div>
-                  )}
+        {/* Tabs */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="max-w-4xl mx-auto"
+        >
+          <Tabs defaultValue="community">
+            <TabsList className="w-full mb-6">
+              <TabsTrigger value="community" className="flex-1 gap-2">
+                <Eye size={16} />
+                Community Reviews
+                {communityScores.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
+                    {communityScores.length}
+                  </span>
+                )}
+              </TabsTrigger>
+              <TabsTrigger value="pending" className="flex-1 gap-2">
+                <Clock size={16} />
+                My Pending
+                {myPendingScores.length > 0 && (
+                  <span className="ml-1 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
+                    {myPendingScores.length}
+                  </span>
+                )}
+              </TabsTrigger>
+            </TabsList>
 
-                  {/* Details */}
-                  <div className="flex-1 p-4">
-                    <div className="flex items-start justify-between gap-4 mb-3">
-                      <div>
-                        <h3 className="font-semibold text-foreground text-lg">
-                          {score.machine_name}
-                        </h3>
-                        <p className="text-sm text-muted-foreground">
-                          by {score.username}
-                        </p>
-                      </div>
-                      <ValidationBadge status={score.validation_status} size="md" showLabel />
-                    </div>
-
-                    <div className="flex flex-wrap gap-4 text-sm text-muted-foreground mb-4">
-                      {score.location_name && (
-                        <div className="flex items-center gap-1">
-                          <MapPin size={14} />
-                          <span>{score.location_name}</span>
-                        </div>
-                      )}
-                      <div className="flex items-center gap-1">
-                        <Calendar size={14} />
-                        <span>{formatDate(score.created_at)}</span>
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <p className="text-2xl font-bold text-primary">
-                          {score.score.toLocaleString()}
-                        </p>
-                        {/* Vote counts */}
-                        <div className="flex gap-3 mt-1 text-xs text-muted-foreground">
-                          <span className="text-emerald-600 dark:text-emerald-400">
-                            👍 {score.approve_count}
-                          </span>
-                          <span className="text-red-600 dark:text-red-400">
-                            👎 {score.reject_count}
-                          </span>
-                        </div>
-                      </div>
-                      
-                      {/* Voting buttons */}
-                      <div className="flex gap-2">
-                        {score.user_vote ? (
-                          <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-muted text-muted-foreground text-sm">
-                            <CheckCircle size={16} />
-                            Voted {score.user_vote === "approve" ? "👍" : "👎"}
-                          </div>
-                        ) : (
-                          <>
-                            <Button 
-                              variant="outline" 
-                              size="sm"
-                              onClick={() => openRejectDialog(score.id)}
-                              disabled={!user || votingScoreId === score.id || score.user_id === user?.id}
-                              className="gap-1 hover:bg-red-500/10 hover:text-red-600 hover:border-red-500/30"
-                            >
-                              {votingScoreId === score.id ? (
-                                <Loader2 className="animate-spin" size={14} />
-                              ) : (
-                                <ThumbsDown size={14} />
-                              )}
-                              Reject
-                            </Button>
-                            <Button 
-                              variant="default" 
-                              size="sm"
-                              onClick={() => handleApprove(score.id)}
-                              disabled={!user || votingScoreId === score.id || score.user_id === user?.id}
-                              className="gap-1"
-                            >
-                              {votingScoreId === score.id ? (
-                                <Loader2 className="animate-spin" size={14} />
-                              ) : (
-                                <ThumbsUp size={14} />
-                              )}
-                              Verify
-                            </Button>
-                          </>
-                        )}
-                      </div>
-                    </div>
-                    
-                    {score.user_id === user?.id && (
-                      <p className="text-xs text-muted-foreground mt-2 italic">
-                        This is your score - you can't vote on it
-                      </p>
-                    )}
+            <TabsContent value="community">
+              {communityScores.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20"
+                >
+                  <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
+                    <span className="text-4xl">✅</span>
                   </div>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">All caught up!</h2>
+                  <p className="text-muted-foreground">No scores pending your review</p>
+                </motion.div>
+              ) : (
+                <div className="grid gap-4">
+                  {communityScores.map((score, index) => (
+                    <motion.div
+                      key={score.id}
+                      transition={{ delay: 0.05 * Math.min(index, 10) }}
+                    >
+                      {renderScoreCard(score, false)}
+                    </motion.div>
+                  ))}
                 </div>
-              </motion.div>
-            ))}
-          </div>
-        )}
+              )}
+            </TabsContent>
+
+            <TabsContent value="pending">
+              {!user ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20"
+                >
+                  <p className="text-muted-foreground">Sign in to see your pending scores</p>
+                </motion.div>
+              ) : myPendingScores.length === 0 ? (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="text-center py-20"
+                >
+                  <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+                    <CheckCircle className="text-primary" size={40} />
+                  </div>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">No pending scores</h2>
+                  <p className="text-muted-foreground mb-4">All your scores have been verified</p>
+                  <Link to="/capture">
+                    <Button>Submit a Score</Button>
+                  </Link>
+                </motion.div>
+              ) : (
+                <div className="grid gap-4">
+                  {myPendingScores.map((score, index) => (
+                    <motion.div
+                      key={score.id}
+                      transition={{ delay: 0.05 * Math.min(index, 10) }}
+                    >
+                      {renderScoreCard(score, true)}
+                    </motion.div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+        </motion.div>
       </div>
 
       {/* Rejection Reason Dialog */}
