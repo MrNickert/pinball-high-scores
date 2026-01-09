@@ -1,16 +1,26 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Camera, TrendingUp, Clock, Target } from "lucide-react";
+import { Trophy, Camera, TrendingUp, Clock, Target, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { formatDistanceToNow } from "date-fns";
 
 interface Stats {
   totalScores: number;
   verifiedScores: number;
   highestScore: number;
   recentMachine: string | null;
+}
+
+interface FriendActivity {
+  id: string;
+  username: string;
+  avatar_url: string | null;
+  score: number;
+  machine_name: string;
+  created_at: string;
 }
 
 export const Dashboard = () => {
@@ -23,6 +33,8 @@ export const Dashboard = () => {
   });
   const [loading, setLoading] = useState(true);
   const [username, setUsername] = useState<string | null>(null);
+  const [friendActivity, setFriendActivity] = useState<FriendActivity[]>([]);
+  const [activityLoading, setActivityLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -65,7 +77,69 @@ export const Dashboard = () => {
       }
     };
 
+    const fetchFriendActivity = async () => {
+      if (!user) return;
+
+      try {
+        // Get accepted friendships
+        const { data: friendships } = await supabase
+          .from("friendships")
+          .select("requester_id, addressee_id")
+          .eq("status", "accepted")
+          .or(`requester_id.eq.${user.id},addressee_id.eq.${user.id}`);
+
+        if (!friendships || friendships.length === 0) {
+          setActivityLoading(false);
+          return;
+        }
+
+        // Get friend IDs
+        const friendIds = friendships.map((f) =>
+          f.requester_id === user.id ? f.addressee_id : f.requester_id
+        );
+
+        // Get recent scores from friends
+        const { data: scores } = await supabase
+          .from("scores")
+          .select("id, score, machine_name, created_at, user_id")
+          .in("user_id", friendIds)
+          .order("created_at", { ascending: false })
+          .limit(10);
+
+        if (!scores || scores.length === 0) {
+          setActivityLoading(false);
+          return;
+        }
+
+        // Get profiles for these friends
+        const { data: profiles } = await supabase
+          .from("public_profiles")
+          .select("user_id, username, avatar_url")
+          .in("user_id", friendIds);
+
+        // Combine data
+        const activity: FriendActivity[] = scores.map((score) => {
+          const profile = profiles?.find((p) => p.user_id === score.user_id);
+          return {
+            id: score.id,
+            username: profile?.username || "Unknown",
+            avatar_url: profile?.avatar_url || null,
+            score: score.score,
+            machine_name: score.machine_name,
+            created_at: score.created_at,
+          };
+        });
+
+        setFriendActivity(activity);
+      } catch (error) {
+        console.error("Error fetching friend activity:", error);
+      } finally {
+        setActivityLoading(false);
+      }
+    };
+
     fetchData();
+    fetchFriendActivity();
   }, [user]);
 
   const formatScore = (score: number) => {
@@ -156,6 +230,70 @@ export const Dashboard = () => {
               {loading ? "-" : stats.recentMachine || "None yet"}
             </p>
           </div>
+        </motion.div>
+
+        {/* Friends Activity Timeline */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="bg-card rounded-2xl border border-border overflow-hidden"
+        >
+          <div className="flex items-center justify-between p-4 border-b border-border">
+            <h2 className="font-semibold text-foreground flex items-center gap-2">
+              <Users size={18} className="text-secondary" />
+              Friends Activity
+            </h2>
+            <Link to="/friends" className="text-sm text-primary hover:underline flex items-center gap-1">
+              View all <ChevronRight size={14} />
+            </Link>
+          </div>
+
+          {activityLoading ? (
+            <div className="p-8 text-center text-muted-foreground">Loading...</div>
+          ) : friendActivity.length === 0 ? (
+            <div className="p-8 text-center">
+              <p className="text-muted-foreground mb-4">No friend activity yet. Connect with other players!</p>
+              <Link to="/friends">
+                <Button variant="outline" size="sm">
+                  <Users size={16} />
+                  Find Friends
+                </Button>
+              </Link>
+            </div>
+          ) : (
+            <div className="divide-y divide-border">
+              {friendActivity.map((activity, index) => (
+                <motion.div
+                  key={activity.id}
+                  initial={{ opacity: 0, x: -20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.05 * index }}
+                  className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
+                >
+                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-lg flex-shrink-0">
+                    {activity.avatar_url ? (
+                      <img src={activity.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                    ) : (
+                      "👤"
+                    )}
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm text-foreground">
+                      <span className="font-semibold">{activity.username}</span>
+                      <span className="text-muted-foreground"> scored </span>
+                      <span className="font-bold text-primary">{formatScore(activity.score)}</span>
+                      <span className="text-muted-foreground"> on </span>
+                      <span className="font-medium">{activity.machine_name}</span>
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                    </p>
+                  </div>
+                </motion.div>
+              ))}
+            </div>
+          )}
         </motion.div>
 
       </div>

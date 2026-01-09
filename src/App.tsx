@@ -11,6 +11,7 @@ import Leaderboard from "./pages/Leaderboard";
 import Capture from "./pages/Capture";
 import Profile from "./pages/Profile";
 import Verify from "./pages/Verify";
+import Friends from "./pages/Friends";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -35,6 +36,7 @@ const App = () => (
             <Route path="/capture" element={<Capture />} />
             <Route path="/profile" element={<Profile />} />
             <Route path="/verify" element={<Verify />} />
+            <Route path="/friends" element={<Friends />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
