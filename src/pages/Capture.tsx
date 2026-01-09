@@ -338,11 +338,12 @@ const Capture = () => {
     setIsAddingMachine(true);
     try {
       const response = await fetch(
-        `https://pinballmap.com/api/v1/location_machine_xrefs.json`,
+        `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pinballmap-add-machine`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
           },
           body: JSON.stringify({
             location_id: selectedLocation.id,
