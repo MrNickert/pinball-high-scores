@@ -7,13 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge, ValidationIndicator } from "@/components/ValidationBadge";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -52,14 +46,14 @@ const getInitials = (username: string) => {
 const Leaderboard = () => {
   const [searchParams] = useSearchParams();
   const machineFromUrl = searchParams.get("machine");
-  
+
   const [searchTerm, setSearchTerm] = useState("");
   const [entries, setEntries] = useState<LeaderboardEntry[]>([]);
   const [machines, setMachines] = useState<string[]>([]);
   const [selectedMachine, setSelectedMachine] = useState<string>("");
   const [loading, setLoading] = useState(true);
   const [loadingScores, setLoadingScores] = useState(false);
-  
+
   // Validation filters - only accepted shown by default
   const [showAccepted, setShowAccepted] = useState(true);
   const [showPending, setShowPending] = useState(false);
@@ -77,17 +71,14 @@ const Leaderboard = () => {
 
   const fetchMachines = async () => {
     try {
-      const { data, error } = await supabase
-        .from("scores")
-        .select("machine_name")
-        .order("machine_name");
+      const { data, error } = await supabase.from("scores").select("machine_name").order("machine_name");
 
       if (error) throw error;
 
       // Get unique machine names
-      const uniqueMachines = [...new Set(data?.map(d => d.machine_name) || [])];
+      const uniqueMachines = [...new Set(data?.map((d) => d.machine_name) || [])];
       setMachines(uniqueMachines);
-      
+
       // Select machine from URL param if available, otherwise first machine
       if (machineFromUrl && uniqueMachines.includes(machineFromUrl)) {
         setSelectedMachine(machineFromUrl);
@@ -106,7 +97,8 @@ const Leaderboard = () => {
     try {
       const { data: scores, error } = await supabase
         .from("scores")
-        .select(`
+        .select(
+          `
           id,
           score,
           machine_name,
@@ -114,7 +106,8 @@ const Leaderboard = () => {
           created_at,
           user_id,
           validation_status
-        `)
+        `,
+        )
         .eq("machine_name", machineName)
         .order("score", { ascending: false })
         .limit(50);
@@ -122,15 +115,17 @@ const Leaderboard = () => {
       if (error) throw error;
 
       if (scores && scores.length > 0) {
-        const userIds = [...new Set(scores.map(s => s.user_id))];
+        const userIds = [...new Set(scores.map((s) => s.user_id))];
         const { data: profiles } = await supabase
           .from("public_profiles")
           .select("user_id, username, avatar_url")
           .in("user_id", userIds);
 
-        const profileMap = new Map(profiles?.map(p => [p.user_id, { username: p.username, avatar_url: p.avatar_url }]) || []);
+        const profileMap = new Map(
+          profiles?.map((p) => [p.user_id, { username: p.username, avatar_url: p.avatar_url }]) || [],
+        );
 
-        const entriesWithUsernames = scores.map(score => {
+        const entriesWithUsernames = scores.map((score) => {
           const profile = profileMap.get(score.user_id);
           return {
             id: score.id,
@@ -156,7 +151,7 @@ const Leaderboard = () => {
   };
 
   // Filter entries based on validation status toggles
-  const filteredByValidation = entries.filter(entry => {
+  const filteredByValidation = entries.filter((entry) => {
     if (entry.validation_status === "accepted" && showAccepted) return true;
     if (entry.validation_status === "pending" && showPending) return true;
     if (entry.validation_status === "declined" && showDeclined) return true;
@@ -167,7 +162,7 @@ const Leaderboard = () => {
   const filteredScores = filteredByValidation.filter(
     (entry) =>
       entry.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (entry.location_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
+      (entry.location_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false),
   );
 
   const activeFilterCount = [showAccepted, showPending, showDeclined].filter(Boolean).length;
@@ -191,18 +186,12 @@ const Leaderboard = () => {
 
       <div className="container mx-auto px-4 pt-24 pb-24">
         {/* Header */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="text-center mb-8"
-        >
+        <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <Trophy className="text-primary" size={28} />
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">Leaderboard</h1>
           </div>
-          <p className="text-muted-foreground">
-            Select a machine to view high scores
-          </p>
+          <p className="text-muted-foreground">Select a machine to view high scores</p>
         </motion.div>
 
         {/* Machine Selector */}
@@ -256,23 +245,11 @@ const Leaderboard = () => {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
-                <DropdownMenuCheckboxItem
-                  checked={showAccepted}
-                  onCheckedChange={setShowAccepted}
-                >
+                <DropdownMenuCheckboxItem checked={showAccepted} onCheckedChange={setShowAccepted}>
                   ✅ Accepted
                 </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={showPending}
-                  onCheckedChange={setShowPending}
-                >
+                <DropdownMenuCheckboxItem checked={showPending} onCheckedChange={setShowPending}>
                   👀 Pending Review
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={showDeclined}
-                  onCheckedChange={setShowDeclined}
-                >
-                  ❌ Declined
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -280,11 +257,7 @@ const Leaderboard = () => {
         )}
 
         {machines.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
             <Trophy className="mx-auto mb-4 text-muted-foreground" size={64} />
             <h2 className="text-xl font-semibold text-foreground mb-2">No scores yet</h2>
             <p className="text-muted-foreground">Be the first to submit a score!</p>
@@ -294,11 +267,7 @@ const Leaderboard = () => {
             <Loader2 className="animate-spin text-primary" size={32} />
           </div>
         ) : filteredScores.length === 0 ? (
-          <motion.div
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="text-center py-20"
-          >
+          <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
             <Eye className="mx-auto mb-4 text-muted-foreground" size={48} />
             <h2 className="text-lg font-semibold text-foreground mb-2">No verified scores</h2>
             <p className="text-muted-foreground mb-4">Adjust filters to see more scores</p>
@@ -335,7 +304,9 @@ const Leaderboard = () => {
                         isFirst ? "ring-2 ring-primary/20 order-2" : "order-" + (orderIndex === 1 ? "1" : "3")
                       }`}
                     >
-                      <div className={`mb-2 ${isFirst ? "w-16 h-16" : "w-14 h-14"} mx-auto rounded-full overflow-hidden bg-muted flex items-center justify-center`}>
+                      <div
+                        className={`mb-2 ${isFirst ? "w-16 h-16" : "w-14 h-14"} mx-auto rounded-full overflow-hidden bg-muted flex items-center justify-center`}
+                      >
                         {entry.avatar_url ? (
                           <img src={entry.avatar_url} alt={entry.username} className="w-full h-full object-cover" />
                         ) : (
@@ -347,13 +318,9 @@ const Leaderboard = () => {
                       <div className="flex justify-center mb-2">
                         {getRankDisplay(orderIndex === 0 ? 1 : orderIndex === 1 ? 2 : 3)}
                       </div>
-                      <p className="font-semibold text-foreground truncate">
-                        {entry.username}
-                      </p>
+                      <p className="font-semibold text-foreground truncate">{entry.username}</p>
                       <div className="flex items-center justify-center gap-1 mt-1">
-                        <p className="text-lg font-bold text-primary">
-                          {entry.score.toLocaleString()}
-                        </p>
+                        <p className="text-lg font-bold text-primary">{entry.score.toLocaleString()}</p>
                         <ValidationIndicator status={entry.validation_status} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 truncate">
@@ -384,9 +351,7 @@ const Leaderboard = () => {
                     transition={{ delay: 0.05 * Math.min(index, 10) }}
                     className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="w-10 h-10 flex justify-center">
-                      {getRankDisplay(index + 1)}
-                    </div>
+                    <div className="w-10 h-10 flex justify-center">{getRankDisplay(index + 1)}</div>
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
                       {entry.avatar_url ? (
                         <img src={entry.avatar_url} alt={entry.username} className="w-full h-full object-cover" />
@@ -397,18 +362,14 @@ const Leaderboard = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">
-                        {entry.username}
-                      </p>
+                      <p className="font-medium text-foreground truncate">{entry.username}</p>
                       <p className="text-sm text-muted-foreground truncate">
                         {entry.location_name || "Unknown location"}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
                       <ValidationBadge status={entry.validation_status} size="sm" />
-                      <p className="font-bold text-primary">
-                        {entry.score.toLocaleString()}
-                      </p>
+                      <p className="font-bold text-primary">{entry.score.toLocaleString()}</p>
                     </div>
                   </motion.div>
                 ))}
