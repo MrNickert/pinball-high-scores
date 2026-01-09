@@ -22,7 +22,7 @@ const Auth = () => {
 
   useEffect(() => {
     if (!loading && user) {
-      navigate("/profile");
+      navigate("/");
     }
   }, [user, loading, navigate]);
 
@@ -51,7 +51,7 @@ const Auth = () => {
         }
         const { error, data } = await signUp(email, password, username);
         if (error) throw error;
-        
+
         // Create welcome notification for new user
         if (data?.user) {
           await createNotification({
@@ -61,7 +61,7 @@ const Auth = () => {
             message: "Start capturing your pinball scores and compete with friends.",
           });
         }
-        
+
         toast({
           title: "Account created!",
           description: "Welcome to Multiball!",
@@ -95,7 +95,7 @@ const Auth = () => {
       </div>
 
       <div className="w-full max-w-md relative z-10">
-        <Link 
+        <Link
           to="/"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
@@ -112,12 +112,13 @@ const Auth = () => {
             <div className="flex justify-center mb-4">
               <div className="relative">
                 <Circle className="w-12 h-12 text-primary fill-primary/20" strokeWidth={2.5} />
-                <Circle className="w-4 h-4 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" strokeWidth={0} />
+                <Circle
+                  className="w-4 h-4 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  strokeWidth={0}
+                />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {isLogin ? "Welcome back" : "Create account"}
-            </h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{isLogin ? "Welcome back" : "Create account"}</h1>
             <p className="text-muted-foreground text-sm">
               {isLogin ? "Sign in to track your scores" : "Start tracking your achievements"}
             </p>
@@ -130,7 +131,9 @@ const Auth = () => {
                 animate={{ opacity: 1, height: "auto" }}
                 exit={{ opacity: 0, height: 0 }}
               >
-                <Label htmlFor="username" className="text-foreground">Username</Label>
+                <Label htmlFor="username" className="text-foreground">
+                  Username
+                </Label>
                 <div className="relative mt-2">
                   <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                   <Input
@@ -147,7 +150,9 @@ const Auth = () => {
             )}
 
             <div>
-              <Label htmlFor="email" className="text-foreground">Email</Label>
+              <Label htmlFor="email" className="text-foreground">
+                Email
+              </Label>
               <div className="relative mt-2">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
@@ -163,7 +168,9 @@ const Auth = () => {
             </div>
 
             <div>
-              <Label htmlFor="password" className="text-foreground">Password</Label>
+              <Label htmlFor="password" className="text-foreground">
+                Password
+              </Label>
               <div className="relative mt-2">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
                 <Input
@@ -179,18 +186,8 @@ const Auth = () => {
               </div>
             </div>
 
-            <Button 
-              type="submit" 
-              variant="gradient" 
-              className="w-full" 
-              size="lg"
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <Loader2 className="animate-spin" size={20} />
-              ) : (
-                isLogin ? "Sign In" : "Create Account"
-              )}
+            <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
+              {isLoading ? <Loader2 className="animate-spin" size={20} /> : isLogin ? "Sign In" : "Create Account"}
             </Button>
           </form>
 
@@ -201,9 +198,7 @@ const Auth = () => {
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
               {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <span className="text-primary font-medium">
-                {isLogin ? "Sign Up" : "Sign In"}
-              </span>
+              <span className="text-primary font-medium">{isLogin ? "Sign Up" : "Sign In"}</span>
             </button>
           </div>
         </motion.div>
