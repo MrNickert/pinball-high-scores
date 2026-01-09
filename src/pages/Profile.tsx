@@ -3,7 +3,7 @@ import { motion } from "framer-motion";
 import { User, Trophy, Target, Calendar, Settings, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge } from "@/components/ValidationBadge";
@@ -24,32 +24,48 @@ interface Score {
 
 const Profile = () => {
   const { user, loading } = useAuth();
+  const { userId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
   const [profile, setProfile] = useState<Profile | null>(null);
   const [scores, setScores] = useState<Score[]>([]);
   const [loadingData, setLoadingData] = useState(true);
 
+  // Determine if viewing own profile or someone else's
+  const isOwnProfile = !userId || userId === user?.id;
+  const targetUserId = userId || user?.id;
+
   useEffect(() => {
-    if (!loading && !user) {
+    // Only redirect to auth if viewing own profile and not logged in
+    if (!loading && !user && !userId) {
       navigate("/auth");
       return;
     }
 
-    if (user) {
-      fetchProfileAndScores();
+    if (targetUserId) {
+      fetchProfileAndScores(targetUserId);
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, navigate, targetUserId]);
 
-  const fetchProfileAndScores = async () => {
-    if (!user) return;
-
+  const fetchProfileAndScores = async (profileUserId: string) => {
     try {
-      // Fetch profile
-      const { data: profileData } = await supabase
-        .from("profiles")
-        .select("*")
-        .eq("user_id", user.id)
-        .maybeSingle();
+      // Fetch profile - use public_profiles for other users, profiles for own
+      let profileData: Profile | null = null;
+      
+      if (isOwnProfile) {
+        const { data } = await supabase
+          .from("profiles")
+          .select("username, avatar_url, created_at")
+          .eq("user_id", profileUserId)
+          .maybeSingle();
+        profileData = data;
+      } else {
+        const { data } = await supabase
+          .from("public_profiles")
+          .select("username, avatar_url, created_at")
+          .eq("user_id", profileUserId)
+          .maybeSingle();
+        profileData = data;
+      }
 
       if (profileData) {
         setProfile(profileData);
@@ -59,7 +75,7 @@ const Profile = () => {
       const { data: scoresData } = await supabase
         .from("scores")
         .select("id, machine_name, score, created_at, validation_status")
-        .eq("user_id", user.id)
+        .eq("user_id", profileUserId)
         .order("created_at", { ascending: false })
         .limit(10);
 
@@ -85,7 +101,7 @@ const Profile = () => {
     );
   }
 
-  if (!user) {
+  if (!targetUserId || (!isOwnProfile && !profile)) {
     return (
       <div className="min-h-screen bg-background">
         <Navbar />
@@ -99,16 +115,20 @@ const Profile = () => {
               <User className="text-primary" size={32} />
             </div>
             <h1 className="text-xl font-bold text-foreground mb-2">
-              Sign in required
+              {!user && !userId ? "Sign in required" : "Profile not found"}
             </h1>
             <p className="text-muted-foreground mb-6">
-              Create an account or sign in to view your profile and track your scores.
+              {!user && !userId 
+                ? "Create an account or sign in to view your profile and track your scores."
+                : "This user profile could not be found."}
             </p>
-            <Link to="/auth">
-              <Button variant="gradient" size="lg">
-                Sign In
-              </Button>
-            </Link>
+            {!user && !userId && (
+              <Link to="/auth">
+                <Button variant="gradient" size="lg">
+                  Sign In
+                </Button>
+              </Link>
+            )}
           </motion.div>
         </div>
       </div>
@@ -148,19 +168,23 @@ const Profile = () => {
               <h1 className="text-xl font-bold text-foreground mb-1">
                 {profile?.username || "Player"}
               </h1>
-              <p className="text-muted-foreground text-sm">{user.email}</p>
+              {isOwnProfile && user?.email && (
+                <p className="text-muted-foreground text-sm">{user.email}</p>
+              )}
               <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
                 <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
                   {scores.length > 10 ? "Pro Player" : "New Player"}
                 </span>
               </div>
             </div>
-            <Link to="/settings">
-              <Button variant="outline" size="sm" className="gap-2">
-                <Settings size={16} />
-                Edit Profile
-              </Button>
-            </Link>
+            {isOwnProfile && (
+              <Link to="/settings">
+                <Button variant="outline" size="sm" className="gap-2">
+                  <Settings size={16} />
+                  Edit Profile
+                </Button>
+              </Link>
+            )}
           </div>
         </motion.div>
 
@@ -192,17 +216,21 @@ const Profile = () => {
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
             <h2 className="font-semibold text-foreground">Recent Scores</h2>
-            <Link to="/capture">
-              <Button variant="ghost" size="sm">Add Score</Button>
-            </Link>
+            {isOwnProfile && (
+              <Link to="/capture">
+                <Button variant="ghost" size="sm">Add Score</Button>
+              </Link>
+            )}
           </div>
           {scores.length === 0 ? (
             <div className="p-8 text-center">
               <Trophy className="mx-auto mb-4 text-muted-foreground" size={48} />
               <p className="text-muted-foreground mb-4">No scores yet</p>
-              <Link to="/capture">
-                <Button variant="gradient">Submit Your First Score</Button>
-              </Link>
+              {isOwnProfile && (
+                <Link to="/capture">
+                  <Button variant="gradient">Submit Your First Score</Button>
+                </Link>
+              )}
             </div>
           ) : (
             <div className="divide-y divide-border">
