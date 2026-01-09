@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
-import { motion } from "framer-motion";
-import { Camera, MapPin, Upload, X, Search, Check, Loader2, Navigation } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
+import { Camera, MapPin, Upload, X, Search, Check, Loader2, Navigation, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,7 +10,12 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
-
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 interface PinballLocation {
   id: number;
   name: string;
@@ -35,6 +40,13 @@ interface DetectedScore {
   player: string;
   score: number;
   formatted: string;
+}
+
+interface AllMachine {
+  id: number;
+  name: string;
+  manufacturer: string;
+  year: number;
 }
 
 const Capture = () => {
@@ -62,6 +74,14 @@ const Capture = () => {
   const [lastScoreLocationId, setLastScoreLocationId] = useState<number | null>(null);
   const [lastScoreLocationCoords, setLastScoreLocationCoords] = useState<{ lat: number; lon: number } | null>(null);
   const [skippedLocationStep, setSkippedLocationStep] = useState(false);
+  
+  // Add machine modal state
+  const [showAddMachineModal, setShowAddMachineModal] = useState(false);
+  const [allMachines, setAllMachines] = useState<AllMachine[]>([]);
+  const [isLoadingAllMachines, setIsLoadingAllMachines] = useState(false);
+  const [addMachineSearch, setAddMachineSearch] = useState("");
+  const [isAddingMachine, setIsAddingMachine] = useState(false);
+  
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const navigate = useNavigate();
@@ -281,6 +301,104 @@ const Capture = () => {
       setIsSearchingApi(false);
     }
   };
+
+  const fetchAllMachines = async () => {
+    if (allMachines.length > 0) return; // Already loaded
+    
+    setIsLoadingAllMachines(true);
+    try {
+      const response = await fetch(
+        `https://pinballmap.com/api/v1/machines.json`
+      );
+      const data = await response.json();
+      
+      if (data.machines && Array.isArray(data.machines)) {
+        setAllMachines(data.machines.map((m: any) => ({
+          id: m.id,
+          name: m.name,
+          manufacturer: m.manufacturer || "",
+          year: m.year || 0,
+        })));
+      }
+    } catch (error) {
+      console.error("Error fetching all machines:", error);
+      toast({
+        title: "Error",
+        description: "Failed to load machine database",
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoadingAllMachines(false);
+    }
+  };
+
+  const addMachineToLocation = async (machine: AllMachine) => {
+    if (!selectedLocation) return;
+    
+    setIsAddingMachine(true);
+    try {
+      const response = await fetch(
+        `https://pinballmap.com/api/v1/location_machine_xrefs.json`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            location_id: selectedLocation.id,
+            machine_id: machine.id,
+          }),
+        }
+      );
+      
+      const data = await response.json();
+      
+      if (response.ok) {
+        // Add to local machines list
+        setMachines(prev => [...prev, {
+          id: machine.id,
+          name: machine.name,
+          manufacturer: machine.manufacturer,
+          year: machine.year,
+        }]);
+        
+        // Select the newly added machine
+        setSelectedMachine(machine.name);
+        setShowAddMachineModal(false);
+        setAddMachineSearch("");
+        
+        toast({
+          title: "Machine added! 🎉",
+          description: `${machine.name} has been added to ${selectedLocation.name} on Pinball Map`,
+        });
+      } else {
+        throw new Error(data.errors || "Failed to add machine");
+      }
+    } catch (error: any) {
+      console.error("Error adding machine:", error);
+      toast({
+        title: "Error",
+        description: error.message || "Failed to add machine to location",
+        variant: "destructive",
+      });
+    } finally {
+      setIsAddingMachine(false);
+    }
+  };
+
+  const openAddMachineModal = () => {
+    setShowAddMachineModal(true);
+    fetchAllMachines();
+  };
+
+  // Filter all machines - exclude ones already at location
+  const filteredAllMachines = allMachines
+    .filter(m => !machines.some(lm => lm.id === m.id))
+    .filter(m => 
+      m.name.toLowerCase().includes(addMachineSearch.toLowerCase()) ||
+      m.manufacturer?.toLowerCase().includes(addMachineSearch.toLowerCase())
+    )
+    .slice(0, 50);
 
   const calculateDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
     const R = 3959; // Earth's radius in miles
@@ -783,6 +901,16 @@ const Capture = () => {
                       </p>
                     )}
                   </div>
+                  
+                  {/* Add Machine Button */}
+                  <Button
+                    variant="outline"
+                    className="w-full mt-3"
+                    onClick={openAddMachineModal}
+                  >
+                    <Plus size={16} className="mr-2" />
+                    Machine not listed? Add it
+                  </Button>
                 </>
               )}
             </div>
@@ -926,6 +1054,84 @@ const Capture = () => {
       </div>
 
       <div className="h-20 md:h-0" />
+
+      {/* Add Machine Modal */}
+      <Dialog open={showAddMachineModal} onOpenChange={setShowAddMachineModal}>
+        <DialogContent className="max-w-md max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Plus size={20} className="text-primary" />
+              Add Machine to {selectedLocation?.name}
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-hidden flex flex-col">
+            <div className="relative mb-4">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
+              <Input
+                placeholder="Search all pinball machines..."
+                className="pl-9"
+                value={addMachineSearch}
+                onChange={(e) => setAddMachineSearch(e.target.value)}
+                autoFocus
+              />
+            </div>
+            
+            {isLoadingAllMachines ? (
+              <div className="flex flex-col items-center justify-center py-12">
+                <Loader2 className="animate-spin text-primary mb-3" size={32} />
+                <p className="text-muted-foreground text-sm">Loading machine database...</p>
+              </div>
+            ) : addMachineSearch.length < 2 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>Type at least 2 characters to search</p>
+                <p className="text-sm mt-1">{allMachines.length.toLocaleString()} machines available</p>
+              </div>
+            ) : filteredAllMachines.length === 0 ? (
+              <div className="text-center py-8 text-muted-foreground">
+                <p>No machines found matching "{addMachineSearch}"</p>
+              </div>
+            ) : (
+              <div className="flex-1 overflow-y-auto space-y-2 pr-1">
+                {filteredAllMachines.map((machine) => (
+                  <motion.button
+                    key={machine.id}
+                    whileTap={{ scale: 0.98 }}
+                    onClick={() => addMachineToLocation(machine)}
+                    disabled={isAddingMachine}
+                    className="w-full p-3 rounded-lg text-sm text-left transition-all bg-muted/50 border border-transparent hover:border-primary hover:bg-primary/5 disabled:opacity-50"
+                  >
+                    <span className="font-medium">{machine.name}</span>
+                    {(machine.manufacturer || machine.year > 0) && (
+                      <span className="text-xs text-muted-foreground ml-2">
+                        {machine.manufacturer} {machine.year > 0 && `(${machine.year})`}
+                      </span>
+                    )}
+                  </motion.button>
+                ))}
+                {filteredAllMachines.length === 50 && (
+                  <p className="text-center text-xs text-muted-foreground py-2">
+                    Showing first 50 results. Type more to narrow down.
+                  </p>
+                )}
+              </div>
+            )}
+            
+            {isAddingMachine && (
+              <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
+                <div className="flex flex-col items-center">
+                  <Loader2 className="animate-spin text-primary mb-2" size={32} />
+                  <p className="text-sm text-muted-foreground">Adding machine to Pinball Map...</p>
+                </div>
+              </div>
+            )}
+          </div>
+          
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            This will add the machine to this location on Pinball Map for everyone to see.
+          </p>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
