@@ -18,16 +18,16 @@ import {
 // Nav items for non-authenticated users
 const publicNavItems = [
   { path: "/", label: "Home", icon: Home },
-  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/capture", label: "Capture", icon: Camera },
+  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
 // Nav items for authenticated users
 const authNavItems = [
   { path: "/", label: "Home", icon: Home },
-  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/capture", label: "Capture", icon: Camera },
   { path: "/verify", label: "Verify", icon: Eye },
+  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
 ];
 
 export const Navbar = () => {
@@ -53,7 +53,7 @@ export const Navbar = () => {
   useEffect(() => {
     const fetchPendingCount = async () => {
       if (!user) return;
-      
+
       try {
         // Get all pending scores (not the user's own)
         const { data: pendingScores } = await supabase
@@ -68,7 +68,7 @@ export const Navbar = () => {
         }
 
         // Get scores the user has already voted on
-        const scoreIds = pendingScores.map(s => s.id);
+        const scoreIds = pendingScores.map((s) => s.id);
         const { data: userVotes } = await supabase
           .from("score_votes")
           .select("score_id")
@@ -76,9 +76,9 @@ export const Navbar = () => {
           .in("score_id", scoreIds);
 
         // Count scores user hasn't voted on yet
-        const votedScoreIds = new Set(userVotes?.map(v => v.score_id) || []);
-        const reviewableCount = pendingScores.filter(s => !votedScoreIds.has(s.id)).length;
-        
+        const votedScoreIds = new Set(userVotes?.map((v) => v.score_id) || []);
+        const reviewableCount = pendingScores.filter((s) => !votedScoreIds.has(s.id)).length;
+
         setPendingCount(reviewableCount);
       } catch (error) {
         console.error("Error fetching pending count:", error);
@@ -87,13 +87,13 @@ export const Navbar = () => {
 
     const fetchUserProfile = async () => {
       if (!user) return;
-      
+
       const { data } = await supabase
         .from("profiles")
         .select("username, avatar_url")
         .eq("user_id", user.id)
         .maybeSingle();
-      
+
       if (data) {
         setUsername(data.username);
         setAvatarUrl(data.avatar_url);
@@ -108,7 +108,7 @@ export const Navbar = () => {
   }, [user, location.pathname]);
 
   return (
-    <motion.nav 
+    <motion.nav
       initial={{ y: -100 }}
       animate={{ y: 0 }}
       className="fixed top-0 left-0 right-0 z-50 bg-background/80 backdrop-blur-xl border-b border-border"
@@ -118,11 +118,12 @@ export const Navbar = () => {
           <Link to="/" className="flex items-center gap-2.5">
             <div className="relative">
               <Circle className="w-8 h-8 text-primary fill-primary/20" strokeWidth={2.5} />
-              <Circle className="w-3 h-3 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" strokeWidth={0} />
+              <Circle
+                className="w-3 h-3 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                strokeWidth={0}
+              />
             </div>
-            <span className="font-bold text-lg text-foreground">
-              Multiball
-            </span>
+            <span className="font-bold text-lg text-foreground">Multiball</span>
           </Link>
 
           <div className="hidden md:flex items-center gap-1">
@@ -135,8 +136,8 @@ export const Navbar = () => {
                     whileHover={{ scale: 1.02 }}
                     whileTap={{ scale: 0.98 }}
                     className={`relative flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
-                      isActive 
-                        ? "bg-primary/10 text-primary" 
+                      isActive
+                        ? "bg-primary/10 text-primary"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
@@ -167,9 +168,7 @@ export const Navbar = () => {
                           <User size={14} className="text-primary" />
                         )}
                       </div>
-                      <span className="hidden sm:inline max-w-[100px] truncate">
-                        {username || "Account"}
-                      </span>
+                      <span className="hidden sm:inline max-w-[100px] truncate">{username || "Account"}</span>
                       <ChevronDown size={14} className="text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
@@ -193,7 +192,7 @@ export const Navbar = () => {
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem 
+                    <DropdownMenuItem
                       onClick={handleSignOut}
                       className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
                     >
@@ -226,9 +225,7 @@ export const Navbar = () => {
                 <motion.div
                   whileTap={{ scale: 0.9 }}
                   className={`relative flex flex-col items-center p-2 rounded-lg ${
-                    isActive 
-                      ? "text-primary" 
-                      : "text-muted-foreground"
+                    isActive ? "text-primary" : "text-muted-foreground"
                   }`}
                 >
                   <item.icon size={20} />
@@ -248,9 +245,7 @@ export const Navbar = () => {
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 className={`relative flex flex-col items-center p-2 rounded-lg ${
-                  location.pathname === "/profile" 
-                    ? "text-primary" 
-                    : "text-muted-foreground"
+                  location.pathname === "/profile" ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
@@ -268,9 +263,7 @@ export const Navbar = () => {
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 className={`relative flex flex-col items-center p-2 rounded-lg ${
-                  location.pathname === "/auth" 
-                    ? "text-primary" 
-                    : "text-muted-foreground"
+                  location.pathname === "/auth" ? "text-primary" : "text-muted-foreground"
                 }`}
               >
                 <LogIn size={20} />
