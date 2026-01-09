@@ -55,16 +55,31 @@ export const Navbar = () => {
       if (!user) return;
       
       try {
-        let query = supabase
+        // Get all pending scores (not the user's own)
+        const { data: pendingScores } = await supabase
           .from("scores")
-          .select("id", { count: "exact", head: true })
+          .select("id")
           .in("validation_status", ["not_validated", "score_only"])
           .neq("user_id", user.id);
 
-        const { count, error } = await query;
-        if (!error && count !== null) {
-          setPendingCount(count);
+        if (!pendingScores || pendingScores.length === 0) {
+          setPendingCount(0);
+          return;
         }
+
+        // Get scores the user has already voted on
+        const scoreIds = pendingScores.map(s => s.id);
+        const { data: userVotes } = await supabase
+          .from("score_votes")
+          .select("score_id")
+          .eq("user_id", user.id)
+          .in("score_id", scoreIds);
+
+        // Count scores user hasn't voted on yet
+        const votedScoreIds = new Set(userVotes?.map(v => v.score_id) || []);
+        const reviewableCount = pendingScores.filter(s => !votedScoreIds.has(s.id)).length;
+        
+        setPendingCount(reviewableCount);
       } catch (error) {
         console.error("Error fetching pending count:", error);
       }
