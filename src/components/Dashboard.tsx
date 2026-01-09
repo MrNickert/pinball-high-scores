@@ -1,20 +1,10 @@
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Trophy, Camera, TrendingUp, Clock, Target, ChevronRight } from "lucide-react";
+import { Trophy, Camera, TrendingUp, Clock, Target } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
-import { format } from "date-fns";
-
-interface Score {
-  id: string;
-  score: number;
-  machine_name: string;
-  created_at: string;
-  validation_status: string | null;
-  verified: boolean | null;
-}
 
 interface Stats {
   totalScores: number;
@@ -25,7 +15,6 @@ interface Stats {
 
 export const Dashboard = () => {
   const { user } = useAuth();
-  const [recentScores, setRecentScores] = useState<Score[]>([]);
   const [stats, setStats] = useState<Stats>({
     totalScores: 0,
     verifiedScores: 0,
@@ -51,36 +40,24 @@ export const Dashboard = () => {
           setUsername(profile.username);
         }
 
-        // Fetch recent scores
-        const { data: scores, error } = await supabase
+        // Fetch stats
+        const allScoresQuery = await supabase
           .from("scores")
-          .select("*")
+          .select("score, verified, machine_name, created_at", { count: "exact" })
           .eq("user_id", user.id)
-          .order("created_at", { ascending: false })
-          .limit(5);
+          .order("created_at", { ascending: false });
 
-        if (!error && scores) {
-          setRecentScores(scores);
+        const allScores = allScoresQuery.data || [];
+        const highest = allScores.length > 0 
+          ? Math.max(...allScores.map((s) => s.score)) 
+          : 0;
 
-          // Calculate stats
-          const verifiedCount = scores.filter((s) => s.verified).length;
-          const allScoresQuery = await supabase
-            .from("scores")
-            .select("score, verified", { count: "exact" })
-            .eq("user_id", user.id);
-
-          const allScores = allScoresQuery.data || [];
-          const highest = allScores.length > 0 
-            ? Math.max(...allScores.map((s) => s.score)) 
-            : 0;
-
-          setStats({
-            totalScores: allScoresQuery.count || 0,
-            verifiedScores: allScores.filter((s) => s.verified).length,
-            highestScore: highest,
-            recentMachine: scores[0]?.machine_name || null,
-          });
-        }
+        setStats({
+          totalScores: allScoresQuery.count || 0,
+          verifiedScores: allScores.filter((s) => s.verified).length,
+          highestScore: highest,
+          recentMachine: allScores[0]?.machine_name || null,
+        });
       } catch (error) {
         console.error("Error fetching dashboard data:", error);
       } finally {
@@ -93,16 +70,6 @@ export const Dashboard = () => {
 
   const formatScore = (score: number) => {
     return score.toLocaleString();
-  };
-
-  const getStatusBadge = (score: Score) => {
-    if (score.verified) {
-      return <span className="text-xs bg-primary/20 text-primary px-2 py-0.5 rounded-full">Verified</span>;
-    }
-    if (score.validation_status === "rejected") {
-      return <span className="text-xs bg-destructive/20 text-destructive px-2 py-0.5 rounded-full">Rejected</span>;
-    }
-    return <span className="text-xs bg-accent/20 text-accent-foreground px-2 py-0.5 rounded-full">Pending</span>;
   };
 
   return (
@@ -122,17 +89,23 @@ export const Dashboard = () => {
           </p>
         </motion.div>
 
-        {/* Quick Capture Button */}
+        {/* Quick Action Buttons */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="mb-8"
+          className="flex flex-col sm:flex-row gap-4 mb-8"
         >
-          <Link to="/capture">
-            <Button variant="gradient" size="xl" className="w-full sm:w-auto">
+          <Link to="/capture" className="flex-1">
+            <Button variant="gradient" size="xl" className="w-full">
               <Camera size={20} />
               Capture New Score
+            </Button>
+          </Link>
+          <Link to="/verify" className="flex-1">
+            <Button variant="outline" size="xl" className="w-full">
+              <Target size={20} />
+              Verify Scores
             </Button>
           </Link>
         </motion.div>
@@ -185,82 +158,6 @@ export const Dashboard = () => {
           </div>
         </motion.div>
 
-        {/* Recent Scores */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.3 }}
-          className="bg-card rounded-2xl border border-border overflow-hidden"
-        >
-          <div className="flex items-center justify-between p-4 border-b border-border">
-            <h2 className="font-semibold text-foreground">Recent Scores</h2>
-            <Link to="/profile" className="text-sm text-primary hover:underline flex items-center gap-1">
-              View all <ChevronRight size={14} />
-            </Link>
-          </div>
-
-          {loading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
-          ) : recentScores.length === 0 ? (
-            <div className="p-8 text-center">
-              <p className="text-muted-foreground mb-4">No scores yet. Capture your first one!</p>
-              <Link to="/capture">
-                <Button variant="outline" size="sm">
-                  <Camera size={16} />
-                  Capture Score
-                </Button>
-              </Link>
-            </div>
-          ) : (
-            <div className="divide-y divide-border">
-              {recentScores.map((score, index) => (
-                <motion.div
-                  key={score.id}
-                  initial={{ opacity: 0, x: -20 }}
-                  animate={{ opacity: 1, x: 0 }}
-                  transition={{ delay: 0.1 * index }}
-                  className="flex items-center justify-between p-4 hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-foreground truncate">{score.machine_name}</p>
-                    <p className="text-sm text-muted-foreground">
-                      {format(new Date(score.created_at), "MMM d, yyyy")}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-3">
-                    {getStatusBadge(score)}
-                    <span className="font-bold text-foreground score-display">
-                      {formatScore(score.score)}
-                    </span>
-                  </div>
-                </motion.div>
-              ))}
-            </div>
-          )}
-        </motion.div>
-
-        {/* Quick Links */}
-        <motion.div
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.4 }}
-          className="mt-8 grid grid-cols-2 gap-4"
-        >
-          <Link to="/leaderboard">
-            <div className="bg-card rounded-xl p-4 border border-border hover:border-primary/50 transition-colors group">
-              <Trophy size={24} className="text-primary mb-2" />
-              <h3 className="font-semibold text-foreground group-hover:text-primary transition-colors">Leaderboard</h3>
-              <p className="text-sm text-muted-foreground">See top scores</p>
-            </div>
-          </Link>
-          <Link to="/verify">
-            <div className="bg-card rounded-xl p-4 border border-border hover:border-secondary/50 transition-colors group">
-              <Target size={24} className="text-secondary mb-2" />
-              <h3 className="font-semibold text-foreground group-hover:text-secondary transition-colors">Verify Scores</h3>
-              <p className="text-sm text-muted-foreground">Help the community</p>
-            </div>
-          </Link>
-        </motion.div>
       </div>
     </div>
   );
