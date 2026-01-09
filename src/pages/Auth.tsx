@@ -78,7 +78,7 @@ const Auth = () => {
     <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
       {/* Background */}
       <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 via-purple-500/5 to-transparent rounded-full blur-3xl" />
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent rounded-full blur-3xl" />
       </div>
 
       <div className="w-full max-w-md relative z-10">

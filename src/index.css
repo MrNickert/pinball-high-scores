@@ -17,7 +17,7 @@
     --popover: 0 0% 100%;
     --popover-foreground: 231 53% 17%;
 
-    --primary: 121 90% 81%;
+    --primary: 100 59% 63%;
     --primary-foreground: 231 53% 17%;
 
     --secondary: 193 99% 47%;
@@ -39,7 +39,7 @@
     --radius: 0.75rem;
 
     /* Custom colors */
-    --gradient-primary: linear-gradient(135deg, hsl(121 90% 81%), hsl(193 99% 47%));
+    --gradient-primary: linear-gradient(135deg, hsl(100 59% 63%), hsl(193 99% 47%));
     --gradient-secondary: linear-gradient(135deg, hsl(193 99% 47%), hsl(39 100% 63%));
     --gradient-accent: linear-gradient(135deg, hsl(39 100% 63%), hsl(355 73% 51%));
     --gradient-surface: linear-gradient(180deg, hsl(220 14% 98%), hsl(0 0% 100%));
@@ -48,7 +48,7 @@
     --shadow-sm: 0 1px 2px hsl(231 53% 17% / 0.1);
     --shadow-md: 0 4px 12px hsl(231 53% 17% / 0.15);
     --shadow-lg: 0 8px 30px hsl(231 53% 17% / 0.2);
-    --shadow-primary: 0 4px 20px hsl(121 90% 81% / 0.4);
+    --shadow-primary: 0 4px 20px hsl(100 59% 63% / 0.4);
 
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 231 53% 17%;
@@ -70,7 +70,7 @@
     --popover: 231 53% 12%;
     --popover-foreground: 0 0% 95%;
 
-    --primary: 121 90% 75%;
+    --primary: 100 59% 55%;
     --primary-foreground: 231 53% 17%;
 
     --secondary: 193 99% 47%;
