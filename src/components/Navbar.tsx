@@ -270,6 +270,25 @@ export const Navbar = () => {
                   <span className="text-[10px] mt-1 font-medium">Profile</span>
                 </motion.div>
               </Link>
+              <Link to="/settings">
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className={`relative flex flex-col items-center p-2 rounded-lg ${
+                    location.pathname === "/settings" ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <Settings size={20} />
+                  <span className="text-[10px] mt-1 font-medium">Settings</span>
+                </motion.div>
+              </Link>
+              <motion.div
+                whileTap={{ scale: 0.9 }}
+                onClick={handleSignOut}
+                className="relative flex flex-col items-center p-2 rounded-lg text-destructive cursor-pointer"
+              >
+                <LogOut size={20} />
+                <span className="text-[10px] mt-1 font-medium">Sign Out</span>
+              </motion.div>
             </>
           ) : (
             <Link to="/auth">
