@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Trophy, Target, Calendar, Settings, Loader2 } from "lucide-react";
+import { User, Trophy, Target, Calendar, Settings, Loader2, MapPin, CheckCircle } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useParams } from "react-router-dom";
@@ -12,6 +12,8 @@ interface Profile {
   username: string;
   avatar_url: string | null;
   created_at: string;
+  last_location_name?: string | null;
+  last_location_updated_at?: string | null;
 }
 
 interface Score {
@@ -54,17 +56,36 @@ const Profile = () => {
       if (isOwnProfile) {
         const { data } = await supabase
           .from("profiles")
-          .select("username, avatar_url, created_at")
+          .select("username, avatar_url, created_at, last_location_name, last_location_updated_at")
           .eq("user_id", profileUserId)
           .maybeSingle();
         profileData = data;
       } else {
+        // For other users, fetch from public_profiles (doesn't have location) 
+        // and also get last location from their most recent score
         const { data } = await supabase
           .from("public_profiles")
           .select("username, avatar_url, created_at")
           .eq("user_id", profileUserId)
           .maybeSingle();
-        profileData = data;
+        
+        // Get last location from most recent score
+        const { data: lastScore } = await supabase
+          .from("scores")
+          .select("location_name, created_at")
+          .eq("user_id", profileUserId)
+          .not("location_name", "is", null)
+          .order("created_at", { ascending: false })
+          .limit(1)
+          .maybeSingle();
+        
+        if (data) {
+          profileData = {
+            ...data,
+            last_location_name: lastScore?.location_name || null,
+            last_location_updated_at: lastScore?.created_at || null,
+          };
+        }
       }
 
       if (profileData) {
@@ -135,9 +156,11 @@ const Profile = () => {
     );
   }
 
+  const verifiedScoresCount = scores.filter(s => s.validation_status === "accepted").length;
+
   const stats = [
     { label: "Total Scores", value: scores.length.toString(), icon: Target },
-    { label: "Best Score", value: scores.length > 0 ? Math.max(...scores.map(s => s.score)).toLocaleString() : "0", icon: Trophy },
+    { label: "Verified Scores", value: verifiedScoresCount.toString(), icon: CheckCircle },
     { label: "Machines Played", value: new Set(scores.map(s => s.machine_name)).size.toString(), icon: Target },
     { label: "Member Since", value: profile?.created_at ? new Date(profile.created_at).getFullYear().toString() : "2025", icon: Calendar },
   ];
@@ -171,10 +194,21 @@ const Profile = () => {
               {isOwnProfile && user?.email && (
                 <p className="text-muted-foreground text-sm">{user.email}</p>
               )}
-              <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start">
+              <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start flex-wrap">
                 <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
                   {scores.length > 10 ? "Pro Player" : "New Player"}
                 </span>
+                {profile?.last_location_name && (
+                  <span className="px-3 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center gap-1">
+                    <MapPin size={12} />
+                    {profile.last_location_name}
+                    {profile.last_location_updated_at && (
+                      <span className="opacity-70">
+                        · {new Date(profile.last_location_updated_at).toLocaleDateString()}
+                      </span>
+                    )}
+                  </span>
+                )}
               </div>
             </div>
             {isOwnProfile && (
