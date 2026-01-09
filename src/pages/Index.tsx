@@ -75,17 +75,21 @@ const Index = () => {
               animate={{ scale: 1, opacity: 1 }}
               transition={{ delay: 0.1 }}
               className="inline-block mb-6"
-            ></motion.div>
+            >
+              <span className="text-sm font-medium text-primary bg-primary/10 px-4 py-2 rounded-full">
+                ✨ Track your gaming achievements
+              </span>
+            </motion.div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
-              <span className="text-foreground">Every high score</span>
+              <span className="text-foreground">Unleash your scores.</span>
               <br />
-              <span className="gradient-text">deserves recognition</span>
+              <span className="gradient-text">Own the leaderboard</span>
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
-              Capture, compete, and climb the leaderboards. The ultimate platform for tracking your greatest gaming
-              achievements.
+              Capture every skill shot, multiball frenzy, and epic high score. Compete with players worldwide and rise
+              to the top of the global pinball leaderboard. Every ball counts
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
