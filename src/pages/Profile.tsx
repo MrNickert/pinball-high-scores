@@ -136,9 +136,13 @@ const Profile = () => {
           <div className="flex flex-col sm:flex-row items-center gap-6">
             <motion.div
               whileHover={{ scale: 1.05 }}
-              className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl"
+              className="w-20 h-20 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center text-4xl overflow-hidden"
             >
-              🎯
+              {profile?.avatar_url ? (
+                <img src={profile.avatar_url} alt="Avatar" className="w-full h-full object-cover" />
+              ) : (
+                "🎯"
+              )}
             </motion.div>
             <div className="text-center sm:text-left flex-1">
               <h1 className="text-xl font-bold text-foreground mb-1">
