@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { useValidationNotifications } from "@/hooks/useValidationNotifications";
+import { RequireAuth } from "@/components/RequireAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Leaderboard from "./pages/Leaderboard";
@@ -35,8 +36,8 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/capture" element={<Capture />} />
             <Route path="/profile" element={<Profile />} />
-            <Route path="/verify" element={<Verify />} />
-            <Route path="/friends" element={<Friends />} />
+            <Route path="/verify" element={<RequireAuth><Verify /></RequireAuth>} />
+            <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
