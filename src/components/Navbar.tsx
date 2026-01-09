@@ -6,6 +6,8 @@ import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
+import { NotificationBell } from "@/components/NotificationBell";
+
 const navItems = [
   { path: "/", label: "Home", icon: Home },
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
@@ -106,19 +108,22 @@ export const Navbar = () => {
             })}
           </div>
 
-          {user ? (
-            <Button variant="outline" size="sm" onClick={handleSignOut}>
-              <LogOut size={16} />
-              <span className="hidden sm:inline">Sign Out</span>
-            </Button>
-          ) : (
-            <Link to="/auth">
-              <Button variant="gradient" size="sm">
-                <LogIn size={16} />
-                <span className="hidden sm:inline">Sign In</span>
+          <div className="flex items-center gap-2">
+            <NotificationBell />
+            {user ? (
+              <Button variant="outline" size="sm" onClick={handleSignOut}>
+                <LogOut size={16} />
+                <span className="hidden sm:inline">Sign Out</span>
               </Button>
-            </Link>
-          )}
+            ) : (
+              <Link to="/auth">
+                <Button variant="gradient" size="sm">
+                  <LogIn size={16} />
+                  <span className="hidden sm:inline">Sign In</span>
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
       </div>
 

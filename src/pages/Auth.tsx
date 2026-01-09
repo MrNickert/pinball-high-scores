@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -47,8 +49,19 @@ const Auth = () => {
           setIsLoading(false);
           return;
         }
-        const { error } = await signUp(email, password, username);
+        const { error, data } = await signUp(email, password, username);
         if (error) throw error;
+        
+        // Create welcome notification for new user
+        if (data?.user) {
+          await createNotification({
+            userId: data.user.id,
+            type: NotificationTypes.WELCOME,
+            title: "Welcome to Multiball! 🎉",
+            message: "Start capturing your pinball scores and compete with friends.",
+          });
+        }
+        
         toast({
           title: "Account created!",
           description: "Welcome to Multiball!",
