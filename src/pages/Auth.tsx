@@ -38,7 +38,7 @@ const Auth = () => {
           title: "Welcome back!",
           description: "You've successfully signed in.",
         });
-        navigate("/profile");
+        navigate("/");
       } else {
         if (!username.trim()) {
           toast({
@@ -66,7 +66,7 @@ const Auth = () => {
           title: "Account created!",
           description: "Welcome to Multiball!",
         });
-        navigate("/profile");
+        navigate("/");
       }
     } catch (error: any) {
       toast({
