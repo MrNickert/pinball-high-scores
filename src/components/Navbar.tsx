@@ -28,7 +28,6 @@ const authNavItems = [
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/capture", label: "Capture", icon: Camera },
   { path: "/verify", label: "Verify", icon: Eye },
-  { path: "/friends", label: "Friends", icon: Users },
 ];
 
 export const Navbar = () => {
@@ -158,6 +157,12 @@ export const Navbar = () => {
                       <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                         <User size={16} />
                         Profile
+                      </Link>
+                    </DropdownMenuItem>
+                    <DropdownMenuItem asChild>
+                      <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
+                        <Users size={16} />
+                        Friends
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild>
