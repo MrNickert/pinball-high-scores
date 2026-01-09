@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap');
+@import url("https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap");
 
 @tailwind base;
 @tailwind components;
@@ -17,17 +17,24 @@
     --popover: 0 0% 100%;
     --popover-foreground: 231 53% 17%;
 
+    /* Primary actions */
     --primary: 100 59% 63%;
     --primary-foreground: 231 53% 17%;
 
+    /* Community / tech */
     --secondary: 193 99% 47%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 14% 96%;
     --muted-foreground: 231 30% 40%;
 
-    --accent: 39 100% 63%;
+    /* Jackpot / highlights (slightly deeper) */
+    --accent: 39 100% 58%;
     --accent-foreground: 231 53% 17%;
+
+    /* High-energy Multiball highlight */
+    --highlight: 280 100% 65%;
+    --highlight-foreground: 0 0% 100%;
 
     --destructive: 355 73% 51%;
     --destructive-foreground: 0 0% 100%;
@@ -38,18 +45,27 @@
 
     --radius: 0.75rem;
 
-    /* Custom colors */
+    /* Gradients */
     --gradient-primary: linear-gradient(135deg, hsl(100 59% 63%), hsl(193 99% 47%));
-    --gradient-secondary: linear-gradient(135deg, hsl(193 99% 47%), hsl(39 100% 63%));
-    --gradient-accent: linear-gradient(135deg, hsl(39 100% 63%), hsl(355 73% 51%));
+
+    --gradient-secondary: linear-gradient(135deg, hsl(193 99% 47%), hsl(39 100% 58%));
+
+    --gradient-accent: linear-gradient(135deg, hsl(39 100% 58%), hsl(355 73% 51%));
+
+    /* Multiball / peak moment gradient */
+    --gradient-multiball: linear-gradient(135deg, hsl(280 100% 65%), hsl(193 99% 47%));
+
     --gradient-surface: linear-gradient(180deg, hsl(220 14% 98%), hsl(0 0% 100%));
 
     /* Shadows */
     --shadow-sm: 0 1px 2px hsl(231 53% 17% / 0.1);
     --shadow-md: 0 4px 12px hsl(231 53% 17% / 0.15);
     --shadow-lg: 0 8px 30px hsl(231 53% 17% / 0.2);
-    --shadow-primary: 0 4px 20px hsl(100 59% 63% / 0.4);
 
+    --shadow-primary: 0 4px 20px hsl(100 59% 63% / 0.4);
+    --shadow-highlight: 0 0 30px hsl(280 100% 65% / 0.45);
+
+    /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 231 53% 17%;
     --sidebar-primary: 193 99% 47%;
@@ -79,8 +95,11 @@
     --muted: 231 40% 20%;
     --muted-foreground: 220 15% 65%;
 
-    --accent: 39 100% 63%;
+    --accent: 39 100% 58%;
     --accent-foreground: 231 53% 17%;
+
+    --highlight: 280 100% 65%;
+    --highlight-foreground: 0 0% 100%;
 
     --destructive: 355 73% 45%;
     --destructive-foreground: 0 0% 100%;
@@ -107,13 +126,20 @@
 
   body {
     @apply bg-background text-foreground antialiased;
-    font-family: 'Plus Jakarta Sans', sans-serif;
+    font-family: "Plus Jakarta Sans", sans-serif;
   }
 }
 
 @layer components {
   .gradient-text {
     background: var(--gradient-primary);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .gradient-text-multiball {
+    background: var(--gradient-multiball);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
@@ -130,21 +156,33 @@
   }
 
   .gradient-border::before {
-    content: '';
+    content: "";
     position: absolute;
     inset: 0;
     border-radius: inherit;
     padding: 1px;
     background: var(--gradient-primary);
-    -webkit-mask: 
-      linear-gradient(#fff 0 0) content-box, 
+    -webkit-mask:
+      linear-gradient(#fff 0 0) content-box,
       linear-gradient(#fff 0 0);
     -webkit-mask-composite: xor;
     mask-composite: exclude;
   }
 
+  /* Score display */
   .score-display {
-    font-weight: 700;
-    letter-spacing: -0.02em;
+    font-weight: 800;
+    letter-spacing: -0.03em;
+  }
+
+  /* New high score / multiball moment */
+  .score-highlight {
+    color: hsl(var(--highlight));
+    text-shadow: 0 0 18px hsl(var(--highlight) / 0.6);
+  }
+
+  .multiball-active {
+    background: var(--gradient-multiball);
+    box-shadow: var(--shadow-highlight);
   }
 }
