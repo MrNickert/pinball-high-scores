@@ -15,6 +15,7 @@ interface Profile {
   user_id: string;
   username: string;
   avatar_url: string | null;
+  last_location_name?: string | null;
 }
 
 interface Friendship {
@@ -26,6 +27,13 @@ interface Friendship {
   profile?: Profile;
 }
 
+interface SuggestedUser {
+  user_id: string;
+  username: string;
+  avatar_url: string | null;
+  location_name: string;
+}
+
 const Friends = () => {
   const { user } = useAuth();
   const [friends, setFriends] = useState<Friendship[]>([]);
@@ -33,8 +41,10 @@ const Friends = () => {
   const [pendingSent, setPendingSent] = useState<Friendship[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchResults, setSearchResults] = useState<Profile[]>([]);
+  const [suggestedUsers, setSuggestedUsers] = useState<SuggestedUser[]>([]);
   const [loading, setLoading] = useState(true);
   const [searching, setSearching] = useState(false);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(true);
 
   const fetchFriendships = async () => {
     if (!user) return;
@@ -83,8 +93,72 @@ const Friends = () => {
     }
   };
 
+  const fetchSuggestedUsers = async () => {
+    if (!user) return;
+    
+    setLoadingSuggestions(true);
+    try {
+      // First get the current user's locations from their scores
+      const { data: userScores } = await supabase
+        .from("scores")
+        .select("location_name")
+        .eq("user_id", user.id)
+        .not("location_name", "is", null);
+
+      const userLocations = [...new Set(userScores?.map(s => s.location_name).filter(Boolean) || [])];
+
+      if (userLocations.length === 0) {
+        setSuggestedUsers([]);
+        setLoadingSuggestions(false);
+        return;
+      }
+
+      // Find other users who have scores at the same locations
+      const { data: otherScores } = await supabase
+        .from("scores")
+        .select("user_id, location_name")
+        .in("location_name", userLocations)
+        .neq("user_id", user.id)
+        .limit(50);
+
+      if (!otherScores || otherScores.length === 0) {
+        setSuggestedUsers([]);
+        setLoadingSuggestions(false);
+        return;
+      }
+
+      // Get unique user IDs
+      const uniqueUserIds = [...new Set(otherScores.map(s => s.user_id))];
+
+      // Fetch profiles for these users
+      const { data: profiles } = await supabase
+        .from("public_profiles")
+        .select("user_id, username, avatar_url")
+        .in("user_id", uniqueUserIds)
+        .limit(10);
+
+      // Map profiles with the location they share
+      const suggestions: SuggestedUser[] = (profiles || []).map(profile => {
+        const matchingScore = otherScores.find(s => s.user_id === profile.user_id);
+        return {
+          user_id: profile.user_id!,
+          username: profile.username!,
+          avatar_url: profile.avatar_url,
+          location_name: matchingScore?.location_name || "Same venue",
+        };
+      });
+
+      setSuggestedUsers(suggestions);
+    } catch (error) {
+      console.error("Error fetching suggestions:", error);
+    } finally {
+      setLoadingSuggestions(false);
+    }
+  };
+
   useEffect(() => {
     fetchFriendships();
+    fetchSuggestedUsers();
   }, [user]);
 
   const handleSearch = async () => {
@@ -257,7 +331,7 @@ const Friends = () => {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="mb-8"
+            className="mb-6"
           >
             <div className="flex gap-2">
               <Input
@@ -279,9 +353,9 @@ const Friends = () => {
                     className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
                   >
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
+                      <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg overflow-hidden">
                         {profile.avatar_url ? (
-                          <img src={profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                          <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
                         ) : (
                           "👤"
                         )}
@@ -302,11 +376,54 @@ const Friends = () => {
             )}
           </motion.div>
 
+          {/* Suggested users from same locations */}
+          {suggestedUsers.filter(u => !isAlreadyFriendOrPending(u.user_id)).length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.15 }}
+              className="mb-6"
+            >
+              <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
+                <span>🎯</span> Players at your venues
+              </h2>
+              <div className="bg-card rounded-xl border border-border overflow-hidden">
+                {suggestedUsers
+                  .filter(u => !isAlreadyFriendOrPending(u.user_id))
+                  .slice(0, 5)
+                  .map((profile) => (
+                    <div
+                      key={profile.user_id}
+                      className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg overflow-hidden">
+                          {profile.avatar_url ? (
+                            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                          ) : (
+                            "👤"
+                          )}
+                        </div>
+                        <div>
+                          <span className="font-medium text-foreground block">{profile.username}</span>
+                          <span className="text-xs text-muted-foreground">{profile.location_name}</span>
+                        </div>
+                      </div>
+                      <Button size="sm" onClick={() => sendFriendRequest(profile.user_id)}>
+                        <UserPlus size={16} />
+                        Add
+                      </Button>
+                    </div>
+                  ))}
+              </div>
+            </motion.div>
+          )}
+
           {/* Tabs for different friend lists */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.25 }}
           >
             <Tabs defaultValue="friends">
               <TabsList className="w-full mb-4">
