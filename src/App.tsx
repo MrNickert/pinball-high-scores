@@ -37,6 +37,7 @@ const App = () => (
             <Route path="/leaderboard" element={<Leaderboard />} />
             <Route path="/capture" element={<Capture />} />
             <Route path="/profile" element={<Profile />} />
+            <Route path="/profile/:userId" element={<Profile />} />
             <Route path="/verify" element={<RequireAuth><Verify /></RequireAuth>} />
             <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
             <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
