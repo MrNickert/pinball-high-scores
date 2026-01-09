@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
+import { Link } from "react-router-dom";
 import { Users, UserPlus, Check, X, Search, UserMinus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -352,7 +353,7 @@ const Friends = () => {
                     key={profile.id}
                     className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
                   >
-                    <div className="flex items-center gap-3">
+                    <Link to={`/profile/${profile.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                       <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg overflow-hidden">
                         {profile.avatar_url ? (
                           <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -360,8 +361,8 @@ const Friends = () => {
                           "👤"
                         )}
                       </div>
-                      <span className="font-medium text-foreground">{profile.username}</span>
-                    </div>
+                      <span className="font-medium text-foreground hover:text-primary transition-colors">{profile.username}</span>
+                    </Link>
                     {isAlreadyFriendOrPending(profile.user_id) ? (
                       <span className="text-sm text-muted-foreground">Already connected</span>
                     ) : (
@@ -396,7 +397,7 @@ const Friends = () => {
                       key={profile.user_id}
                       className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
                     >
-                      <div className="flex items-center gap-3">
+                      <Link to={`/profile/${profile.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                         <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg overflow-hidden">
                           {profile.avatar_url ? (
                             <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -405,10 +406,10 @@ const Friends = () => {
                           )}
                         </div>
                         <div>
-                          <span className="font-medium text-foreground block">{profile.username}</span>
+                          <span className="font-medium text-foreground block hover:text-primary transition-colors">{profile.username}</span>
                           <span className="text-xs text-muted-foreground">{profile.location_name}</span>
                         </div>
-                      </div>
+                      </Link>
                       <Button size="sm" onClick={() => sendFriendRequest(profile.user_id)}>
                         <UserPlus size={16} />
                         Add
@@ -452,7 +453,7 @@ const Friends = () => {
                         key={friendship.id}
                         className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
                       >
-                        <div className="flex items-center gap-3">
+                        <Link to={`/profile/${friendship.profile?.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
                             {friendship.profile?.avatar_url ? (
                               <img src={friendship.profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -460,8 +461,8 @@ const Friends = () => {
                               "👤"
                             )}
                           </div>
-                          <span className="font-medium text-foreground">{friendship.profile?.username || "Unknown"}</span>
-                        </div>
+                          <span className="font-medium text-foreground hover:text-primary transition-colors">{friendship.profile?.username || "Unknown"}</span>
+                        </Link>
                         <Button variant="ghost" size="sm" onClick={() => removeFriend(friendship.id)}>
                           <UserMinus size={16} className="text-destructive" />
                         </Button>
@@ -483,7 +484,7 @@ const Friends = () => {
                         key={friendship.id}
                         className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
                       >
-                        <div className="flex items-center gap-3">
+                        <Link to={`/profile/${friendship.profile?.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
                             {friendship.profile?.avatar_url ? (
                               <img src={friendship.profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -491,8 +492,8 @@ const Friends = () => {
                               "👤"
                             )}
                           </div>
-                          <span className="font-medium text-foreground">{friendship.profile?.username || "Unknown"}</span>
-                        </div>
+                          <span className="font-medium text-foreground hover:text-primary transition-colors">{friendship.profile?.username || "Unknown"}</span>
+                        </Link>
                         <div className="flex gap-2">
                           <Button size="sm" onClick={() => respondToRequest(friendship.id, true)}>
                             <Check size={16} />
@@ -519,7 +520,7 @@ const Friends = () => {
                         key={friendship.id}
                         className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
                       >
-                        <div className="flex items-center gap-3">
+                        <Link to={`/profile/${friendship.profile?.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
                           <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
                             {friendship.profile?.avatar_url ? (
                               <img src={friendship.profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -527,8 +528,8 @@ const Friends = () => {
                               "👤"
                             )}
                           </div>
-                          <span className="font-medium text-foreground">{friendship.profile?.username || "Unknown"}</span>
-                        </div>
+                          <span className="font-medium text-foreground hover:text-primary transition-colors">{friendship.profile?.username || "Unknown"}</span>
+                        </Link>
                         <span className="text-sm text-muted-foreground">Pending</span>
                       </div>
                     ))}
