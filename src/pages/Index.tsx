@@ -79,8 +79,8 @@ const Index = () => {
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
               <span className="text-foreground">Play. Score.</span>
-              <br />
-              <span className="gradient-text">Multiball.</span>
+              <br className="mb-2" />
+              <span className="gradient-text mt-2 inline-block">Multiball.</span>
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
