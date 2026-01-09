@@ -19,7 +19,7 @@ interface Score {
   machine_name: string;
   score: number;
   created_at: string;
-  validation_status: "ai_validated" | "score_only" | "not_validated" | null;
+  validation_status: "accepted" | "pending" | "declined" | null;
 }
 
 const Profile = () => {

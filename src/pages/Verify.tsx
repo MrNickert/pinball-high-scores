@@ -28,7 +28,7 @@ interface PendingScore {
   created_at: string;
   username: string;
   user_id: string;
-  validation_status: "ai_validated" | "score_only" | "not_validated" | null;
+  validation_status: "accepted" | "pending" | "declined" | null;
   user_vote?: "approve" | "reject" | null;
   approve_count: number;
   reject_count: number;
@@ -75,7 +75,7 @@ const Verify = () => {
           user_id,
           validation_status
         `)
-        .in("validation_status", ["not_validated", "score_only"])
+        .eq("validation_status", "pending")
         .order("created_at", { ascending: true })
         .limit(50);
 
@@ -122,9 +122,9 @@ const Verify = () => {
         
         for (const [scoreId, voteData] of voteMap.entries()) {
           if (voteData.approve >= VOTES_REQUIRED) {
-            scoresToUpdate.push({ id: scoreId, status: "ai_validated", verified: true });
+            scoresToUpdate.push({ id: scoreId, status: "accepted", verified: true });
           } else if (voteData.reject >= VOTES_REQUIRED) {
-            scoresToUpdate.push({ id: scoreId, status: "invalid", verified: false });
+            scoresToUpdate.push({ id: scoreId, status: "declined", verified: false });
           }
         }
 
@@ -180,10 +180,10 @@ const Verify = () => {
 
   const checkAndUpdateValidation = async (scoreId: string, newApproveCount: number, newRejectCount: number) => {
     if (newApproveCount >= VOTES_REQUIRED) {
-      // Auto-validate: update score to validated
+      // Auto-validate: update score to accepted
       await supabase
         .from("scores")
-        .update({ validation_status: "ai_validated", verified: true })
+        .update({ validation_status: "accepted", verified: true })
         .eq("id", scoreId);
       
       // Remove from local lists
@@ -191,17 +191,17 @@ const Verify = () => {
       setMyPendingScores(prev => prev.filter(s => s.id !== scoreId));
       
       toast({
-        title: "Score validated! ✅",
+        title: "Score accepted! ✅",
         description: "This score has been verified by the community",
       });
       return true;
     }
     
     if (newRejectCount >= VOTES_REQUIRED) {
-      // Auto-invalidate: update score to invalid
+      // Auto-decline: update score to declined
       await supabase
         .from("scores")
-        .update({ validation_status: "invalid", verified: false })
+        .update({ validation_status: "declined", verified: false })
         .eq("id", scoreId);
       
       // Remove from local lists
