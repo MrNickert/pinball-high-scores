@@ -9,6 +9,7 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
+import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
 
 interface PinballLocation {
   id: number;
@@ -431,13 +432,27 @@ const Capture = () => {
       setLastScoreLocationId(selectedLocation.id);
       setLastScoreLocationCoords({ lat: parseFloat(selectedLocation.lat), lon: parseFloat(selectedLocation.lon) });
 
-      // Show single toast based on validation status
+      // Show notification and toast based on validation status
       if (validationStatus === "ai_validated") {
+        await createNotification({
+          userId: user.id,
+          type: NotificationTypes.SCORE_VERIFIED,
+          title: "Score Verified! ✅",
+          message: `Your ${numericScore.toLocaleString()} score on ${selectedMachine} has been verified.`,
+          data: { machine: selectedMachine, score: numericScore },
+        });
         toast({
           title: "Score accepted! ✅",
           description: "Your score has been verified and added to the leaderboard.",
         });
       } else if (validationStatus === "score_only" || validationStatus === "not_validated" || !validationStatus) {
+        await createNotification({
+          userId: user.id,
+          type: NotificationTypes.SCORE_PENDING,
+          title: "Score Submitted ⏳",
+          message: `Your ${numericScore.toLocaleString()} score on ${selectedMachine} is pending community review.`,
+          data: { machine: selectedMachine, score: numericScore },
+        });
         toast({
           title: "Score submitted! 👀",
           description: "The community will review and validate your score.",
