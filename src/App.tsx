@@ -13,6 +13,7 @@ import Capture from "./pages/Capture";
 import Profile from "./pages/Profile";
 import Verify from "./pages/Verify";
 import Friends from "./pages/Friends";
+import Settings from "./pages/Settings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
             <Route path="/profile" element={<Profile />} />
             <Route path="/verify" element={<RequireAuth><Verify /></RequireAuth>} />
             <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
+            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
