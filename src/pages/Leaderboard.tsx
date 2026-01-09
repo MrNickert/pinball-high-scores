@@ -28,6 +28,7 @@ interface LeaderboardEntry {
   location_name: string | null;
   created_at: string;
   username: string;
+  avatar_url: string | null;
   validation_status: "accepted" | "pending" | "declined" | null;
 }
 
@@ -44,10 +45,8 @@ const getRankDisplay = (rank: number) => {
   }
 };
 
-const getAvatar = (username: string) => {
-  const avatars = ["🎯", "🎮", "🎪", "🎨", "🎭", "🎲", "🎳", "🎰"];
-  const index = username.charCodeAt(0) % avatars.length;
-  return avatars[index];
+const getInitials = (username: string) => {
+  return username.slice(0, 2).toUpperCase();
 };
 
 const Leaderboard = () => {
@@ -126,20 +125,24 @@ const Leaderboard = () => {
         const userIds = [...new Set(scores.map(s => s.user_id))];
         const { data: profiles } = await supabase
           .from("public_profiles")
-          .select("user_id, username")
+          .select("user_id, username, avatar_url")
           .in("user_id", userIds);
 
-        const profileMap = new Map(profiles?.map(p => [p.user_id, p.username]) || []);
+        const profileMap = new Map(profiles?.map(p => [p.user_id, { username: p.username, avatar_url: p.avatar_url }]) || []);
 
-        const entriesWithUsernames = scores.map(score => ({
-          id: score.id,
-          score: score.score,
-          machine_name: score.machine_name,
-          location_name: score.location_name,
-          created_at: score.created_at,
-          username: profileMap.get(score.user_id) || "Anonymous",
-          validation_status: score.validation_status as LeaderboardEntry["validation_status"],
-        }));
+        const entriesWithUsernames = scores.map(score => {
+          const profile = profileMap.get(score.user_id);
+          return {
+            id: score.id,
+            score: score.score,
+            machine_name: score.machine_name,
+            location_name: score.location_name,
+            created_at: score.created_at,
+            username: profile?.username || "Anonymous",
+            avatar_url: profile?.avatar_url || null,
+            validation_status: score.validation_status as LeaderboardEntry["validation_status"],
+          };
+        });
 
         setEntries(entriesWithUsernames);
       } else {
@@ -332,8 +335,14 @@ const Leaderboard = () => {
                         isFirst ? "ring-2 ring-primary/20 order-2" : "order-" + (orderIndex === 1 ? "1" : "3")
                       }`}
                     >
-                      <div className={`mb-2 ${isFirst ? "text-5xl" : "text-4xl"}`}>
-                        {getAvatar(entry.username)}
+                      <div className={`mb-2 ${isFirst ? "w-16 h-16" : "w-14 h-14"} mx-auto rounded-full overflow-hidden bg-muted flex items-center justify-center`}>
+                        {entry.avatar_url ? (
+                          <img src={entry.avatar_url} alt={entry.username} className="w-full h-full object-cover" />
+                        ) : (
+                          <span className={`font-semibold text-muted-foreground ${isFirst ? "text-xl" : "text-lg"}`}>
+                            {getInitials(entry.username)}
+                          </span>
+                        )}
                       </div>
                       <div className="flex justify-center mb-2">
                         {getRankDisplay(orderIndex === 0 ? 1 : orderIndex === 1 ? 2 : 3)}
@@ -375,10 +384,18 @@ const Leaderboard = () => {
                     transition={{ delay: 0.05 * Math.min(index, 10) }}
                     className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
                   >
-                    <div className="w-10 flex justify-center">
+                    <div className="w-10 h-10 flex justify-center">
                       {getRankDisplay(index + 1)}
                     </div>
-                    <div className="text-2xl">{getAvatar(entry.username)}</div>
+                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
+                      {entry.avatar_url ? (
+                        <img src={entry.avatar_url} alt={entry.username} className="w-full h-full object-cover" />
+                      ) : (
+                        <span className="text-sm font-semibold text-muted-foreground">
+                          {getInitials(entry.username)}
+                        </span>
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <p className="font-medium text-foreground truncate">
                         {entry.username}
