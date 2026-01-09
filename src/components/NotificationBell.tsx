@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell } from "lucide-react";
+import { Bell, Check, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { toast } from "sonner";
+import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
 
 interface Notification {
   id: string;
@@ -135,6 +137,75 @@ export const NotificationBell = () => {
     }
   };
 
+  const handleFriendRequest = async (notification: Notification, accept: boolean) => {
+    const requesterId = notification.data?.requesterId;
+    if (!requesterId || !user) return;
+
+    try {
+      // Find the friendship record
+      const { data: friendship, error: findError } = await supabase
+        .from("friendships")
+        .select("id")
+        .eq("requester_id", requesterId)
+        .eq("addressee_id", user.id)
+        .eq("status", "pending")
+        .maybeSingle();
+
+      if (findError || !friendship) {
+        toast.error("Friend request not found or already handled");
+        // Remove the notification anyway
+        await supabase.from("notifications").delete().eq("id", notification.id);
+        setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+        return;
+      }
+
+      if (accept) {
+        // Accept the friend request
+        const { error } = await supabase
+          .from("friendships")
+          .update({ status: "accepted" })
+          .eq("id", friendship.id);
+
+        if (error) throw error;
+
+        // Get current user's username for notification
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("username")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        // Notify the requester
+        await createNotification({
+          userId: requesterId,
+          type: NotificationTypes.FRIEND_ACCEPTED,
+          title: "Friend Request Accepted",
+          message: `${profile?.username || "Someone"} accepted your friend request`,
+          data: { friendId: user.id },
+        });
+
+        toast.success("Friend request accepted!");
+      } else {
+        // Decline the friend request
+        const { error } = await supabase
+          .from("friendships")
+          .delete()
+          .eq("id", friendship.id);
+
+        if (error) throw error;
+        toast.success("Friend request declined");
+      }
+
+      // Remove the notification
+      await supabase.from("notifications").delete().eq("id", notification.id);
+      setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      setUnreadCount((prev) => Math.max(0, prev - (notification.read ? 0 : 1)));
+    } catch (error) {
+      console.error("Error handling friend request:", error);
+      toast.error("Failed to handle friend request");
+    }
+  };
+
   if (!user) return null;
 
   return (
@@ -186,10 +257,9 @@ export const NotificationBell = () => {
                   key={notification.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
-                  className={`p-3 hover:bg-muted/50 transition-colors cursor-pointer ${
+                  className={`p-3 hover:bg-muted/50 transition-colors ${
                     !notification.read ? "bg-primary/5" : ""
                   }`}
-                  onClick={() => !notification.read && markAsRead(notification.id)}
                 >
                   <div className="flex gap-3">
                     <span className="text-lg flex-shrink-0">
@@ -207,9 +277,42 @@ export const NotificationBell = () => {
                           addSuffix: true,
                         })}
                       </p>
+                      
+                      {/* Friend request actions */}
+                      {notification.type === "friend_request" && (
+                        <div className="flex gap-2 mt-2">
+                          <Button 
+                            size="sm" 
+                            className="h-7 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFriendRequest(notification, true);
+                            }}
+                          >
+                            <Check size={14} className="mr-1" />
+                            Accept
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="h-7 text-xs"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleFriendRequest(notification, false);
+                            }}
+                          >
+                            <X size={14} className="mr-1" />
+                            Decline
+                          </Button>
+                        </div>
+                      )}
                     </div>
-                    {!notification.read && (
-                      <span className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5" />
+                    {!notification.read && notification.type !== "friend_request" && (
+                      <button 
+                        onClick={() => markAsRead(notification.id)}
+                        className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5 hover:bg-primary/80"
+                        title="Mark as read"
+                      />
                     )}
                   </div>
                 </motion.div>
