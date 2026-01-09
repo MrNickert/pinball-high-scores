@@ -1,20 +1,79 @@
+import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Shield, Trash2 } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
+import { Input } from "@/components/ui/input";
 import { Navigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 const Settings = () => {
   const { user, loading } = useAuth();
+  const [username, setUsername] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [loadingProfile, setLoadingProfile] = useState(true);
 
-  if (loading) {
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  const fetchProfile = async () => {
+    if (!user) return;
+    
+    try {
+      const { data } = await supabase
+        .from("profiles")
+        .select("username, avatar_url")
+        .eq("user_id", user.id)
+        .maybeSingle();
+      
+      if (data) {
+        setUsername(data.username || "");
+        setAvatarUrl(data.avatar_url || "");
+      }
+    } catch (error) {
+      console.error("Error fetching profile:", error);
+    } finally {
+      setLoadingProfile(false);
+    }
+  };
+
+  const handleSaveProfile = async () => {
+    if (!user) return;
+    
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({ 
+          username: username.trim(),
+          avatar_url: avatarUrl.trim() || null,
+          updated_at: new Date().toISOString()
+        })
+        .eq("user_id", user.id);
+      
+      if (error) throw error;
+      toast.success("Profile updated successfully!");
+    } catch (error) {
+      console.error("Error updating profile:", error);
+      toast.error("Failed to update profile");
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading || loadingProfile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <Loader2 className="animate-spin text-primary" size={32} />
       </div>
     );
   }
@@ -42,11 +101,49 @@ const Settings = () => {
             </p>
           </motion.div>
 
-          {/* Notifications Section */}
+          {/* Profile Section */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
+            className="bg-card rounded-2xl border border-border p-6 mb-6"
+          >
+            <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+              <User size={18} className="text-primary" />
+              Profile
+            </h2>
+            <div className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="username" className="text-foreground">Username</Label>
+                <Input
+                  id="username"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  placeholder="Enter your username"
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="avatar" className="text-foreground">Avatar URL</Label>
+                <Input
+                  id="avatar"
+                  value={avatarUrl}
+                  onChange={(e) => setAvatarUrl(e.target.value)}
+                  placeholder="https://example.com/avatar.png"
+                />
+                <p className="text-xs text-muted-foreground">Enter a URL for your profile picture</p>
+              </div>
+              <Button onClick={handleSaveProfile} disabled={saving}>
+                {saving ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                Save Profile
+              </Button>
+            </div>
+          </motion.div>
+
+          {/* Notifications Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
             className="bg-card rounded-2xl border border-border p-6 mb-6"
           >
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
@@ -76,7 +173,7 @@ const Settings = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
+            transition={{ delay: 0.25 }}
             className="bg-card rounded-2xl border border-border p-6 mb-6"
           >
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
@@ -106,7 +203,7 @@ const Settings = () => {
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
+            transition={{ delay: 0.35 }}
             className="bg-card rounded-2xl border border-destructive/30 p-6"
           >
             <h2 className="font-semibold text-destructive flex items-center gap-2 mb-4">
