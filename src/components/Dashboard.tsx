@@ -16,6 +16,7 @@ interface Stats {
 
 interface FriendActivity {
   id: string;
+  user_id: string;
   username: string;
   avatar_url: string | null;
   score: number;
@@ -122,6 +123,7 @@ export const Dashboard = () => {
           const profile = profiles?.find((p) => p.user_id === score.user_id);
           return {
             id: score.id,
+            user_id: score.user_id,
             username: profile?.username || "Unknown",
             avatar_url: profile?.avatar_url || null,
             score: score.score,
@@ -271,16 +273,18 @@ export const Dashboard = () => {
                   transition={{ delay: 0.05 * index }}
                   className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
                 >
-                  <div className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-lg flex-shrink-0">
+                  <Link to={`/profile/${activity.user_id}`} className="w-10 h-10 rounded-full bg-secondary/20 flex items-center justify-center text-lg flex-shrink-0 hover:opacity-80 transition-opacity">
                     {activity.avatar_url ? (
                       <img src={activity.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
                     ) : (
                       "👤"
                     )}
-                  </div>
+                  </Link>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm text-foreground">
-                      <span className="font-semibold">{activity.username}</span>
+                      <Link to={`/profile/${activity.user_id}`} className="font-semibold hover:text-primary transition-colors">
+                        {activity.username}
+                      </Link>
                       <span className="text-muted-foreground"> scored </span>
                       <span className="font-bold text-primary">{formatScore(activity.score)}</span>
                       <span className="text-muted-foreground"> on </span>
