@@ -36,7 +36,7 @@ const Index = () => {
       <section className="relative pt-32 pb-20 px-4">
         {/* Background Gradient */}
         <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-br from-primary/15 via-purple-500/10 to-transparent rounded-full blur-3xl" />
+          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-br from-primary/15 via-secondary/10 to-transparent rounded-full blur-3xl" />
         </div>
 
         <div className="container mx-auto relative z-10">
@@ -153,7 +153,7 @@ const Index = () => {
             initial={{ opacity: 0, scale: 0.95 }}
             whileInView={{ opacity: 1, scale: 1 }}
             viewport={{ once: true }}
-            className="bg-gradient-to-br from-primary/5 via-purple-500/5 to-secondary/5 rounded-3xl p-10 md:p-16 text-center border border-border"
+            className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl p-10 md:p-16 text-center border border-border"
           >
             <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">
               Ready to start tracking?
