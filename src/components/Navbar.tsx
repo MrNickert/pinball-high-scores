@@ -215,8 +215,8 @@ export const Navbar = () => {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur-xl border-t border-border">
-        <div className="flex justify-around py-2">
+      <div className="md:hidden fixed bottom-0 left-0 right-0 bg-background border-t border-border z-50">
+        <div className="flex justify-around items-center py-2">
           {navItems.map((item) => {
             const isActive = location.pathname === item.path;
             const showBadge = item.path === "/verify" && pendingCount > 0;
@@ -239,56 +239,62 @@ export const Navbar = () => {
               </Link>
             );
           })}
-          {/* Mobile user menu items */}
+          
+          {/* Mobile notification bell + user menu */}
           {user ? (
             <>
-              <Link to="/friends">
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className={`relative flex flex-col items-center p-2 rounded-lg ${
-                    location.pathname === "/friends" ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <Users size={20} />
-                  <span className="text-[10px] mt-1 font-medium">Friends</span>
-                </motion.div>
-              </Link>
-              <Link to="/profile">
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className={`relative flex flex-col items-center p-2 rounded-lg ${
-                    location.pathname === "/profile" || location.pathname.startsWith("/profile/") ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <User size={12} />
-                    )}
-                  </div>
-                  <span className="text-[10px] mt-1 font-medium">Profile</span>
-                </motion.div>
-              </Link>
-              <Link to="/settings">
-                <motion.div
-                  whileTap={{ scale: 0.9 }}
-                  className={`relative flex flex-col items-center p-2 rounded-lg ${
-                    location.pathname === "/settings" ? "text-primary" : "text-muted-foreground"
-                  }`}
-                >
-                  <Settings size={20} />
-                  <span className="text-[10px] mt-1 font-medium">Settings</span>
-                </motion.div>
-              </Link>
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                onClick={handleSignOut}
-                className="relative flex flex-col items-center p-2 rounded-lg text-destructive cursor-pointer"
-              >
-                <LogOut size={20} />
-                <span className="text-[10px] mt-1 font-medium">Sign Out</span>
-              </motion.div>
+              <div className="flex flex-col items-center p-2">
+                <NotificationBell />
+              </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <motion.div
+                    whileTap={{ scale: 0.9 }}
+                    className={`relative flex flex-col items-center p-2 rounded-lg cursor-pointer ${
+                      ["/profile", "/friends", "/settings"].some(p => location.pathname.startsWith(p))
+                        ? "text-primary"
+                        : "text-muted-foreground"
+                    }`}
+                  >
+                    <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                      {avatarUrl ? (
+                        <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                      ) : (
+                        <User size={12} />
+                      )}
+                    </div>
+                    <span className="text-[10px] mt-1 font-medium">Menu</span>
+                  </motion.div>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" side="top" className="w-48 mb-2 bg-background border border-border">
+                  <DropdownMenuItem asChild>
+                    <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
+                      <User size={16} />
+                      Profile
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
+                      <Users size={16} />
+                      Friends
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuItem asChild>
+                    <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
+                      <Settings size={16} />
+                      Settings
+                    </Link>
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={handleSignOut}
+                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                  >
+                    <LogOut size={16} />
+                    Sign Out
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </>
           ) : (
             <Link to="/auth">
