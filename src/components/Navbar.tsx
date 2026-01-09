@@ -1,6 +1,6 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, User, Camera, Home, LogIn, LogOut, Circle, Eye } from "lucide-react";
+import { Trophy, User, Camera, Home, LogIn, LogOut, Circle, Eye, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -11,6 +11,7 @@ const navItems = [
   { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
   { path: "/capture", label: "Capture", icon: Camera },
   { path: "/verify", label: "Verify", icon: Eye },
+  { path: "/friends", label: "Friends", icon: Users },
   { path: "/profile", label: "Profile", icon: User },
 ];
 
