@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
-import { Users, UserPlus, Check, X, Search, UserMinus } from "lucide-react";
+import { Users, UserPlus, Check, X, Search, UserMinus, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Navbar } from "@/components/Navbar";
@@ -377,48 +377,6 @@ const Friends = () => {
             )}
           </motion.div>
 
-          {/* Suggested users from same locations */}
-          {suggestedUsers.filter(u => !isAlreadyFriendOrPending(u.user_id)).length > 0 && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.15 }}
-              className="mb-6"
-            >
-              <h2 className="text-lg font-semibold text-foreground mb-3 flex items-center gap-2">
-                <span>🎯</span> Players at your venues
-              </h2>
-              <div className="bg-card rounded-xl border border-border overflow-hidden">
-                {suggestedUsers
-                  .filter(u => !isAlreadyFriendOrPending(u.user_id))
-                  .slice(0, 5)
-                  .map((profile) => (
-                    <div
-                      key={profile.user_id}
-                      className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
-                    >
-                      <Link to={`/profile/${profile.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                        <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg overflow-hidden">
-                          {profile.avatar_url ? (
-                            <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
-                          ) : (
-                            "👤"
-                          )}
-                        </div>
-                        <div>
-                          <span className="font-medium text-foreground block hover:text-primary transition-colors">{profile.username}</span>
-                          <span className="text-xs text-muted-foreground">{profile.location_name}</span>
-                        </div>
-                      </Link>
-                      <Button size="sm" onClick={() => sendFriendRequest(profile.user_id)}>
-                        <UserPlus size={16} />
-                        Add
-                      </Button>
-                    </div>
-                  ))}
-              </div>
-            </motion.div>
-          )}
 
           {/* Tabs for different friend lists */}
           <motion.div
@@ -427,14 +385,18 @@ const Friends = () => {
             transition={{ delay: 0.25 }}
           >
             <Tabs defaultValue="friends">
-              <TabsList className="w-full mb-4">
-                <TabsTrigger value="friends" className="flex-1">
+              <TabsList className="w-full mb-4 grid grid-cols-4">
+                <TabsTrigger value="friends">
                   Friends ({friends.length})
                 </TabsTrigger>
-                <TabsTrigger value="requests" className="flex-1">
+                <TabsTrigger value="nearby">
+                  <MapPin size={14} className="mr-1" />
+                  Nearby
+                </TabsTrigger>
+                <TabsTrigger value="requests">
                   Requests ({pendingReceived.length})
                 </TabsTrigger>
-                <TabsTrigger value="sent" className="flex-1">
+                <TabsTrigger value="sent">
                   Sent ({pendingSent.length})
                 </TabsTrigger>
               </TabsList>
@@ -468,6 +430,50 @@ const Friends = () => {
                         </Button>
                       </div>
                     ))}
+                  </div>
+                )}
+              </TabsContent>
+
+              <TabsContent value="nearby">
+                {loadingSuggestions ? (
+                  <div className="text-center py-8 text-muted-foreground">Loading nearby players...</div>
+                ) : suggestedUsers.filter(u => !isAlreadyFriendOrPending(u.user_id)).length === 0 ? (
+                  <div className="text-center py-8 text-muted-foreground">
+                    <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
+                    <p className="mb-2">No players found at your venues yet</p>
+                    <p className="text-sm">Play at more locations to discover other players!</p>
+                  </div>
+                ) : (
+                  <div className="bg-card rounded-xl border border-border overflow-hidden">
+                    {suggestedUsers
+                      .filter(u => !isAlreadyFriendOrPending(u.user_id))
+                      .map((profile) => (
+                        <div
+                          key={profile.user_id}
+                          className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
+                        >
+                          <Link to={`/profile/${profile.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                            <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg overflow-hidden">
+                              {profile.avatar_url ? (
+                                <img src={profile.avatar_url} alt="" className="w-full h-full object-cover" />
+                              ) : (
+                                "👤"
+                              )}
+                            </div>
+                            <div>
+                              <span className="font-medium text-foreground block hover:text-primary transition-colors">{profile.username}</span>
+                              <span className="text-xs text-muted-foreground flex items-center gap-1">
+                                <MapPin size={10} />
+                                {profile.location_name}
+                              </span>
+                            </div>
+                          </Link>
+                          <Button size="sm" onClick={() => sendFriendRequest(profile.user_id)}>
+                            <UserPlus size={16} />
+                            Add
+                          </Button>
+                        </div>
+                      ))}
                   </div>
                 )}
               </TabsContent>
