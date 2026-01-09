@@ -3,6 +3,8 @@ import { Link } from "react-router-dom";
 import { Trophy, Camera, MapPin, Zap, ArrowRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
+import { Dashboard } from "@/components/Dashboard";
+import { useAuth } from "@/contexts/AuthContext";
 
 const features = [
   {
@@ -28,6 +30,28 @@ const features = [
 ];
 
 const Index = () => {
+  const { user, loading } = useAuth();
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="animate-pulse text-muted-foreground">Loading...</div>
+      </div>
+    );
+  }
+
+  // Show dashboard for authenticated users
+  if (user) {
+    return (
+      <div className="min-h-screen bg-background overflow-hidden">
+        <Navbar />
+        <Dashboard />
+        <div className="h-20 md:h-0" />
+      </div>
+    );
+  }
+
+  // Landing page for non-authenticated users
   return (
     <div className="min-h-screen bg-background overflow-hidden">
       <Navbar />
