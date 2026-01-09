@@ -1,6 +1,7 @@
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
-import { Trophy, User, Camera, Home, LogIn, LogOut, Circle, Eye, Users, Settings, ChevronDown } from "lucide-react";
+import { Trophy, User, Camera, Home, LogIn, LogOut, Eye, Users, Settings, ChevronDown } from "lucide-react";
+import logo from "@/assets/logo.png";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
@@ -116,13 +117,7 @@ export const Navbar = () => {
       <div className="container mx-auto px-4">
         <div className="flex items-center justify-between h-16">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="relative">
-              <Circle className="w-8 h-8 text-primary fill-primary/20" strokeWidth={2.5} />
-              <Circle
-                className="w-3 h-3 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                strokeWidth={0}
-              />
-            </div>
+            <img src={logo} alt="Multiball" className="w-8 h-8" />
             <span className="font-bold text-lg text-foreground">Multiball</span>
           </Link>
 
