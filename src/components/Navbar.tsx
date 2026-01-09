@@ -239,25 +239,38 @@ export const Navbar = () => {
               </Link>
             );
           })}
-          {/* Mobile user/sign in icon */}
+          {/* Mobile user menu items */}
           {user ? (
-            <Link to="/profile">
-              <motion.div
-                whileTap={{ scale: 0.9 }}
-                className={`relative flex flex-col items-center p-2 rounded-lg ${
-                  location.pathname === "/profile" ? "text-primary" : "text-muted-foreground"
-                }`}
-              >
-                <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
-                  {avatarUrl ? (
-                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                  ) : (
-                    <User size={12} />
-                  )}
-                </div>
-                <span className="text-[10px] mt-1 font-medium">Profile</span>
-              </motion.div>
-            </Link>
+            <>
+              <Link to="/friends">
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className={`relative flex flex-col items-center p-2 rounded-lg ${
+                    location.pathname === "/friends" ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <Users size={20} />
+                  <span className="text-[10px] mt-1 font-medium">Friends</span>
+                </motion.div>
+              </Link>
+              <Link to="/profile">
+                <motion.div
+                  whileTap={{ scale: 0.9 }}
+                  className={`relative flex flex-col items-center p-2 rounded-lg ${
+                    location.pathname === "/profile" || location.pathname.startsWith("/profile/") ? "text-primary" : "text-muted-foreground"
+                  }`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-primary/20 flex items-center justify-center overflow-hidden">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <User size={12} />
+                    )}
+                  </div>
+                  <span className="text-[10px] mt-1 font-medium">Profile</span>
+                </motion.div>
+              </Link>
+            </>
           ) : (
             <Link to="/auth">
               <motion.div
