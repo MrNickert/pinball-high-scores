@@ -19,7 +19,7 @@ export const useValidationNotifications = () => {
           .from("scores")
           .select("id, machine_name, score")
           .eq("user_id", user.id)
-          .eq("validation_status", "ai_validated")
+          .eq("validation_status", "accepted")
           .is("user_notified_at", null);
 
         if (error) throw error;
@@ -29,12 +29,12 @@ export const useValidationNotifications = () => {
           if (validatedScores.length === 1) {
             const score = validatedScores[0];
             toast({
-              title: "Score validated! 🎉",
+              title: "Score accepted! 🎉",
               description: `Your ${score.machine_name} score of ${score.score.toLocaleString()} was verified by the community!`,
             });
           } else {
             toast({
-              title: `${validatedScores.length} scores validated! 🎉`,
+              title: `${validatedScores.length} scores accepted! 🎉`,
               description: "The community has verified your submitted scores!",
             });
           }
@@ -47,12 +47,12 @@ export const useValidationNotifications = () => {
             .in("id", scoreIds);
         }
 
-        // Also check for rejected/invalid scores
+        // Also check for declined scores
         const { data: rejectedScores, error: rejError } = await supabase
           .from("scores")
           .select("id, machine_name, score")
           .eq("user_id", user.id)
-          .eq("validation_status", "invalid")
+          .eq("validation_status", "declined")
           .is("user_notified_at", null);
 
         if (!rejError && rejectedScores && rejectedScores.length > 0) {

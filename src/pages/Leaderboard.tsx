@@ -27,7 +27,7 @@ interface LeaderboardEntry {
   location_name: string | null;
   created_at: string;
   username: string;
-  validation_status: "ai_validated" | "score_only" | "not_validated" | null;
+  validation_status: "accepted" | "pending" | "declined" | null;
 }
 
 const getRankDisplay = (rank: number) => {
@@ -57,11 +57,10 @@ const Leaderboard = () => {
   const [loading, setLoading] = useState(true);
   const [loadingScores, setLoadingScores] = useState(false);
   
-  // Validation filters - only ai_validated shown by default
-  const [showAiValidated, setShowAiValidated] = useState(true);
-  const [showScoreOnly, setShowScoreOnly] = useState(false);
-  const [showNotValidated, setShowNotValidated] = useState(false);
-  const [showUnknown, setShowUnknown] = useState(false);
+  // Validation filters - only accepted shown by default
+  const [showAccepted, setShowAccepted] = useState(true);
+  const [showPending, setShowPending] = useState(false);
+  const [showDeclined, setShowDeclined] = useState(false);
 
   useEffect(() => {
     fetchMachines();
@@ -149,10 +148,9 @@ const Leaderboard = () => {
 
   // Filter entries based on validation status toggles
   const filteredByValidation = entries.filter(entry => {
-    if (entry.validation_status === "ai_validated" && showAiValidated) return true;
-    if (entry.validation_status === "score_only" && showScoreOnly) return true;
-    if (entry.validation_status === "not_validated" && showNotValidated) return true;
-    if (!entry.validation_status && showUnknown) return true;
+    if (entry.validation_status === "accepted" && showAccepted) return true;
+    if (entry.validation_status === "pending" && showPending) return true;
+    if (entry.validation_status === "declined" && showDeclined) return true;
     return false;
   });
 
@@ -163,7 +161,7 @@ const Leaderboard = () => {
       (entry.location_name?.toLowerCase().includes(searchTerm.toLowerCase()) ?? false)
   );
 
-  const activeFilterCount = [showAiValidated, showScoreOnly, showNotValidated, showUnknown].filter(Boolean).length;
+  const activeFilterCount = [showAccepted, showPending, showDeclined].filter(Boolean).length;
 
   if (loading) {
     return (
@@ -250,28 +248,22 @@ const Leaderboard = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuCheckboxItem
-                  checked={showAiValidated}
-                  onCheckedChange={setShowAiValidated}
+                  checked={showAccepted}
+                  onCheckedChange={setShowAccepted}
                 >
-                  ✅ AI Verified
+                  ✅ Accepted
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={showScoreOnly}
-                  onCheckedChange={setShowScoreOnly}
-                >
-                  🎯 Score Verified
-                </DropdownMenuCheckboxItem>
-                <DropdownMenuCheckboxItem
-                  checked={showNotValidated}
-                  onCheckedChange={setShowNotValidated}
+                  checked={showPending}
+                  onCheckedChange={setShowPending}
                 >
                   👀 Pending Review
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem
-                  checked={showUnknown}
-                  onCheckedChange={setShowUnknown}
+                  checked={showDeclined}
+                  onCheckedChange={setShowDeclined}
                 >
-                  ❓ Legacy (no status)
+                  ❌ Declined
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -304,10 +296,9 @@ const Leaderboard = () => {
             <Button
               variant="outline"
               onClick={() => {
-                setShowAiValidated(true);
-                setShowScoreOnly(true);
-                setShowNotValidated(true);
-                setShowUnknown(true);
+                setShowAccepted(true);
+                setShowPending(true);
+                setShowDeclined(true);
               }}
             >
               Show All Scores

@@ -59,7 +59,7 @@ export const Navbar = () => {
         const { data: pendingScores } = await supabase
           .from("scores")
           .select("id")
-          .in("validation_status", ["not_validated", "score_only"])
+          .eq("validation_status", "pending")
           .neq("user_id", user.id);
 
         if (!pendingScores || pendingScores.length === 0) {

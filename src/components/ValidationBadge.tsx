@@ -6,7 +6,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-type ValidationStatus = "ai_validated" | "score_only" | "not_validated" | null | undefined;
+type ValidationStatus = "accepted" | "pending" | "declined" | null | undefined;
 
 interface ValidationBadgeProps {
   status: ValidationStatus;
@@ -15,32 +15,32 @@ interface ValidationBadgeProps {
 }
 
 const validationConfig = {
-  ai_validated: {
+  accepted: {
     emoji: "✅",
-    label: "AI Verified",
-    description: "Machine & score verified by AI",
+    label: "Accepted",
+    description: "Score verified by community",
     bgClass: "bg-emerald-500/15",
     textClass: "text-emerald-600 dark:text-emerald-400",
     borderClass: "border-emerald-500/30",
     glowClass: "shadow-emerald-500/20",
   },
-  score_only: {
-    emoji: "🎯",
-    label: "Score Verified",
-    description: "Score verified, machine pending",
+  pending: {
+    emoji: "👀",
+    label: "Pending Review",
+    description: "Awaiting community verification",
     bgClass: "bg-amber-500/15",
     textClass: "text-amber-600 dark:text-amber-400",
     borderClass: "border-amber-500/30",
     glowClass: "shadow-amber-500/20",
   },
-  not_validated: {
-    emoji: "👀",
-    label: "Pending Review",
-    description: "Awaiting community verification",
-    bgClass: "bg-muted",
-    textClass: "text-muted-foreground",
-    borderClass: "border-border",
-    glowClass: "",
+  declined: {
+    emoji: "❌",
+    label: "Declined",
+    description: "Not verified by community",
+    bgClass: "bg-red-500/15",
+    textClass: "text-red-600 dark:text-red-400",
+    borderClass: "border-red-500/30",
+    glowClass: "shadow-red-500/20",
   },
 };
 
@@ -98,9 +98,9 @@ export const ValidationIndicator = ({ status }: { status: ValidationStatus }) =>
   if (!status) return null;
 
   const indicators = {
-    ai_validated: { emoji: "✅", title: "AI Verified" },
-    score_only: { emoji: "🎯", title: "Score Verified" },
-    not_validated: { emoji: "👀", title: "Pending Review" },
+    accepted: { emoji: "✅", title: "Accepted" },
+    pending: { emoji: "👀", title: "Pending Review" },
+    declined: { emoji: "❌", title: "Declined" },
   };
 
   const indicator = indicators[status];

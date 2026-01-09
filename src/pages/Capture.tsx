@@ -388,11 +388,9 @@ const Capture = () => {
             const { machineMatch, scoreMatch } = validationData.validation;
             
             if (machineMatch && scoreMatch) {
-              validationStatus = "ai_validated";
-            } else if (scoreMatch) {
-              validationStatus = "score_only";
+              validationStatus = "accepted";
             } else {
-              validationStatus = "not_validated";
+              validationStatus = "pending";
             }
           }
         } catch (validationErr) {
@@ -410,8 +408,8 @@ const Capture = () => {
         latitude: parseFloat(selectedLocation.lat),
         longitude: parseFloat(selectedLocation.lon),
         photo_url: photoUrl,
-        validation_status: validationStatus,
-        user_notified_at: validationStatus === "ai_validated" ? new Date().toISOString() : null,
+        validation_status: validationStatus || "pending",
+        user_notified_at: validationStatus === "accepted" ? new Date().toISOString() : null,
       });
 
       if (error) throw error;
