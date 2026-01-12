@@ -78,12 +78,16 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string
+          first_name: string | null
           id: string
+          is_public: boolean
           last_location_id: number | null
           last_location_lat: number | null
           last_location_lon: number | null
           last_location_name: string | null
           last_location_updated_at: string | null
+          last_name: string | null
+          onboarding_completed: boolean
           updated_at: string
           user_id: string
           username: string
@@ -91,12 +95,16 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string
+          first_name?: string | null
           id?: string
+          is_public?: boolean
           last_location_id?: number | null
           last_location_lat?: number | null
           last_location_lon?: number | null
           last_location_name?: string | null
           last_location_updated_at?: string | null
+          last_name?: string | null
+          onboarding_completed?: boolean
           updated_at?: string
           user_id: string
           username: string
@@ -104,12 +112,16 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string
+          first_name?: string | null
           id?: string
+          is_public?: boolean
           last_location_id?: number | null
           last_location_lat?: number | null
           last_location_lon?: number | null
           last_location_name?: string | null
           last_location_updated_at?: string | null
+          last_name?: string | null
+          onboarding_completed?: boolean
           updated_at?: string
           user_id?: string
           username?: string
@@ -229,7 +241,10 @@ export type Database = {
         Row: {
           avatar_url: string | null
           created_at: string | null
+          first_name: string | null
           id: string | null
+          is_public: boolean | null
+          last_name: string | null
           updated_at: string | null
           user_id: string | null
           username: string | null
@@ -237,7 +252,10 @@ export type Database = {
         Insert: {
           avatar_url?: string | null
           created_at?: string | null
+          first_name?: string | null
           id?: string | null
+          is_public?: boolean | null
+          last_name?: string | null
           updated_at?: string | null
           user_id?: string | null
           username?: string | null
@@ -245,7 +263,10 @@ export type Database = {
         Update: {
           avatar_url?: string | null
           created_at?: string | null
+          first_name?: string | null
           id?: string | null
+          is_public?: boolean | null
+          last_name?: string | null
           updated_at?: string | null
           user_id?: string | null
           username?: string | null
