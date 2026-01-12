@@ -23,11 +23,11 @@ const Auth = () => {
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      // Send OAuth callback back to /auth so our onboarding check can run immediately.
+      // Redirect back to origin; Index page handles onboarding redirect for new users
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
-          redirectTo: `${window.location.origin}/auth`,
+          redirectTo: window.location.origin,
         },
       });
       if (error) throw error;

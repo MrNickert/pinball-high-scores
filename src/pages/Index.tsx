@@ -1,10 +1,12 @@
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { Link } from "react-router-dom";
-import { Trophy, Camera, MapPin, Zap, ArrowRight } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Trophy, Camera, MapPin, Zap, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
 
 const features = [
   {
@@ -31,11 +33,39 @@ const features = [
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [checkingOnboarding, setCheckingOnboarding] = useState(false);
 
-  if (loading) {
+  useEffect(() => {
+    const checkOnboardingStatus = async () => {
+      if (!loading && user) {
+        setCheckingOnboarding(true);
+        try {
+          const { data: profile } = await supabase
+            .from("profiles")
+            .select("onboarding_completed")
+            .eq("user_id", user.id)
+            .maybeSingle();
+
+          if (profile && !profile.onboarding_completed) {
+            navigate("/onboarding");
+            return;
+          }
+        } catch (error) {
+          console.error("Error checking onboarding status:", error);
+        } finally {
+          setCheckingOnboarding(false);
+        }
+      }
+    };
+
+    checkOnboardingStatus();
+  }, [user, loading, navigate]);
+
+  if (loading || checkingOnboarding) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="animate-pulse text-muted-foreground">Loading...</div>
+        <Loader2 className="animate-spin text-primary" size={32} />
       </div>
     );
   }
