@@ -38,6 +38,7 @@ const Onboarding = () => {
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
+  const [usernameError, setUsernameError] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isPublic, setIsPublic] = useState(true);
 
@@ -126,11 +127,15 @@ const Onboarding = () => {
   };
 
   const handleNext = async () => {
+    setUsernameError("");
+    
     if (step === 1) {
       // Validate username format
       const parsed = usernameSchema.safeParse(username);
       if (!parsed.success) {
-        toast.error(parsed.error.issues[0]?.message || "Invalid username");
+        const errorMsg = parsed.error.issues[0]?.message || "Invalid username";
+        setUsernameError(errorMsg);
+        toast.error(errorMsg);
         return;
       }
 
@@ -146,7 +151,9 @@ const Onboarding = () => {
         if (error) throw error;
 
         if (!isAvailable) {
-          toast.error("This username is already taken. Please choose another.");
+          const errorMsg = "This username is already taken. Please choose another.";
+          setUsernameError(errorMsg);
+          toast.error(errorMsg);
           return;
         }
       } catch (error) {
@@ -319,10 +326,17 @@ const Onboarding = () => {
                     id="username"
                     type="text"
                     value={username}
-                    onChange={(e) => setUsername(e.target.value)}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setUsernameError("");
+                    }}
                     placeholder="pinball_wizard"
                     maxLength={30}
+                    className={usernameError ? "border-destructive focus-visible:ring-destructive" : ""}
                   />
+                  {usernameError && (
+                    <p className="text-sm text-destructive mt-2">{usernameError}</p>
+                  )}
                 </div>
               </motion.div>
             )}
