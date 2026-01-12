@@ -263,9 +263,9 @@ const Onboarding = () => {
                 />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">Set up your profile</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">{t("onboarding.setupProfile")}</h1>
             <p className="text-muted-foreground text-sm">
-              Let's get you ready to track your scores
+              {t("onboarding.readyToTrack")}
             </p>
           </div>
 
@@ -283,6 +283,7 @@ const Onboarding = () => {
 
           {/* Step content */}
           <AnimatePresence mode="wait">
+            {/* Step 1: Name & Username */}
             {step === 1 && (
               <motion.div
                 key="step1"
@@ -293,12 +294,12 @@ const Onboarding = () => {
               >
                 <div className="flex items-center gap-2 mb-4">
                   <User size={18} className="text-primary" />
-                  <span className="font-medium text-foreground">Your name</span>
+                  <span className="font-medium text-foreground">{t("onboarding.yourName")}</span>
                 </div>
 
                 <div>
                   <Label htmlFor="firstName" className="text-foreground">
-                    First Name
+                    {t("onboarding.firstName")}
                   </Label>
                   <Input
                     id="firstName"
@@ -313,7 +314,7 @@ const Onboarding = () => {
 
                 <div>
                   <Label htmlFor="lastName" className="text-foreground">
-                    Last Name
+                    {t("onboarding.lastName")}
                   </Label>
                   <Input
                     id="lastName"
@@ -328,10 +329,10 @@ const Onboarding = () => {
 
                 <div>
                   <Label htmlFor="username" className="text-foreground">
-                    Username <span className="text-destructive">*</span>
+                    {t("onboarding.username")} <span className="text-destructive">*</span>
                   </Label>
                   <p className="text-xs text-muted-foreground mt-1 mb-2">
-                    This will be visible to other players
+                    {t("onboarding.usernameVisible")}
                   </p>
                   <Input
                     id="username"
@@ -352,57 +353,10 @@ const Onboarding = () => {
               </motion.div>
             )}
 
+            {/* Step 2: Language & Distance */}
             {step === 2 && (
               <motion.div
                 key="step2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-5"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Upload size={18} className="text-primary" />
-                  <span className="font-medium text-foreground">Profile picture</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-4xl">🎯</span>
-                    )}
-                  </div>
-                  <div className="text-center">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <Loader2 className="animate-spin mr-2" size={16} />
-                      ) : (
-                        <Upload size={16} className="mr-2" />
-                      )}
-                      {uploading ? "Uploading..." : avatarUrl ? "Change Photo" : "Upload Photo"}
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">Max 2MB, JPG/PNG (optional)</p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {step === 3 && (
-              <motion.div
-                key="step3"
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
                 exit={{ opacity: 0, x: -20 }}
@@ -456,6 +410,56 @@ const Onboarding = () => {
               </motion.div>
             )}
 
+            {/* Step 3: Profile Picture */}
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Upload size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">{t("onboarding.profilePicture")}</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">🎯</span>
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? (
+                        <Loader2 className="animate-spin mr-2" size={16} />
+                      ) : (
+                        <Upload size={16} className="mr-2" />
+                      )}
+                      {uploading ? t("onboarding.uploading") : avatarUrl ? t("onboarding.changePhoto") : t("onboarding.uploadPhoto")}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">{t("onboarding.maxFileSize")}</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 4: Privacy */}
             {step === 4 && (
               <motion.div
                 key="step4"
@@ -505,7 +509,7 @@ const Onboarding = () => {
             {step > 1 ? (
               <Button variant="ghost" onClick={handleBack}>
                 <ArrowLeft size={16} className="mr-2" />
-                Back
+                {t("common.back")}
               </Button>
             ) : (
               <div />
@@ -514,13 +518,13 @@ const Onboarding = () => {
             {step < totalSteps ? (
               <Button variant="gradient" onClick={handleNext} disabled={checkingUsername}>
                 {checkingUsername ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                Next
+                {t("common.next")}
                 <ArrowRight size={16} className="ml-2" />
               </Button>
             ) : (
               <Button variant="gradient" onClick={handleComplete} disabled={saving}>
                 {saving ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                Complete Setup
+                {t("onboarding.completeSetup")}
               </Button>
             )}
           </div>
