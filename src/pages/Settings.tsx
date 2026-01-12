@@ -11,6 +11,14 @@ import { Input } from "@/components/ui/input";
 import { Navigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { z } from "zod";
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be 30 characters or less")
+  .regex(/^[A-Za-z0-9_-]+$/, "Use only letters, numbers, underscore, or dash");
 
 const Settings = () => {
   const { user, loading } = useAuth();
@@ -107,22 +115,34 @@ const Settings = () => {
 
   const handleSaveProfile = async () => {
     if (!user) return;
-    
+
+    const parsed = usernameSchema.safeParse(username);
+    if (!parsed.success) {
+      toast.error(parsed.error.issues[0]?.message || "Invalid username");
+      return;
+    }
+
     setSaving(true);
     try {
       const { error } = await supabase
         .from("profiles")
-        .update({ 
-          username: username.trim(),
-          updated_at: new Date().toISOString()
+        .update({
+          username: parsed.data,
+          updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
-      
+
       if (error) throw error;
       toast.success("Profile updated successfully!");
-    } catch (error) {
+    } catch (error: any) {
       console.error("Error updating profile:", error);
-      toast.error("Failed to update profile");
+
+      // Friendly message for DB CHECK constraint violations
+      if (error?.code === "23514") {
+        toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
+      } else {
+        toast.error("Failed to update profile");
+      }
     } finally {
       setSaving(false);
     }
