@@ -150,8 +150,9 @@ const Settings = () => {
     } catch (error: any) {
       console.error("Error updating profile:", error);
 
-      // Friendly message for DB CHECK constraint violations
-      if (error?.code === "23514") {
+      if (error?.code === "23505") {
+        toast.error("This username is already taken. Please choose another.");
+      } else if (error?.code === "23514") {
         toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
       } else {
         toast.error("Failed to update profile");
