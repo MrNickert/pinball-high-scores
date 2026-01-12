@@ -31,7 +31,7 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '');
     const { data: claimsData, error: claimsError } = await supabaseClient.auth.getClaims(token);
-    
+
     if (claimsError || !claimsData?.claims) {
       return new Response(
         JSON.stringify({ error: 'Unauthorized' }),
@@ -39,11 +39,77 @@ serve(async (req) => {
       );
     }
 
-    const { imageBase64, validateMachine, validateScore } = await req.json();
+    const userId = (claimsData.claims.sub as string | undefined) ?? "";
+    const isUuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(userId);
+    if (!userId || !isUuid) {
+      return new Response(
+        JSON.stringify({ error: 'Unauthorized' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    if (!imageBase64) {
+    // Rate limit BEFORE expensive AI work
+    const { data: allowed, error: rlError } = await supabaseClient.rpc("check_rate_limit", {
+      p_user_id: userId,
+      p_action: "ai_extract",
+      p_max_count: 20,
+      p_window_minutes: 60,
+    });
+
+    if (rlError) {
+      console.error("Rate limit check failed:", rlError);
+      throw new Error("Rate limit check failed");
+    }
+
+    if (!allowed) {
+      return new Response(
+        JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
+        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const body = await req.json();
+    const { imageBase64, validateMachine, validateScore } = body;
+
+    if (typeof imageBase64 !== "string" || imageBase64.trim().length === 0) {
       return new Response(
         JSON.stringify({ error: "No image provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Only accept data URLs for images; reject overly large payloads
+    if (!imageBase64.startsWith("data:image/")) {
+      return new Response(
+        JSON.stringify({ error: "Invalid image format" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (imageBase64.length > 8_000_000) {
+      return new Response(
+        JSON.stringify({ error: "Image too large" }),
+        { status: 413, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (validateMachine !== undefined && typeof validateMachine !== "string") {
+      return new Response(
+        JSON.stringify({ error: "Invalid validateMachine" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (validateMachine && validateMachine.length > 100) {
+      return new Response(
+        JSON.stringify({ error: "Invalid validateMachine" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    if (validateScore !== undefined && (typeof validateScore !== "number" || !Number.isFinite(validateScore))) {
+      return new Response(
+        JSON.stringify({ error: "Invalid validateScore" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }

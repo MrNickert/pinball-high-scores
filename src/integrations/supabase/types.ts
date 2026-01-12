@@ -116,6 +116,27 @@ export type Database = {
         }
         Relationships: []
       }
+      rate_limits: {
+        Row: {
+          action: string
+          count: number
+          user_id: string
+          window_start: string
+        }
+        Insert: {
+          action: string
+          count?: number
+          user_id: string
+          window_start?: string
+        }
+        Update: {
+          action?: string
+          count?: number
+          user_id?: string
+          window_start?: string
+        }
+        Relationships: []
+      }
       score_votes: {
         Row: {
           created_at: string
@@ -233,7 +254,15 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      check_rate_limit: {
+        Args: {
+          p_action: string
+          p_max_count: number
+          p_user_id: string
+          p_window_minutes: number
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       rejection_reason:

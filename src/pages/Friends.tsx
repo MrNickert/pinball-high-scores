@@ -163,19 +163,30 @@ const Friends = () => {
   }, [user]);
 
   const handleSearch = async () => {
-    if (!searchQuery.trim() || !user) return;
+    if (!user) return;
+
+    const q = searchQuery.trim();
+    if (q.length < 2) {
+      toast.error("Search needs at least 2 characters");
+      return;
+    }
 
     setSearching(true);
     try {
-      const { data, error } = await supabase
-        .from("public_profiles")
-        .select("*")
-        .ilike("username", `%${searchQuery}%`)
-        .neq("user_id", user.id)
-        .limit(10);
+      const { data, error } = await supabase.functions.invoke("search-profiles", {
+        body: { query: q },
+      });
 
-      if (error) throw error;
-      setSearchResults((data as Profile[]) || []);
+      if (error) {
+        // Edge functions surface HTTP errors here
+        if ((error as any)?.context?.status === 429) {
+          toast.error("Too many searches. Please wait a moment and try again.");
+          return;
+        }
+        throw error;
+      }
+
+      setSearchResults(((data as any)?.profiles as Profile[]) || []);
     } catch (error) {
       console.error("Error searching users:", error);
       toast.error("Failed to search users");
