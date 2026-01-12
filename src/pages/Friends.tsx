@@ -188,13 +188,6 @@ const Friends = () => {
     if (!user) return;
 
     try {
-      // Get sender's username for the notification
-      const { data: senderProfile } = await supabase
-        .from("profiles")
-        .select("username")
-        .eq("user_id", user.id)
-        .maybeSingle();
-
       const { error } = await supabase.from("friendships").insert({
         requester_id: user.id,
         addressee_id: addresseeId,
@@ -207,15 +200,7 @@ const Friends = () => {
           throw error;
         }
       } else {
-        // Create notification for the addressee
-        await createNotification({
-          userId: addresseeId,
-          type: NotificationTypes.FRIEND_REQUEST,
-          title: "New Friend Request",
-          message: `${senderProfile?.username || "Someone"} sent you a friend request`,
-          data: { requesterId: user.id },
-        });
-
+        // Notification is now handled by database trigger
         toast.success("Friend request sent!");
         setSearchResults((prev) => prev.filter((p) => p.user_id !== addresseeId));
         fetchFriendships();
@@ -230,9 +215,6 @@ const Friends = () => {
     if (!user) return;
 
     try {
-      // Find the friendship to get requester info
-      const friendship = pendingReceived.find((f) => f.id === friendshipId);
-
       if (accept) {
         const { error } = await supabase
           .from("friendships")
@@ -240,24 +222,7 @@ const Friends = () => {
           .eq("id", friendshipId);
         if (error) throw error;
 
-        // Get accepter's username for the notification
-        const { data: accepterProfile } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        // Notify the requester that their request was accepted
-        if (friendship) {
-          await createNotification({
-            userId: friendship.requester_id,
-            type: NotificationTypes.FRIEND_ACCEPTED,
-            title: "Friend Request Accepted",
-            message: `${accepterProfile?.username || "Someone"} accepted your friend request`,
-            data: { friendId: user.id },
-          });
-        }
-
+        // Notification is now handled by database trigger
         toast.success("Friend request accepted!");
       } else {
         const { error } = await supabase
