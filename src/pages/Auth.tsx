@@ -42,9 +42,24 @@ const Auth = () => {
   };
 
   useEffect(() => {
-    if (!loading && user) {
-      navigate("/");
-    }
+    const checkOnboardingStatus = async () => {
+      if (!loading && user) {
+        // Check if user has completed onboarding
+        const { data: profile } = await supabase
+          .from("profiles")
+          .select("onboarding_completed")
+          .eq("user_id", user.id)
+          .maybeSingle();
+
+        if (profile && !profile.onboarding_completed) {
+          navigate("/onboarding");
+        } else {
+          navigate("/");
+        }
+      }
+    };
+    
+    checkOnboardingStatus();
   }, [user, loading, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -85,9 +100,9 @@ const Auth = () => {
 
         toast({
           title: "Account created!",
-          description: "Welcome to Multiball!",
+          description: "Let's set up your profile!",
         });
-        navigate("/");
+        navigate("/onboarding");
       }
     } catch (error: any) {
       toast({

@@ -1,0 +1,423 @@
+import { useState, useRef, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
+import { useNavigate } from "react-router-dom";
+import { User, Upload, Loader2, ArrowRight, ArrowLeft, Shield, Check, Circle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Switch } from "@/components/ui/switch";
+import { useAuth } from "@/contexts/AuthContext";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
+import { z } from "zod";
+
+const usernameSchema = z
+  .string()
+  .trim()
+  .min(3, "Username must be at least 3 characters")
+  .max(30, "Username must be 30 characters or less")
+  .regex(/^[A-Za-z0-9_-]+$/, "Use only letters, numbers, underscore, or dash");
+
+const nameSchema = z
+  .string()
+  .trim()
+  .max(50, "Name must be 50 characters or less")
+  .optional();
+
+const Onboarding = () => {
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const [step, setStep] = useState(1);
+  const [saving, setSaving] = useState(false);
+  const [uploading, setUploading] = useState(false);
+  const [checkingProfile, setCheckingProfile] = useState(true);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Form data
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [username, setUsername] = useState("");
+  const [avatarUrl, setAvatarUrl] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
+
+  const totalSteps = 3;
+
+  useEffect(() => {
+    if (!loading && !user) {
+      navigate("/auth");
+      return;
+    }
+
+    if (user) {
+      checkOnboardingStatus();
+    }
+  }, [user, loading, navigate]);
+
+  const checkOnboardingStatus = async () => {
+    if (!user) return;
+
+    try {
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("username, first_name, last_name, avatar_url, is_public, onboarding_completed")
+        .eq("user_id", user.id)
+        .maybeSingle();
+
+      if (profile) {
+        // If onboarding is completed, redirect to home
+        if (profile.onboarding_completed) {
+          navigate("/");
+          return;
+        }
+
+        // Pre-fill existing data
+        setUsername(profile.username || "");
+        setFirstName(profile.first_name || "");
+        setLastName(profile.last_name || "");
+        setAvatarUrl(profile.avatar_url || "");
+        setIsPublic(profile.is_public ?? true);
+      }
+    } catch (error) {
+      console.error("Error checking profile:", error);
+    } finally {
+      setCheckingProfile(false);
+    }
+  };
+
+  const handleAvatarUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !user) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file");
+      return;
+    }
+
+    if (file.size > 2 * 1024 * 1024) {
+      toast.error("Image must be less than 2MB");
+      return;
+    }
+
+    setUploading(true);
+    try {
+      const fileExt = file.name.split(".").pop();
+      const filePath = `${user.id}/avatar.${fileExt}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from("avatars")
+        .upload(filePath, file, { upsert: true });
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("avatars")
+        .getPublicUrl(filePath);
+
+      const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
+      setAvatarUrl(urlWithTimestamp);
+      toast.success("Photo uploaded!");
+    } catch (error) {
+      console.error("Error uploading avatar:", error);
+      toast.error("Failed to upload photo");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const handleNext = () => {
+    if (step === 1) {
+      // Validate username
+      const parsed = usernameSchema.safeParse(username);
+      if (!parsed.success) {
+        toast.error(parsed.error.issues[0]?.message || "Invalid username");
+        return;
+      }
+    }
+    setStep((prev) => Math.min(prev + 1, totalSteps));
+  };
+
+  const handleBack = () => {
+    setStep((prev) => Math.max(prev - 1, 1));
+  };
+
+  const handleComplete = async () => {
+    if (!user) return;
+
+    const parsedUsername = usernameSchema.safeParse(username);
+    if (!parsedUsername.success) {
+      toast.error(parsedUsername.error.issues[0]?.message || "Invalid username");
+      setStep(1);
+      return;
+    }
+
+    setSaving(true);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          username: parsedUsername.data,
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
+          avatar_url: avatarUrl || null,
+          is_public: isPublic,
+          onboarding_completed: true,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+
+      toast.success("Profile set up successfully!");
+      navigate("/");
+    } catch (error: any) {
+      console.error("Error saving profile:", error);
+      if (error?.code === "23514") {
+        toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
+      } else {
+        toast.error("Failed to save profile");
+      }
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading || checkingProfile) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <Loader2 className="animate-spin text-primary" size={32} />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null;
+  }
+
+  return (
+    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
+      {/* Background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent rounded-full blur-3xl" />
+      </div>
+
+      <div className="w-full max-w-md relative z-10">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="bg-card rounded-2xl p-8 shadow-lg border border-border"
+        >
+          {/* Header */}
+          <div className="text-center mb-8">
+            <div className="flex justify-center mb-4">
+              <div className="relative">
+                <Circle className="w-12 h-12 text-primary fill-primary/20" strokeWidth={2.5} />
+                <Circle
+                  className="w-4 h-4 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  strokeWidth={0}
+                />
+              </div>
+            </div>
+            <h1 className="text-2xl font-bold text-foreground mb-2">Set up your profile</h1>
+            <p className="text-muted-foreground text-sm">
+              Let's get you ready to track your scores
+            </p>
+          </div>
+
+          {/* Progress indicator */}
+          <div className="flex justify-center gap-2 mb-8">
+            {[1, 2, 3].map((i) => (
+              <div
+                key={i}
+                className={`h-1.5 w-12 rounded-full transition-colors ${
+                  i <= step ? "bg-primary" : "bg-muted"
+                }`}
+              />
+            ))}
+          </div>
+
+          {/* Step content */}
+          <AnimatePresence mode="wait">
+            {step === 1 && (
+              <motion.div
+                key="step1"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <User size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">Your name</span>
+                </div>
+
+                <div>
+                  <Label htmlFor="firstName" className="text-foreground">
+                    First Name
+                  </Label>
+                  <Input
+                    id="firstName"
+                    type="text"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="John"
+                    className="mt-2"
+                    maxLength={50}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="lastName" className="text-foreground">
+                    Last Name
+                  </Label>
+                  <Input
+                    id="lastName"
+                    type="text"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    className="mt-2"
+                    maxLength={50}
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="username" className="text-foreground">
+                    Username <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-2">
+                    This will be visible to other players
+                  </p>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="pinball_wizard"
+                    maxLength={30}
+                  />
+                </div>
+              </motion.div>
+            )}
+
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Upload size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">Profile picture</span>
+                </div>
+
+                <div className="flex flex-col items-center gap-4">
+                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
+                    {avatarUrl ? (
+                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                    ) : (
+                      <span className="text-4xl">🎯</span>
+                    )}
+                  </div>
+                  <div className="text-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? (
+                        <Loader2 className="animate-spin mr-2" size={16} />
+                      ) : (
+                        <Upload size={16} className="mr-2" />
+                      )}
+                      {uploading ? "Uploading..." : avatarUrl ? "Change Photo" : "Upload Photo"}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">Max 2MB, JPG/PNG (optional)</p>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <Shield size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">Privacy settings</span>
+                </div>
+
+                <div className="bg-muted/50 rounded-xl p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label htmlFor="public-profile" className="text-foreground font-medium">
+                        Public Profile
+                      </Label>
+                      <p className="text-sm text-muted-foreground mt-1">
+                        Allow others to see your profile and scores
+                      </p>
+                    </div>
+                    <Switch
+                      id="public-profile"
+                      checked={isPublic}
+                      onCheckedChange={setIsPublic}
+                    />
+                  </div>
+                </div>
+
+                <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
+                  <h3 className="font-medium text-foreground flex items-center gap-2 mb-2">
+                    <Check size={16} className="text-primary" />
+                    Ready to go!
+                  </h3>
+                  <p className="text-sm text-muted-foreground">
+                    You can always change these settings later in your profile.
+                  </p>
+                </div>
+              </motion.div>
+            )}
+          </AnimatePresence>
+
+          {/* Navigation buttons */}
+          <div className="flex justify-between mt-8">
+            {step > 1 ? (
+              <Button variant="ghost" onClick={handleBack}>
+                <ArrowLeft size={16} className="mr-2" />
+                Back
+              </Button>
+            ) : (
+              <div />
+            )}
+
+            {step < totalSteps ? (
+              <Button variant="gradient" onClick={handleNext}>
+                Next
+                <ArrowRight size={16} className="ml-2" />
+              </Button>
+            ) : (
+              <Button variant="gradient" onClick={handleComplete} disabled={saving}>
+                {saving ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                Complete Setup
+              </Button>
+            )}
+          </div>
+        </motion.div>
+      </div>
+    </div>
+  );
+};
+
+export default Onboarding;
