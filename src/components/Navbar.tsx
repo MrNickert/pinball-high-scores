@@ -132,14 +132,14 @@ export const Navbar = () => {
                     whileTap={{ scale: 0.98 }}
                     className={`relative flex items-center gap-2 px-4 py-2 rounded-lg transition-all ${
                       isActive
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-primary text-primary-foreground font-semibold"
                         : "text-muted-foreground hover:text-foreground hover:bg-muted"
                     }`}
                   >
                     <item.icon size={18} />
                     <span className="text-sm font-medium">{item.label}</span>
                     {showBadge && (
-                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-primary text-primary-foreground text-[10px] font-bold rounded-full px-1">
+                      <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] flex items-center justify-center bg-foreground text-background text-[10px] font-bold rounded-full px-1">
                         {pendingCount > 99 ? "99+" : pendingCount}
                       </span>
                     )}
@@ -220,13 +220,13 @@ export const Navbar = () => {
                 <motion.div
                   whileTap={{ scale: 0.9 }}
                   className={`relative flex flex-col items-center p-2 rounded-lg ${
-                    isActive ? "text-primary" : "text-muted-foreground"
+                    isActive ? "text-foreground font-semibold" : "text-muted-foreground"
                   }`}
                 >
-                  <item.icon size={20} />
+                  <item.icon size={20} className={isActive ? "text-primary" : ""} />
                   <span className="text-[10px] mt-1 font-medium">{item.label}</span>
                   {showBadge && (
-                    <span className="absolute -top-0.5 right-0 min-w-[16px] h-[16px] flex items-center justify-center bg-primary text-primary-foreground text-[9px] font-bold rounded-full px-1">
+                    <span className="absolute -top-0.5 right-0 min-w-[16px] h-[16px] flex items-center justify-center bg-foreground text-background text-[9px] font-bold rounded-full px-1">
                       {pendingCount > 99 ? "99+" : pendingCount}
                     </span>
                   )}
@@ -247,7 +247,7 @@ export const Navbar = () => {
                     whileTap={{ scale: 0.9 }}
                     className={`relative flex flex-col items-center p-2 rounded-lg cursor-pointer ${
                       ["/profile", "/friends", "/settings"].some(p => location.pathname.startsWith(p))
-                        ? "text-primary"
+                        ? "text-foreground font-semibold"
                         : "text-muted-foreground"
                     }`}
                   >
@@ -296,7 +296,7 @@ export const Navbar = () => {
               <motion.div
                 whileTap={{ scale: 0.9 }}
                 className={`relative flex flex-col items-center p-2 rounded-lg ${
-                  location.pathname === "/auth" ? "text-primary" : "text-muted-foreground"
+                  location.pathname === "/auth" ? "text-foreground font-semibold" : "text-muted-foreground"
                 }`}
               >
                 <LogIn size={20} />
