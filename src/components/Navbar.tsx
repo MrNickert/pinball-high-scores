@@ -167,20 +167,26 @@ export const Navbar = () => {
                       <ChevronDown size={14} className="text-muted-foreground" />
                     </Button>
                   </DropdownMenuTrigger>
-                  <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild className={location.pathname === "/profile" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
+                  <DropdownMenuContent align="end" className="w-48 bg-background border border-border z-50">
+                    <DropdownMenuItem asChild className={location.pathname === "/profile" 
+                      ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                       <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                         <User size={16} />
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className={location.pathname === "/friends" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
+                    <DropdownMenuItem asChild className={location.pathname === "/friends" 
+                      ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                       <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
                         <Users size={16} />
                         Friends
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild className={location.pathname === "/settings" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
+                    <DropdownMenuItem asChild className={location.pathname === "/settings" 
+                      ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                       <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                         <Settings size={16} />
                         Settings
@@ -189,7 +195,7 @@ export const Navbar = () => {
                     <DropdownMenuSeparator />
                     <DropdownMenuItem
                       onClick={handleSignOut}
-                      className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                      className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
                     >
                       <LogOut size={16} />
                       Sign Out
@@ -261,20 +267,26 @@ export const Navbar = () => {
                     <span className="text-[10px] mt-1 font-medium">Menu</span>
                   </motion.div>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" side="top" className="w-48 mb-2 bg-background border border-border">
-                  <DropdownMenuItem asChild className={location.pathname === "/profile" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
+                <DropdownMenuContent align="end" side="top" className="w-48 mb-2 bg-background border border-border z-50">
+                  <DropdownMenuItem asChild className={location.pathname === "/profile" 
+                    ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                     <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                       <User size={16} />
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className={location.pathname === "/friends" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
+                  <DropdownMenuItem asChild className={location.pathname === "/friends" 
+                    ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                     <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
                       <Users size={16} />
                       Friends
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild className={location.pathname === "/settings" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
+                  <DropdownMenuItem asChild className={location.pathname === "/settings" 
+                    ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" 
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                     <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                       <Settings size={16} />
                       Settings
@@ -283,7 +295,7 @@ export const Navbar = () => {
                   <DropdownMenuSeparator />
                   <DropdownMenuItem
                     onClick={handleSignOut}
-                    className="flex items-center gap-2 cursor-pointer text-destructive focus:text-destructive"
+                    className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
                   >
                     <LogOut size={16} />
                     Sign Out
