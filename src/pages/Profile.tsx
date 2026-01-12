@@ -7,6 +7,7 @@ import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge } from "@/components/ValidationBadge";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   username: string;
@@ -25,6 +26,7 @@ interface Score {
 }
 
 const Profile = () => {
+  const { t } = useTranslation();
   const { user, loading } = useAuth();
   const { userId } = useParams<{ userId?: string }>();
   const navigate = useNavigate();
@@ -135,13 +137,13 @@ const Profile = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <User className="text-primary" size={32} />
             </div>
-            <h1 className="text-xl font-bold text-foreground mb-2">Sign in required</h1>
+            <h1 className="text-xl font-bold text-foreground mb-2">{t("common.signInRequired")}</h1>
             <p className="text-muted-foreground mb-6">
-              Create an account or sign in to view player profiles and track scores.
+              {t("auth.signInToViewProfiles")}
             </p>
             <Link to="/auth">
               <Button variant="gradient" size="lg">
-                Sign In
+                {t("auth.signIn")}
               </Button>
             </Link>
           </motion.div>
@@ -163,9 +165,9 @@ const Profile = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <User className="text-primary" size={32} />
             </div>
-            <h1 className="text-xl font-bold text-foreground mb-2">Profile not found</h1>
+            <h1 className="text-xl font-bold text-foreground mb-2">{t("profile.profileNotFound")}</h1>
             <p className="text-muted-foreground mb-6">
-              This user profile could not be found.
+              {t("profile.profileNotFoundDesc")}
             </p>
           </motion.div>
         </div>
@@ -176,10 +178,10 @@ const Profile = () => {
   const verifiedScoresCount = scores.filter(s => s.validation_status === "accepted").length;
 
   const stats = [
-    { label: "Total Scores", value: scores.length.toString(), icon: Target },
-    { label: "Verified Scores", value: verifiedScoresCount.toString(), icon: CheckCircle },
-    { label: "Machines Played", value: new Set(scores.map(s => s.machine_name)).size.toString(), icon: Target },
-    { label: "Member Since", value: profile?.created_at ? new Date(profile.created_at).getFullYear().toString() : "2025", icon: Calendar },
+    { label: t("profile.totalScores"), value: scores.length.toString(), icon: Target },
+    { label: t("profile.verifiedScores"), value: verifiedScoresCount.toString(), icon: CheckCircle },
+    { label: t("profile.machinesPlayed"), value: new Set(scores.map(s => s.machine_name)).size.toString(), icon: Target },
+    { label: t("profile.memberSince"), value: profile?.created_at ? new Date(profile.created_at).getFullYear().toString() : "2025", icon: Calendar },
   ];
 
   return (
@@ -213,7 +215,7 @@ const Profile = () => {
               )}
               <div className="flex items-center gap-2 mt-2 justify-center sm:justify-start flex-wrap">
                 <span className="px-3 py-1 bg-primary/10 text-primary text-xs font-medium rounded-full">
-                  {scores.length > 10 ? "Pro Player" : "New Player"}
+                  {scores.length > 10 ? t("profile.proPlayer") : t("profile.newPlayer")}
                 </span>
                 {profile?.last_location_name && (
                   <span className="px-3 py-1 bg-muted text-muted-foreground text-xs font-medium rounded-full flex items-center gap-1">
@@ -232,11 +234,11 @@ const Profile = () => {
               <Link to="/settings">
                 <Button variant="outline" size="sm" className="gap-2">
                   <Settings size={16} />
-                  Edit Profile
+                  {t("profile.editProfile")}
                 </Button>
               </Link>
-            )}
           </div>
+        </motion.div>
         </motion.div>
 
         {/* Stats Grid */}
@@ -266,20 +268,20 @@ const Profile = () => {
           className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm"
         >
           <div className="p-4 border-b border-border flex items-center justify-between">
-            <h2 className="font-semibold text-foreground">Recent Scores</h2>
+            <h2 className="font-semibold text-foreground">{t("profile.recentScores")}</h2>
             {isOwnProfile && (
               <Link to="/capture">
-                <Button variant="ghost" size="sm">Add Score</Button>
+                <Button variant="ghost" size="sm">{t("profile.addScore")}</Button>
               </Link>
             )}
           </div>
           {scores.length === 0 ? (
             <div className="p-8 text-center">
               <Trophy className="mx-auto mb-4 text-muted-foreground" size={48} />
-              <p className="text-muted-foreground mb-4">No scores yet</p>
+              <p className="text-muted-foreground mb-4">{t("profile.noScoresYet")}</p>
               {isOwnProfile && (
                 <Link to="/capture">
-                  <Button variant="gradient">Submit Your First Score</Button>
+                  <Button variant="gradient">{t("profile.submitFirstScore")}</Button>
                 </Link>
               )}
             </div>
