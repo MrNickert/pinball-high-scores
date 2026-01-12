@@ -548,7 +548,7 @@ const Capture = () => {
       setLastScoreLocationCoords({ lat: parseFloat(selectedLocation.lat), lon: parseFloat(selectedLocation.lon) });
 
       // Show notification and toast based on validation status
-      if (validationStatus === "ai_validated") {
+      if (validationStatus === "accepted") {
         await createNotification({
           userId: user.id,
           type: NotificationTypes.SCORE_VERIFIED,
@@ -560,7 +560,8 @@ const Capture = () => {
           title: "Score accepted! ✅",
           description: "Your score has been verified and added to the leaderboard.",
         });
-      } else if (validationStatus === "score_only" || validationStatus === "not_validated" || !validationStatus) {
+      } else {
+        // All other statuses (pending, null, etc.) are pending community review
         await createNotification({
           userId: user.id,
           type: NotificationTypes.SCORE_PENDING,
