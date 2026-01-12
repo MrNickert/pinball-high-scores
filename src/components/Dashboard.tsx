@@ -10,7 +10,7 @@ import { formatDistanceToNow } from "date-fns";
 interface Stats {
   totalScores: number;
   verifiedScores: number;
-  highestScore: number;
+  machinesPlayed: number;
   recentMachine: string | null;
 }
 
@@ -29,7 +29,7 @@ export const Dashboard = () => {
   const [stats, setStats] = useState<Stats>({
     totalScores: 0,
     verifiedScores: 0,
-    highestScore: 0,
+    machinesPlayed: 0,
     recentMachine: null,
   });
   const [loading, setLoading] = useState(true);
@@ -61,14 +61,12 @@ export const Dashboard = () => {
           .order("created_at", { ascending: false });
 
         const allScores = allScoresQuery.data || [];
-        const highest = allScores.length > 0 
-          ? Math.max(...allScores.map((s) => s.score)) 
-          : 0;
+        const uniqueMachines = new Set(allScores.map((s) => s.machine_name)).size;
 
         setStats({
           totalScores: allScoresQuery.count || 0,
           verifiedScores: allScores.filter((s) => s.verified).length,
-          highestScore: highest,
+          machinesPlayed: uniqueMachines,
           recentMachine: allScores[0]?.machine_name || null,
         });
       } catch (error) {
@@ -216,10 +214,10 @@ export const Dashboard = () => {
           <div className="bg-card rounded-xl p-4 border border-border">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <TrendingUp size={16} />
-              <span className="text-xs font-medium">High Score</span>
+              <span className="text-xs font-medium">Machines Played</span>
             </div>
-            <p className="text-2xl font-bold text-foreground truncate">
-              {loading ? "-" : formatScore(stats.highestScore)}
+            <p className="text-2xl font-bold text-foreground">
+              {loading ? "-" : stats.machinesPlayed}
             </p>
           </div>
 
