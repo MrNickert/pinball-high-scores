@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, User, ArrowLeft, Loader2, Circle } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Loader2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -16,7 +16,6 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [username, setUsername] = useState("");
   const { toast } = useToast();
   const { signIn, signUp, user, loading } = useAuth();
   const navigate = useNavigate();
@@ -70,22 +69,11 @@ const Auth = () => {
       if (isLogin) {
         const { error } = await signIn(email, password);
         if (error) throw error;
-        toast({
-          title: "Welcome back!",
-          description: "You've successfully signed in.",
-        });
-        navigate("/");
+        // Don't navigate here - let the useEffect handle redirect after checking onboarding status
       } else {
-        if (!username.trim()) {
-          toast({
-            title: "Username required",
-            description: "Please enter a username.",
-            variant: "destructive",
-          });
-          setIsLoading(false);
-          return;
-        }
-        const { error, data } = await signUp(email, password, username);
+        // Generate a temporary username from email for signup
+        const tempUsername = email.split("@")[0].replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 20);
+        const { error, data } = await signUp(email, password, tempUsername);
         if (error) throw error;
 
         // Create welcome notification for new user
@@ -102,6 +90,7 @@ const Auth = () => {
           title: "Account created!",
           description: "Let's set up your profile!",
         });
+        // Navigate to onboarding for new users
         navigate("/onboarding");
       }
     } catch (error: any) {
@@ -161,30 +150,6 @@ const Auth = () => {
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
-            {!isLogin && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: "auto" }}
-                exit={{ opacity: 0, height: 0 }}
-              >
-                <Label htmlFor="username" className="text-foreground">
-                  Username
-                </Label>
-                <div className="relative mt-2">
-                  <User className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => setUsername(e.target.value)}
-                    placeholder="yourname"
-                    className="pl-10"
-                    required={!isLogin}
-                  />
-                </div>
-              </motion.div>
-            )}
-
             <div>
               <Label htmlFor="email" className="text-foreground">
                 Email
