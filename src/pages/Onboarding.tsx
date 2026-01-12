@@ -53,6 +53,11 @@ const Onboarding = () => {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isPublic, setIsPublic] = useState(true);
 
+  // Generate a unique DiceBear avatar URL based on user ID
+  const defaultAvatarUrl = user?.id 
+    ? `https://api.dicebear.com/9.x/bottts-neutral/svg?seed=${user.id}` 
+    : "";
+
   const totalSteps = 4;
 
   useEffect(() => {
@@ -200,7 +205,7 @@ const Onboarding = () => {
           username: parsedUsername.data,
           first_name: firstName.trim() || null,
           last_name: lastName.trim() || null,
-          avatar_url: avatarUrl || null,
+          avatar_url: avatarUrl || defaultAvatarUrl || null,
           is_public: isPublic,
           onboarding_completed: true,
           updated_at: new Date().toISOString(),
@@ -425,12 +430,12 @@ const Onboarding = () => {
                 </div>
 
                 <div className="flex flex-col items-center gap-4">
-                  <div className="w-24 h-24 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
-                    {avatarUrl ? (
-                      <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
-                    ) : (
-                      <span className="text-4xl">🎯</span>
-                    )}
+                  <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
+                    <img 
+                      src={avatarUrl || defaultAvatarUrl} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                    />
                   </div>
                   <div className="text-center">
                     <input
