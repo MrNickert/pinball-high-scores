@@ -136,15 +136,15 @@
   "dashboard": {
     "welcome": "Welkom terug",
     "readyToCapture": "Klaar om je volgende high score vast te leggen?",
-    "captureNewScore": "Nieuwe score vastleggen",
-    "totalScores": "Totale scores",
+    "captureNewScore": "Nieuwe Score Vastleggen",
+    "totalScores": "Totale Scores",
     "verified": "Geverifieerd",
-    "machinesPlayed": "Machines gespeeld",
-    "lastMachine": "Laatste machine",
+    "machinesPlayed": "Machines Gespeeld",
+    "lastMachine": "Laatste Machine",
     "friendsActivity": "Vriendenactiviteit",
     "viewAll": "Alles bekijken",
     "noFriendActivity": "Nog geen vriendenactiviteit. Maak contact met andere spelers!",
-    "findFriends": "Vind vrienden",
+    "findFriends": "Vind Vrienden",
     "scored": "scoorde",
     "on": "op"
   },
@@ -167,7 +167,7 @@
     "beFirst": "Wees de eerste om een score in te dienen!",
     "noVerifiedScores": "Geen geverifieerde scores",
     "adjustFilters": "Pas filters aan om meer scores te zien",
-    "showAllScores": "Alle scores tonen",
+    "showAllScores": "Alle Scores Tonen",
     "rankings": "Ranglijst",
     "unknownLocation": "Onbekende locatie",
     "accepted": "Geaccepteerd",
@@ -179,8 +179,13 @@
     "addFriend": "Vriend toevoegen",
     "removeFriend": "Vriend verwijderen",
     "accept": "Accepteren",
-    "decline": "Afwijzen"
-  },
+    "decline": "Weigeren",
+    "sent": "Verzonden",
+    "nearby": "In de buurt",
+    "searchPlaceHolder": "Zoek naar vrienden",
+    "noFriendsYet": "Nog geen activiteit van vrienden. Verbind met andere spelers!",
+    "subtitle": "Verbind, speel en vier samen"
+  }
   "verify": {
     "title": "Scores verifiëren",
     "approve": "Goedkeuren",
