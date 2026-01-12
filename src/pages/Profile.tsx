@@ -37,8 +37,8 @@ const Profile = () => {
   const targetUserId = userId || user?.id;
 
   useEffect(() => {
-    // Only redirect to auth if viewing own profile and not logged in
-    if (!loading && !user && !userId) {
+    // Redirect to auth if not logged in (for any profile view)
+    if (!loading && !user) {
       navigate("/auth");
       return;
     }
@@ -122,6 +122,34 @@ const Profile = () => {
     );
   }
 
+  if (!user) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Navbar />
+        <div className="container mx-auto px-4 pt-24 pb-24 flex items-center justify-center min-h-[80vh]">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="text-center bg-card rounded-2xl p-10 max-w-md border border-border shadow-sm"
+          >
+            <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
+              <User className="text-primary" size={32} />
+            </div>
+            <h1 className="text-xl font-bold text-foreground mb-2">Sign in required</h1>
+            <p className="text-muted-foreground mb-6">
+              Create an account or sign in to view player profiles and track scores.
+            </p>
+            <Link to="/auth">
+              <Button variant="gradient" size="lg">
+                Sign In
+              </Button>
+            </Link>
+          </motion.div>
+        </div>
+      </div>
+    );
+  }
+
   if (!targetUserId || (!isOwnProfile && !profile)) {
     return (
       <div className="min-h-screen bg-background">
@@ -135,21 +163,10 @@ const Profile = () => {
             <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
               <User className="text-primary" size={32} />
             </div>
-            <h1 className="text-xl font-bold text-foreground mb-2">
-              {!user && !userId ? "Sign in required" : "Profile not found"}
-            </h1>
+            <h1 className="text-xl font-bold text-foreground mb-2">Profile not found</h1>
             <p className="text-muted-foreground mb-6">
-              {!user && !userId 
-                ? "Create an account or sign in to view your profile and track your scores."
-                : "This user profile could not be found."}
+              This user profile could not be found.
             </p>
-            {!user && !userId && (
-              <Link to="/auth">
-                <Button variant="gradient" size="lg">
-                  Sign In
-                </Button>
-              </Link>
-            )}
           </motion.div>
         </div>
       </div>
