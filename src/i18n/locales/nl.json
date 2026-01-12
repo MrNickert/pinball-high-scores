@@ -179,17 +179,16 @@
     "addFriend": "Vriend toevoegen",
     "removeFriend": "Vriend verwijderen",
     "accept": "Accepteren",
-    "decline": "Weigeren",
-    "sent": "Verzonden",
-    "nearby": "In de buurt",
-    "searchPlaceHolder": "Zoek naar vrienden",
-    "noFriendsYet": "Nog geen activiteit van vrienden. Verbind met andere spelers!",
-    "subtitle": "Verbind, speel en vier samen"
-  }
+    "decline": "Afwijzen"
+  },
   "verify": {
     "title": "Scores verifiëren",
     "approve": "Goedkeuren",
     "reject": "Afwijzen"
+    "communityReviews": "Community reviews",
+    "myPending": "Mijn scores in review",
+    "allCaughtUp": "Alles bijgewerkt!",
+    "noScoresPending": "Er zijn geen scores in afwachting van verificatie."
   },
   "errors": {
     "somethingWrong": "Er ging iets mis",

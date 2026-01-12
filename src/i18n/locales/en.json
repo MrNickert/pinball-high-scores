@@ -144,7 +144,7 @@
     "friendsActivity": "Friends Activity",
     "viewAll": "View all",
     "noFriendActivity": "No friend activity yet. Connect with other players!",
-    "findFriends": "Find friends",
+    "findFriends": "Find Friends",
     "scored": "scored",
     "on": "on"
   },
@@ -179,17 +179,16 @@
     "addFriend": "Add Friend",
     "removeFriend": "Remove Friend",
     "accept": "Accept",
-    "decline": "Decline",
-    "sent": "Sent",
-    "nearby": "Nearby",
-    "searchPlaceHolder": "Search for friends",
-    "noFriendsYet": "No friend activity yet. Connect with other players!",
-    "subtitle": "Connect, compete, and celebrate together"
+    "decline": "Decline"
   },
   "verify": {
     "title": "Verify Scores",
     "approve": "Approve",
-    "reject": "Reject"
+    "reject": "Reject"    
+    "communityReviews": "Community reviews",
+    "myPending": "My pending scores",
+    "allCaughtUp": "All caught up!",
+    "noScoresPending": "There are no scores pending verification."
   },
   "errors": {
     "somethingWrong": "Something went wrong",
