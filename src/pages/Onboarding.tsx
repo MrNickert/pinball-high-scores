@@ -1,15 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Upload, Loader2, ArrowRight, ArrowLeft, Shield, Check, Circle } from "lucide-react";
+import { User, Upload, Loader2, ArrowRight, ArrowLeft, Shield, Check, Circle, Globe } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { z } from "zod";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const usernameSchema = z
   .string()
@@ -26,6 +35,8 @@ const nameSchema = z
 
 const Onboarding = () => {
   const { user, loading } = useAuth();
+  const { language, setLanguage, useMetric, setUseMetric } = useLanguage();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
   const [saving, setSaving] = useState(false);
@@ -42,7 +53,7 @@ const Onboarding = () => {
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isPublic, setIsPublic] = useState(true);
 
-  const totalSteps = 3;
+  const totalSteps = 4;
 
   useEffect(() => {
     if (!loading && !user) {
@@ -260,10 +271,10 @@ const Onboarding = () => {
 
           {/* Progress indicator */}
           <div className="flex justify-center gap-2 mb-8">
-            {[1, 2, 3].map((i) => (
+            {[1, 2, 3, 4].map((i) => (
               <div
                 key={i}
-                className={`h-1.5 w-12 rounded-full transition-colors ${
+                className={`h-1.5 w-10 rounded-full transition-colors ${
                   i <= step ? "bg-primary" : "bg-muted"
                 }`}
               />
@@ -398,18 +409,74 @@ const Onboarding = () => {
                 className="space-y-5"
               >
                 <div className="flex items-center gap-2 mb-4">
+                  <Globe size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">{t("onboarding.preferences")}</span>
+                </div>
+
+                <div className="bg-muted/50 rounded-xl p-4 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <Label className="text-foreground font-medium">{t("onboarding.language")}</Label>
+                      <p className="text-sm text-muted-foreground mt-1">{t("onboarding.languageDesc")}</p>
+                    </div>
+                    <Select
+                      value={language}
+                      onValueChange={(value: "en" | "nl") => setLanguage(value)}
+                    >
+                      <SelectTrigger className="w-[130px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="en">{t("onboarding.english")}</SelectItem>
+                        <SelectItem value="nl">{t("onboarding.dutch")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="border-t border-border pt-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <Label className="text-foreground font-medium">{t("onboarding.units")}</Label>
+                        <p className="text-sm text-muted-foreground mt-1">{t("onboarding.unitsDesc")}</p>
+                      </div>
+                      <Select
+                        value={useMetric ? "metric" : "imperial"}
+                        onValueChange={(value) => setUseMetric(value === "metric")}
+                      >
+                        <SelectTrigger className="w-[130px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="metric">{t("onboarding.metric")}</SelectItem>
+                          <SelectItem value="imperial">{t("onboarding.imperial")}</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+                </div>
+              </motion.div>
+            )}
+
+            {step === 4 && (
+              <motion.div
+                key="step4"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
                   <Shield size={18} className="text-primary" />
-                  <span className="font-medium text-foreground">Privacy settings</span>
+                  <span className="font-medium text-foreground">{t("onboarding.privacySettings")}</span>
                 </div>
 
                 <div className="bg-muted/50 rounded-xl p-4">
                   <div className="flex items-center justify-between">
                     <div>
                       <Label htmlFor="public-profile" className="text-foreground font-medium">
-                        Public Profile
+                        {t("onboarding.publicProfile")}
                       </Label>
                       <p className="text-sm text-muted-foreground mt-1">
-                        Allow others to see your profile and scores
+                        {t("onboarding.publicProfileDesc")}
                       </p>
                     </div>
                     <Switch
@@ -423,10 +490,10 @@ const Onboarding = () => {
                 <div className="bg-primary/5 rounded-xl p-4 border border-primary/10">
                   <h3 className="font-medium text-foreground flex items-center gap-2 mb-2">
                     <Check size={16} className="text-primary" />
-                    Ready to go!
+                    {t("onboarding.readyToGo")}
                   </h3>
                   <p className="text-sm text-muted-foreground">
-                    You can always change these settings later in your profile.
+                    {t("onboarding.changeSettingsLater")}
                   </p>
                 </div>
               </motion.div>
