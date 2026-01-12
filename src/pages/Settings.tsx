@@ -22,8 +22,11 @@ const usernameSchema = z
 
 const Settings = () => {
   const { user, loading } = useAuth();
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
+  const [isPublic, setIsPublic] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -41,13 +44,16 @@ const Settings = () => {
     try {
       const { data } = await supabase
         .from("profiles")
-        .select("username, avatar_url")
+        .select("username, avatar_url, first_name, last_name, is_public")
         .eq("user_id", user.id)
         .maybeSingle();
       
       if (data) {
         setUsername(data.username || "");
         setAvatarUrl(data.avatar_url || "");
+        setFirstName(data.first_name || "");
+        setLastName(data.last_name || "");
+        setIsPublic(data.is_public ?? true);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -128,6 +134,9 @@ const Settings = () => {
         .from("profiles")
         .update({
           username: parsed.data,
+          first_name: firstName.trim() || null,
+          last_name: lastName.trim() || null,
+          is_public: isPublic,
           updated_at: new Date().toISOString(),
         })
         .eq("user_id", user.id);
@@ -191,13 +200,37 @@ const Settings = () => {
               Profile
             </h2>
             <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName" className="text-foreground">First Name</Label>
+                  <Input
+                    id="firstName"
+                    value={firstName}
+                    onChange={(e) => setFirstName(e.target.value)}
+                    placeholder="John"
+                    maxLength={50}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
+                  <Input
+                    id="lastName"
+                    value={lastName}
+                    onChange={(e) => setLastName(e.target.value)}
+                    placeholder="Doe"
+                    maxLength={50}
+                  />
+                </div>
+              </div>
               <div className="space-y-2">
                 <Label htmlFor="username" className="text-foreground">Username</Label>
+                <p className="text-xs text-muted-foreground">Visible to other players</p>
                 <Input
                   id="username"
                   value={username}
                   onChange={(e) => setUsername(e.target.value)}
                   placeholder="Enter your username"
+                  maxLength={30}
                 />
               </div>
               <div className="space-y-2">
@@ -290,15 +323,11 @@ const Settings = () => {
                   <Label htmlFor="public-profile" className="text-foreground">Public Profile</Label>
                   <p className="text-sm text-muted-foreground">Allow others to see your profile and scores</p>
                 </div>
-                <Switch id="public-profile" defaultChecked />
-              </div>
-              <Separator />
-              <div className="flex items-center justify-between">
-                <div>
-                  <Label htmlFor="show-activity" className="text-foreground">Show Activity</Label>
-                  <p className="text-sm text-muted-foreground">Show your recent scores to friends</p>
-                </div>
-                <Switch id="show-activity" defaultChecked />
+                <Switch 
+                  id="public-profile" 
+                  checked={isPublic}
+                  onCheckedChange={setIsPublic}
+                />
               </div>
             </div>
           </motion.div>
