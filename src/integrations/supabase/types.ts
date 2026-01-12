@@ -87,6 +87,8 @@ export type Database = {
           last_location_name: string | null
           last_location_updated_at: string | null
           last_name: string | null
+          notify_friend_activity: boolean
+          notify_score_updates: boolean
           onboarding_completed: boolean
           updated_at: string
           user_id: string
@@ -104,6 +106,8 @@ export type Database = {
           last_location_name?: string | null
           last_location_updated_at?: string | null
           last_name?: string | null
+          notify_friend_activity?: boolean
+          notify_score_updates?: boolean
           onboarding_completed?: boolean
           updated_at?: string
           user_id: string
@@ -121,6 +125,8 @@ export type Database = {
           last_location_name?: string | null
           last_location_updated_at?: string | null
           last_name?: string | null
+          notify_friend_activity?: boolean
+          notify_score_updates?: boolean
           onboarding_completed?: boolean
           updated_at?: string
           user_id?: string

@@ -27,6 +27,8 @@ const Settings = () => {
   const [username, setUsername] = useState("");
   const [avatarUrl, setAvatarUrl] = useState("");
   const [isPublic, setIsPublic] = useState(true);
+  const [notifyScoreUpdates, setNotifyScoreUpdates] = useState(true);
+  const [notifyFriendActivity, setNotifyFriendActivity] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
@@ -44,7 +46,7 @@ const Settings = () => {
     try {
       const { data } = await supabase
         .from("profiles")
-        .select("username, avatar_url, first_name, last_name, is_public")
+        .select("username, avatar_url, first_name, last_name, is_public, notify_score_updates, notify_friend_activity")
         .eq("user_id", user.id)
         .maybeSingle();
       
@@ -54,6 +56,8 @@ const Settings = () => {
         setFirstName(data.first_name || "");
         setLastName(data.last_name || "");
         setIsPublic(data.is_public ?? true);
+        setNotifyScoreUpdates(data.notify_score_updates ?? true);
+        setNotifyFriendActivity(data.notify_friend_activity ?? true);
       }
     } catch (error) {
       console.error("Error fetching profile:", error);
@@ -176,6 +180,50 @@ const Settings = () => {
       console.error("Error updating privacy:", error);
       setIsPublic(!checked); // Revert on error
       toast.error("Failed to update privacy setting");
+    }
+  };
+
+  const handleToggleScoreNotifications = async (checked: boolean) => {
+    if (!user) return;
+    
+    setNotifyScoreUpdates(checked);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          notify_score_updates: checked,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      toast.success(checked ? "Score notifications enabled" : "Score notifications disabled");
+    } catch (error) {
+      console.error("Error updating notification setting:", error);
+      setNotifyScoreUpdates(!checked);
+      toast.error("Failed to update notification setting");
+    }
+  };
+
+  const handleToggleFriendNotifications = async (checked: boolean) => {
+    if (!user) return;
+    
+    setNotifyFriendActivity(checked);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          notify_friend_activity: checked,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      toast.success(checked ? "Friend notifications enabled" : "Friend notifications disabled");
+    } catch (error) {
+      console.error("Error updating notification setting:", error);
+      setNotifyFriendActivity(!checked);
+      toast.error("Failed to update notification setting");
     }
   };
 
@@ -315,7 +363,11 @@ const Settings = () => {
                   <Label htmlFor="score-notifications" className="text-foreground">Score Updates</Label>
                   <p className="text-sm text-muted-foreground">Get notified when your scores are verified</p>
                 </div>
-                <Switch id="score-notifications" defaultChecked />
+                <Switch 
+                  id="score-notifications" 
+                  checked={notifyScoreUpdates}
+                  onCheckedChange={handleToggleScoreNotifications}
+                />
               </div>
               <Separator />
               <div className="flex items-center justify-between">
@@ -323,7 +375,11 @@ const Settings = () => {
                   <Label htmlFor="friend-notifications" className="text-foreground">Friend Activity</Label>
                   <p className="text-sm text-muted-foreground">Get notified about friend requests</p>
                 </div>
-                <Switch id="friend-notifications" defaultChecked />
+                <Switch 
+                  id="friend-notifications" 
+                  checked={notifyFriendActivity}
+                  onCheckedChange={handleToggleFriendNotifications}
+                />
               </div>
             </div>
           </motion.div>
