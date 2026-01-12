@@ -168,19 +168,19 @@ export const Navbar = () => {
                     </Button>
                   </DropdownMenuTrigger>
                   <DropdownMenuContent align="end" className="w-48">
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className={location.pathname === "/profile" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
                       <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                         <User size={16} />
                         Profile
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className={location.pathname === "/friends" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
                       <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
                         <Users size={16} />
                         Friends
                       </Link>
                     </DropdownMenuItem>
-                    <DropdownMenuItem asChild>
+                    <DropdownMenuItem asChild className={location.pathname === "/settings" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
                       <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                         <Settings size={16} />
                         Settings
@@ -262,19 +262,19 @@ export const Navbar = () => {
                   </motion.div>
                 </DropdownMenuTrigger>
                 <DropdownMenuContent align="end" side="top" className="w-48 mb-2 bg-background border border-border">
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className={location.pathname === "/profile" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
                     <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                       <User size={16} />
                       Profile
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className={location.pathname === "/friends" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
                     <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
                       <Users size={16} />
                       Friends
                     </Link>
                   </DropdownMenuItem>
-                  <DropdownMenuItem asChild>
+                  <DropdownMenuItem asChild className={location.pathname === "/settings" ? "bg-primary text-primary-foreground font-semibold focus:bg-primary focus:text-primary-foreground" : ""}>
                     <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                       <Settings size={16} />
                       Settings
