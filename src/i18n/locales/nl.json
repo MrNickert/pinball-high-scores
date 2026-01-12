@@ -20,7 +20,7 @@
   "auth": {
     "signIn": "Inloggen",
     "signUp": "Registreren",
-    "signOut": "Succesvol uitgelogd",
+    "signOut": "Uitloggen",
     "createAccount": "Account aanmaken",
     "welcomeBack": "Welkom terug",
     "signInToTrack": "Log in om je scores bij te houden",
