@@ -134,11 +134,11 @@ const Onboarding = () => {
         return;
       }
 
-      // Check if username is already taken
+      // Check if username is already taken (use public_profiles view to bypass RLS)
       setCheckingUsername(true);
       try {
         const { data: existingProfile } = await supabase
-          .from("profiles")
+          .from("public_profiles")
           .select("id")
           .eq("username", parsed.data)
           .neq("user_id", user?.id || "")
