@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Bell, Check, X } from "lucide-react";
+import { Bell, Check, X, Trash2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import {
@@ -12,7 +12,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
-import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
 
 interface Notification {
   id: string;
@@ -118,11 +117,28 @@ export const NotificationBell = () => {
     }
   };
 
+  const deleteNotification = async (notificationId: string) => {
+    const notification = notifications.find((n) => n.id === notificationId);
+    const { error } = await supabase
+      .from("notifications")
+      .delete()
+      .eq("id", notificationId);
+
+    if (!error) {
+      setNotifications((prev) => prev.filter((n) => n.id !== notificationId));
+      if (notification && !notification.read) {
+        setUnreadCount((prev) => Math.max(0, prev - 1));
+      }
+    }
+  };
+
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "score_verified":
+      case "score_accepted":
         return "✅";
       case "score_rejected":
+      case "score_declined":
         return "❌";
       case "score_pending":
         return "⏳";
@@ -241,6 +257,7 @@ export const NotificationBell = () => {
                   key={notification.id}
                   initial={{ opacity: 0 }}
                   animate={{ opacity: 1 }}
+                  exit={{ opacity: 0, height: 0 }}
                   className={`p-3 hover:bg-muted/50 transition-colors ${
                     !notification.read ? "bg-primary/5" : ""
                   }`}
@@ -291,13 +308,25 @@ export const NotificationBell = () => {
                         </div>
                       )}
                     </div>
-                    {!notification.read && notification.type !== "friend_request" && (
-                      <button 
-                        onClick={() => markAsRead(notification.id)}
-                        className="w-2 h-2 rounded-full bg-primary flex-shrink-0 mt-1.5 hover:bg-primary/80"
-                        title="Mark as read"
-                      />
-                    )}
+                    <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                      {!notification.read && notification.type !== "friend_request" && (
+                        <button 
+                          onClick={() => markAsRead(notification.id)}
+                          className="w-2 h-2 rounded-full bg-primary hover:bg-primary/80"
+                          title="Mark as read"
+                        />
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          deleteNotification(notification.id);
+                        }}
+                        className="p-1 rounded hover:bg-destructive/10 text-muted-foreground hover:text-destructive transition-colors"
+                        title="Delete notification"
+                      >
+                        <Trash2 size={14} />
+                      </button>
+                    </div>
                   </div>
                 </motion.div>
               ))}
