@@ -10,12 +10,17 @@
     "close": "Close",
     "confirm": "Confirm",
     "error": "Error",
-    "success": "Success"
+    "success": "Success",
+    "search": "Search",
+    "filter": "Filter",
+    "validation": "Validation",
+    "showAll": "Show All",
+    "noneYet": "None yet"
   },
   "auth": {
     "signIn": "Sign In",
     "signUp": "Sign Up",
-    "signOut": "Sign Out",
+    "signOut": "Signed out successfully",
     "createAccount": "Create Account",
     "welcomeBack": "Welcome back",
     "signInToTrack": "Sign in to track your scores",
@@ -130,9 +135,18 @@
   },
   "dashboard": {
     "welcome": "Welcome back",
-    "recentScores": "Recent Scores",
-    "noScores": "No scores yet",
-    "captureFirst": "Capture your first score!"
+    "readyToCapture": "Ready to capture your next high score?",
+    "captureNewScore": "Capture New Score",
+    "totalScores": "Total Scores",
+    "verified": "Verified",
+    "machinesPlayed": "Machines Played",
+    "lastMachine": "Last Machine",
+    "friendsActivity": "Friends Activity",
+    "viewAll": "View all",
+    "noFriendActivity": "No friend activity yet. Connect with other players!",
+    "findFriends": "Find Friends",
+    "scored": "scored",
+    "on": "on"
   },
   "capture": {
     "title": "Capture Score",
@@ -146,9 +160,18 @@
   },
   "leaderboard": {
     "title": "Leaderboard",
-    "global": "Global",
-    "friends": "Friends",
-    "local": "Local"
+    "selectMachine": "Select a machine to view high scores",
+    "selectPlaceholder": "Select a pinball machine",
+    "searchPlaceholder": "Search player or location...",
+    "noScoresYet": "No scores yet",
+    "beFirst": "Be the first to submit a score!",
+    "noVerifiedScores": "No verified scores",
+    "adjustFilters": "Adjust filters to see more scores",
+    "showAllScores": "Show All Scores",
+    "rankings": "Rankings",
+    "unknownLocation": "Unknown location",
+    "accepted": "Accepted",
+    "pending": "Pending Review"
   },
   "friends": {
     "title": "Friends",
@@ -168,6 +191,6 @@
     "failedToLoad": "Failed to load",
     "failedToSave": "Failed to save",
     "unauthorized": "Unauthorized",
-    "notFound": "Not found"
+    "notFound": "Page not found"
   }
 }

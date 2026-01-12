@@ -6,35 +6,37 @@ import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Dashboard } from "@/components/Dashboard";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-
-const features = [
-  {
-    icon: Trophy,
-    title: "Global Leaderboards",
-    description: "Compete with players worldwide and climb the ranks",
-  },
-  {
-    icon: Camera,
-    title: "Photo Capture",
-    description: "Snap your high score for instant verification",
-  },
-  {
-    icon: MapPin,
-    title: "Location Based",
-    description: "Find and track machines near you",
-  },
-  {
-    icon: Zap,
-    title: "Instant Submit",
-    description: "Upload scores in seconds",
-  },
-];
 
 const Index = () => {
   const { user, loading } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
+
+  const features = [
+    {
+      icon: Trophy,
+      title: t("landing.globalLeaderboards"),
+      description: t("landing.globalLeaderboardsDesc"),
+    },
+    {
+      icon: Camera,
+      title: t("landing.photoCapture"),
+      description: t("landing.photoCaptureDesc"),
+    },
+    {
+      icon: MapPin,
+      title: t("landing.locationBased"),
+      description: t("landing.locationBasedDesc"),
+    },
+    {
+      icon: Zap,
+      title: t("landing.instantSubmit"),
+      description: t("landing.instantSubmitDesc"),
+    },
+  ];
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -108,26 +110,25 @@ const Index = () => {
             ></motion.div>
 
             <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">
-              <span className="text-foreground">Play. Score.</span>
+              <span className="text-foreground">{t("landing.tagline")}</span>
               <br className="mb-2" />
-              <span className="gradient-text mt-2 inline-block">Multiball.</span>
+              <span className="gradient-text mt-2 inline-block">{t("landing.multiball")}</span>
             </h1>
 
             <p className="text-lg text-muted-foreground max-w-xl mx-auto mb-10">
-              Capture every skill shot, multiball frenzy, and epic high score. Compete with players worldwide and rise
-              to the top of the global pinball leaderboard. Every ball counts
+              {t("landing.description")}
             </p>
 
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
               <Link to="/auth">
                 <Button variant="gradient" size="xl">
-                  Get Started Free
+                  {t("landing.getStarted")}
                   <ArrowRight size={18} />
                 </Button>
               </Link>
               <Link to="/leaderboard">
                 <Button variant="outline" size="xl">
-                  View Leaderboards
+                  {t("landing.viewLeaderboards")}
                 </Button>
               </Link>
             </div>
@@ -142,7 +143,7 @@ const Index = () => {
           >
             <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">Today's Top Score</p>
+                <p className="text-sm text-muted-foreground mb-2">{t("landing.todaysTopScore")}</p>
                 <motion.div
                   className="text-4xl font-bold text-foreground score-display"
                   initial={{ scale: 0.9 }}
@@ -168,8 +169,8 @@ const Index = () => {
             viewport={{ once: true }}
             className="text-center mb-12"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">How it works</h2>
-            <p className="text-muted-foreground max-w-xl mx-auto">Simple steps to immortalize your achievements</p>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{t("landing.howItWorks")}</h2>
+            <p className="text-muted-foreground max-w-xl mx-auto">{t("landing.simpleSteps")}</p>
           </motion.div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -203,13 +204,13 @@ const Index = () => {
             viewport={{ once: true }}
             className="bg-gradient-to-br from-primary/5 via-secondary/5 to-accent/5 rounded-3xl p-10 md:p-16 text-center border border-border"
           >
-            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">Ready to start tracking?</h2>
+            <h2 className="text-2xl md:text-3xl font-bold text-foreground mb-4">{t("landing.readyToStart")}</h2>
             <p className="text-muted-foreground max-w-lg mx-auto mb-8">
-              Join players tracking their scores and competing globally.
+              {t("landing.joinPlayers")}
             </p>
             <Link to="/auth">
               <Button variant="gradient" size="xl">
-                Create Free Account
+                {t("landing.createFreeAccount")}
                 <ArrowRight size={18} />
               </Button>
             </Link>

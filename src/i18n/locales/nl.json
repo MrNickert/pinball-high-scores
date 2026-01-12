@@ -10,12 +10,17 @@
     "close": "Sluiten",
     "confirm": "Bevestigen",
     "error": "Fout",
-    "success": "Gelukt"
+    "success": "Gelukt",
+    "search": "Zoeken",
+    "filter": "Filter",
+    "validation": "Validatie",
+    "showAll": "Alles tonen",
+    "noneYet": "Nog geen"
   },
   "auth": {
     "signIn": "Inloggen",
     "signUp": "Registreren",
-    "signOut": "Uitloggen",
+    "signOut": "Succesvol uitgelogd",
     "createAccount": "Account aanmaken",
     "welcomeBack": "Welkom terug",
     "signInToTrack": "Log in om je scores bij te houden",
@@ -130,9 +135,18 @@
   },
   "dashboard": {
     "welcome": "Welkom terug",
-    "recentScores": "Recente scores",
-    "noScores": "Nog geen scores",
-    "captureFirst": "Leg je eerste score vast!"
+    "readyToCapture": "Klaar om je volgende high score vast te leggen?",
+    "captureNewScore": "Nieuwe Score Vastleggen",
+    "totalScores": "Totale Scores",
+    "verified": "Geverifieerd",
+    "machinesPlayed": "Machines Gespeeld",
+    "lastMachine": "Laatste Machine",
+    "friendsActivity": "Vriendenactiviteit",
+    "viewAll": "Alles bekijken",
+    "noFriendActivity": "Nog geen vriendenactiviteit. Maak contact met andere spelers!",
+    "findFriends": "Vind Vrienden",
+    "scored": "scoorde",
+    "on": "op"
   },
   "capture": {
     "title": "Score vastleggen",
@@ -146,9 +160,18 @@
   },
   "leaderboard": {
     "title": "Ranglijst",
-    "global": "Wereldwijd",
-    "friends": "Vrienden",
-    "local": "Lokaal"
+    "selectMachine": "Selecteer een machine om high scores te bekijken",
+    "selectPlaceholder": "Selecteer een flipperkast",
+    "searchPlaceholder": "Zoek speler of locatie...",
+    "noScoresYet": "Nog geen scores",
+    "beFirst": "Wees de eerste om een score in te dienen!",
+    "noVerifiedScores": "Geen geverifieerde scores",
+    "adjustFilters": "Pas filters aan om meer scores te zien",
+    "showAllScores": "Alle Scores Tonen",
+    "rankings": "Ranglijst",
+    "unknownLocation": "Onbekende locatie",
+    "accepted": "Geaccepteerd",
+    "pending": "Wacht op review"
   },
   "friends": {
     "title": "Vrienden",
@@ -168,6 +191,6 @@
     "failedToLoad": "Laden mislukt",
     "failedToSave": "Opslaan mislukt",
     "unauthorized": "Niet geautoriseerd",
-    "notFound": "Niet gevonden"
+    "notFound": "Pagina niet gevonden"
   }
 }

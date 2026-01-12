@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { toast } from "sonner";
 import { NotificationBell } from "@/components/NotificationBell";
 import {
@@ -16,28 +17,29 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
-// Nav items for non-authenticated users
-const publicNavItems = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/capture", label: "Capture", icon: Camera },
-  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
-];
-
-// Nav items for authenticated users
-const authNavItems = [
-  { path: "/", label: "Home", icon: Home },
-  { path: "/capture", label: "Capture", icon: Camera },
-  { path: "/verify", label: "Verify", icon: Eye },
-  { path: "/leaderboard", label: "Leaderboard", icon: Trophy },
-];
-
 export const Navbar = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { user } = useAuth();
+  const { t } = useTranslation();
   const [pendingCount, setPendingCount] = useState(0);
   const [username, setUsername] = useState<string | null>(null);
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+
+  // Nav items for non-authenticated users
+  const publicNavItems = [
+    { path: "/", label: t("navbar.home"), icon: Home },
+    { path: "/capture", label: t("navbar.capture"), icon: Camera },
+    { path: "/leaderboard", label: t("navbar.leaderboard"), icon: Trophy },
+  ];
+
+  // Nav items for authenticated users
+  const authNavItems = [
+    { path: "/", label: t("navbar.home"), icon: Home },
+    { path: "/capture", label: t("navbar.capture"), icon: Camera },
+    { path: "/verify", label: t("navbar.verify"), icon: Eye },
+    { path: "/leaderboard", label: t("navbar.leaderboard"), icon: Trophy },
+  ];
 
   const navItems = user ? authNavItems : publicNavItems;
 
@@ -47,18 +49,18 @@ export const Navbar = () => {
       if (error) {
         // Ignore "session not found" errors - user is already signed out
         if (error.message?.includes("session") || error.message?.includes("Session")) {
-          toast.success("Signed out successfully");
+          toast.success(t("auth.signOut"));
           navigate("/");
           return;
         }
-        toast.error("Error signing out");
+        toast.error(t("errors.somethingWrong"));
       } else {
-        toast.success("Signed out successfully");
+        toast.success(t("auth.signOut"));
         navigate("/");
       }
     } catch (err) {
       // Handle any unexpected errors gracefully
-      toast.success("Signed out successfully");
+      toast.success(t("auth.signOut"));
       navigate("/");
     }
   };
@@ -185,7 +187,7 @@ export const Navbar = () => {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                       <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                         <User size={16} />
-                        Profile
+                        {t("navbar.profile")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className={location.pathname === "/friends" 
@@ -193,7 +195,7 @@ export const Navbar = () => {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                       <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
                         <Users size={16} />
-                        Friends
+                        {t("navbar.friends")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuItem asChild className={location.pathname === "/settings" 
@@ -201,7 +203,7 @@ export const Navbar = () => {
                       : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                       <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                         <Settings size={16} />
-                        Settings
+                        {t("navbar.settings")}
                       </Link>
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
@@ -210,7 +212,7 @@ export const Navbar = () => {
                       className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
                     >
                       <LogOut size={16} />
-                      Sign Out
+                      {t("auth.signOut")}
                     </DropdownMenuItem>
                   </DropdownMenuContent>
                 </DropdownMenu>
@@ -219,7 +221,7 @@ export const Navbar = () => {
               <Link to="/auth">
                 <Button variant="gradient" size="sm">
                   <LogIn size={16} />
-                  <span className="hidden sm:inline">Sign In</span>
+                  <span className="hidden sm:inline">{t("auth.signIn")}</span>
                 </Button>
               </Link>
             )}
@@ -285,7 +287,7 @@ export const Navbar = () => {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                     <Link to="/profile" className="flex items-center gap-2 cursor-pointer">
                       <User size={16} />
-                      Profile
+                      {t("navbar.profile")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className={location.pathname === "/friends" 
@@ -293,7 +295,7 @@ export const Navbar = () => {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                     <Link to="/friends" className="flex items-center gap-2 cursor-pointer">
                       <Users size={16} />
-                      Friends
+                      {t("navbar.friends")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuItem asChild className={location.pathname === "/settings" 
@@ -301,7 +303,7 @@ export const Navbar = () => {
                     : "text-muted-foreground hover:text-foreground hover:bg-muted focus:bg-muted focus:text-foreground"}>
                     <Link to="/settings" className="flex items-center gap-2 cursor-pointer">
                       <Settings size={16} />
-                      Settings
+                      {t("navbar.settings")}
                     </Link>
                   </DropdownMenuItem>
                   <DropdownMenuSeparator />
@@ -310,7 +312,7 @@ export const Navbar = () => {
                     className="flex items-center gap-2 cursor-pointer text-destructive hover:bg-destructive/10 focus:bg-destructive/10 focus:text-destructive"
                   >
                     <LogOut size={16} />
-                    Sign Out
+                    {t("auth.signOut")}
                   </DropdownMenuItem>
                 </DropdownMenuContent>
               </DropdownMenu>
@@ -324,7 +326,7 @@ export const Navbar = () => {
                 }`}
               >
                 <LogIn size={20} />
-                <span className="text-[10px] mt-1 font-medium">Sign In</span>
+                <span className="text-[10px] mt-1 font-medium">{t("auth.signIn")}</span>
               </motion.div>
             </Link>
           )}

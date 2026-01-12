@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
 
@@ -18,6 +19,7 @@ const Auth = () => {
   const [password, setPassword] = useState("");
   const { toast } = useToast();
   const { signIn, signUp, user, loading } = useAuth();
+  const { t } = useTranslation();
   const navigate = useNavigate();
 
   const handleGoogleSignIn = async () => {
@@ -33,7 +35,7 @@ const Auth = () => {
       if (error) throw error;
     } catch (error: any) {
       toast({
-        title: "Error",
+        title: t("common.error"),
         description: error.message || "Failed to sign in with Google",
         variant: "destructive",
       });
@@ -88,16 +90,16 @@ const Auth = () => {
         }
 
         toast({
-          title: "Account created!",
-          description: "Let's set up your profile!",
+          title: t("auth.accountCreated"),
+          description: t("auth.letsSetupProfile"),
         });
         // Navigate to onboarding for new users
         navigate("/onboarding");
       }
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Something went wrong",
+        title: t("common.error"),
+        description: error.message || t("errors.somethingWrong"),
         variant: "destructive",
       });
     } finally {
@@ -126,7 +128,7 @@ const Auth = () => {
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
         >
           <ArrowLeft size={16} />
-          <span>Back to Home</span>
+          <span>{t("auth.backToHome")}</span>
         </Link>
 
         <motion.div
@@ -144,16 +146,18 @@ const Auth = () => {
                 />
               </div>
             </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">{isLogin ? "Welcome back" : "Create account"}</h1>
+            <h1 className="text-2xl font-bold text-foreground mb-2">
+              {isLogin ? t("auth.welcomeBack") : t("auth.createAccount")}
+            </h1>
             <p className="text-muted-foreground text-sm">
-              {isLogin ? "Sign in to track your scores" : "Start tracking your achievements"}
+              {isLogin ? t("auth.signInToTrack") : t("auth.startTracking")}
             </p>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
             <div>
               <Label htmlFor="email" className="text-foreground">
-                Email
+                {t("auth.email")}
               </Label>
               <div className="relative mt-2">
                 <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -171,7 +175,7 @@ const Auth = () => {
 
             <div>
               <Label htmlFor="password" className="text-foreground">
-                Password
+                {t("auth.password")}
               </Label>
               <div className="relative mt-2">
                 <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
@@ -189,7 +193,7 @@ const Auth = () => {
             </div>
 
             <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
-              {isLoading ? <Loader2 className="animate-spin" size={20} /> : isLogin ? "Sign In" : "Create Account"}
+              {isLoading ? <Loader2 className="animate-spin" size={20} /> : isLogin ? t("auth.signIn") : t("auth.createAccount")}
             </Button>
           </form>
 
@@ -198,7 +202,7 @@ const Auth = () => {
               <span className="w-full border-t border-border" />
             </div>
             <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-card px-2 text-muted-foreground">Or continue with</span>
+              <span className="bg-card px-2 text-muted-foreground">{t("auth.orContinueWith")}</span>
             </div>
           </div>
 
@@ -232,7 +236,7 @@ const Auth = () => {
                     d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
                   />
                 </svg>
-                Continue with Google
+                {t("auth.continueWithGoogle")}
               </>
             )}
           </Button>
@@ -243,8 +247,8 @@ const Auth = () => {
               onClick={() => setIsLogin(!isLogin)}
               className="text-sm text-muted-foreground hover:text-foreground transition-colors"
             >
-              {isLogin ? "Don't have an account? " : "Already have an account? "}
-              <span className="text-primary font-medium">{isLogin ? "Sign Up" : "Sign In"}</span>
+              {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}
+              <span className="text-primary font-medium ml-1">{isLogin ? t("auth.signUp") : t("auth.signIn")}</span>
             </button>
           </div>
         </motion.div>

@@ -3,9 +3,12 @@ import { Link } from "react-router-dom";
 import { Trophy, Camera, TrendingUp, Clock, Target, Users, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/contexts/AuthContext";
+import { useTranslation } from "react-i18next";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { enUS, nl } from "date-fns/locale";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Stats {
   totalScores: number;
@@ -26,6 +29,8 @@ interface FriendActivity {
 
 export const Dashboard = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [stats, setStats] = useState<Stats>({
     totalScores: 0,
     verifiedScores: 0,
@@ -36,6 +41,8 @@ export const Dashboard = () => {
   const [username, setUsername] = useState<string | null>(null);
   const [friendActivity, setFriendActivity] = useState<FriendActivity[]>([]);
   const [activityLoading, setActivityLoading] = useState(true);
+
+  const dateLocale = language === "nl" ? nl : enUS;
 
   useEffect(() => {
     const fetchData = async () => {
@@ -156,10 +163,10 @@ export const Dashboard = () => {
           className="mb-8"
         >
           <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2">
-            Welcome back{username ? `, ${username}` : ""}! 👋
+            {t("dashboard.welcome")}{username ? `, ${username}` : ""}! 👋
           </h1>
           <p className="text-muted-foreground">
-            Ready to capture your next high score?
+            {language === "nl" ? "Klaar om je volgende high score vast te leggen?" : "Ready to capture your next high score?"}
           </p>
         </motion.div>
 
@@ -173,13 +180,13 @@ export const Dashboard = () => {
           <Link to="/capture" className="flex-1">
             <Button variant="gradient" size="xl" className="w-full">
               <Camera size={20} />
-              Capture New Score
+              {language === "nl" ? "Nieuwe Score Vastleggen" : "Capture New Score"}
             </Button>
           </Link>
           <Link to="/verify" className="flex-1">
             <Button variant="outline" size="xl" className="w-full">
               <Target size={20} />
-              Verify Scores
+              {t("verify.title")}
             </Button>
           </Link>
         </motion.div>
@@ -194,7 +201,7 @@ export const Dashboard = () => {
           <div className="bg-card rounded-xl p-4 border border-border">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <Target size={16} />
-              <span className="text-xs font-medium">Total Scores</span>
+              <span className="text-xs font-medium">{language === "nl" ? "Totale Scores" : "Total Scores"}</span>
             </div>
             <p className="text-2xl font-bold text-foreground">
               {loading ? "-" : stats.totalScores}
@@ -204,7 +211,7 @@ export const Dashboard = () => {
           <div className="bg-card rounded-xl p-4 border border-border">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <Trophy size={16} />
-              <span className="text-xs font-medium">Verified</span>
+              <span className="text-xs font-medium">{language === "nl" ? "Geverifieerd" : "Verified"}</span>
             </div>
             <p className="text-2xl font-bold text-primary">
               {loading ? "-" : stats.verifiedScores}
@@ -214,7 +221,7 @@ export const Dashboard = () => {
           <div className="bg-card rounded-xl p-4 border border-border">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <TrendingUp size={16} />
-              <span className="text-xs font-medium">Machines Played</span>
+              <span className="text-xs font-medium">{language === "nl" ? "Machines Gespeeld" : "Machines Played"}</span>
             </div>
             <p className="text-2xl font-bold text-foreground">
               {loading ? "-" : stats.machinesPlayed}
@@ -224,10 +231,10 @@ export const Dashboard = () => {
           <div className="bg-card rounded-xl p-4 border border-border">
             <div className="flex items-center gap-2 text-muted-foreground mb-2">
               <Clock size={16} />
-              <span className="text-xs font-medium">Last Machine</span>
+              <span className="text-xs font-medium">{language === "nl" ? "Laatste Machine" : "Last Machine"}</span>
             </div>
             <p className="text-lg font-semibold text-foreground truncate">
-              {loading ? "-" : stats.recentMachine || "None yet"}
+              {loading ? "-" : stats.recentMachine || (language === "nl" ? "Nog geen" : "None yet")}
             </p>
           </div>
         </motion.div>
@@ -242,22 +249,26 @@ export const Dashboard = () => {
           <div className="flex items-center justify-between p-4 border-b border-border">
             <h2 className="font-semibold text-foreground flex items-center gap-2">
               <Users size={18} className="text-secondary" />
-              Friends Activity
+              {language === "nl" ? "Vriendenactiviteit" : "Friends Activity"}
             </h2>
             <Link to="/friends" className="text-sm text-primary hover:underline flex items-center gap-1">
-              View all <ChevronRight size={14} />
+              {language === "nl" ? "Alles bekijken" : "View all"} <ChevronRight size={14} />
             </Link>
           </div>
 
           {activityLoading ? (
-            <div className="p-8 text-center text-muted-foreground">Loading...</div>
+            <div className="p-8 text-center text-muted-foreground">{t("common.loading")}</div>
           ) : friendActivity.length === 0 ? (
             <div className="p-8 text-center">
-              <p className="text-muted-foreground mb-4">No friend activity yet. Connect with other players!</p>
+              <p className="text-muted-foreground mb-4">
+                {language === "nl" 
+                  ? "Nog geen vriendenactiviteit. Maak contact met andere spelers!" 
+                  : "No friend activity yet. Connect with other players!"}
+              </p>
               <Link to="/friends">
                 <Button variant="outline" size="sm">
                   <Users size={16} />
-                  Find Friends
+                  {language === "nl" ? "Vind Vrienden" : "Find Friends"}
                 </Button>
               </Link>
             </div>
@@ -283,13 +294,13 @@ export const Dashboard = () => {
                       <Link to={`/profile/${activity.user_id}`} className="font-semibold hover:text-primary transition-colors">
                         {activity.username}
                       </Link>
-                      <span className="text-muted-foreground"> scored </span>
+                      <span className="text-muted-foreground"> {language === "nl" ? "scoorde" : "scored"} </span>
                       <span className="font-bold text-primary">{formatScore(activity.score)}</span>
-                      <span className="text-muted-foreground"> on </span>
+                      <span className="text-muted-foreground"> {language === "nl" ? "op" : "on"} </span>
                       <span className="font-medium">{activity.machine_name}</span>
                     </p>
                     <p className="text-xs text-muted-foreground">
-                      {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                      {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true, locale: dateLocale })}
                     </p>
                   </div>
                 </motion.div>
