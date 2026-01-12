@@ -171,8 +171,12 @@ const Onboarding = () => {
       navigate("/");
     } catch (error: any) {
       console.error("Error saving profile:", error);
-      if (error?.code === "23514") {
+      if (error?.code === "23505") {
+        toast.error("This username is already taken. Please choose another.");
+        setStep(1);
+      } else if (error?.code === "23514") {
         toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
+        setStep(1);
       } else {
         toast.error("Failed to save profile");
       }
