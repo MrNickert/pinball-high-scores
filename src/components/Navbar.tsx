@@ -42,10 +42,22 @@ export const Navbar = () => {
   const navItems = user ? authNavItems : publicNavItems;
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut();
-    if (error) {
-      toast.error("Error signing out");
-    } else {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        // Ignore "session not found" errors - user is already signed out
+        if (error.message?.includes("session") || error.message?.includes("Session")) {
+          toast.success("Signed out successfully");
+          navigate("/");
+          return;
+        }
+        toast.error("Error signing out");
+      } else {
+        toast.success("Signed out successfully");
+        navigate("/");
+      }
+    } catch (err) {
+      // Handle any unexpected errors gracefully
       toast.success("Signed out successfully");
       navigate("/");
     }
