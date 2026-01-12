@@ -157,6 +157,28 @@ const Settings = () => {
     }
   };
 
+  const handleTogglePublic = async (checked: boolean) => {
+    if (!user) return;
+    
+    setIsPublic(checked);
+    try {
+      const { error } = await supabase
+        .from("profiles")
+        .update({
+          is_public: checked,
+          updated_at: new Date().toISOString(),
+        })
+        .eq("user_id", user.id);
+
+      if (error) throw error;
+      toast.success(checked ? "Profile is now public" : "Profile is now private");
+    } catch (error) {
+      console.error("Error updating privacy:", error);
+      setIsPublic(!checked); // Revert on error
+      toast.error("Failed to update privacy setting");
+    }
+  };
+
   if (loading || loadingProfile) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -269,7 +291,7 @@ const Settings = () => {
                   </div>
                 </div>
               </div>
-              <Button onClick={handleSaveProfile} disabled={saving}>
+              <Button variant="gradient" onClick={handleSaveProfile} disabled={saving}>
                 {saving ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
                 Save Profile
               </Button>
@@ -326,7 +348,7 @@ const Settings = () => {
                 <Switch 
                   id="public-profile" 
                   checked={isPublic}
-                  onCheckedChange={setIsPublic}
+                  onCheckedChange={handleTogglePublic}
                 />
               </div>
             </div>
