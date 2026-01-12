@@ -1,1 +1,7 @@
 project_id = "mhefkwaebmpghegxqykm"
+
+[functions.extract-scores]
+verify_jwt = false
+
+[functions.pinballmap-add-machine]
+verify_jwt = false

@@ -518,14 +518,12 @@ const Capture = () => {
         }
       }
 
-      // Insert score (mark as notified if AI validated, since user sees immediate feedback)
+      // Insert score without GPS coordinates for privacy
       const { error } = await supabase.from("scores").insert({
         user_id: user.id,
         score: numericScore,
         machine_name: selectedMachine,
         location_name: selectedLocation.name,
-        latitude: parseFloat(selectedLocation.lat),
-        longitude: parseFloat(selectedLocation.lon),
         photo_url: photoUrl,
         validation_status: validationStatus || "pending",
         user_notified_at: validationStatus === "accepted" ? new Date().toISOString() : null,

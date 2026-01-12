@@ -160,29 +160,13 @@ export const NotificationBell = () => {
       }
 
       if (accept) {
-        // Accept the friend request
+        // Accept the friend request - notification is handled by database trigger
         const { error } = await supabase
           .from("friendships")
           .update({ status: "accepted" })
           .eq("id", friendship.id);
 
         if (error) throw error;
-
-        // Get current user's username for notification
-        const { data: profile } = await supabase
-          .from("profiles")
-          .select("username")
-          .eq("user_id", user.id)
-          .maybeSingle();
-
-        // Notify the requester
-        await createNotification({
-          userId: requesterId,
-          type: NotificationTypes.FRIEND_ACCEPTED,
-          title: "Friend Request Accepted",
-          message: `${profile?.username || "Someone"} accepted your friend request`,
-          data: { friendId: user.id },
-        });
 
         toast.success("Friend request accepted!");
       } else {
