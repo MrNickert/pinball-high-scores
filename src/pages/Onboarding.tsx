@@ -31,6 +31,7 @@ const Onboarding = () => {
   const [saving, setSaving] = useState(false);
   const [uploading, setUploading] = useState(false);
   const [checkingProfile, setCheckingProfile] = useState(true);
+  const [checkingUsername, setCheckingUsername] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Form data
@@ -124,13 +125,35 @@ const Onboarding = () => {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     if (step === 1) {
-      // Validate username
+      // Validate username format
       const parsed = usernameSchema.safeParse(username);
       if (!parsed.success) {
         toast.error(parsed.error.issues[0]?.message || "Invalid username");
         return;
+      }
+
+      // Check if username is already taken
+      setCheckingUsername(true);
+      try {
+        const { data: existingProfile } = await supabase
+          .from("profiles")
+          .select("id")
+          .eq("username", parsed.data)
+          .neq("user_id", user?.id || "")
+          .maybeSingle();
+
+        if (existingProfile) {
+          toast.error("This username is already taken. Please choose another.");
+          return;
+        }
+      } catch (error) {
+        console.error("Error checking username:", error);
+        toast.error("Failed to verify username availability");
+        return;
+      } finally {
+        setCheckingUsername(false);
       }
     }
     setStep((prev) => Math.min(prev + 1, totalSteps));
@@ -407,7 +430,8 @@ const Onboarding = () => {
             )}
 
             {step < totalSteps ? (
-              <Button variant="gradient" onClick={handleNext}>
+              <Button variant="gradient" onClick={handleNext} disabled={checkingUsername}>
+                {checkingUsername ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
                 Next
                 <ArrowRight size={16} className="ml-2" />
               </Button>
