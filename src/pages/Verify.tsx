@@ -9,6 +9,7 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useTranslation } from "react-i18next";
 import {
   Dialog,
   DialogContent,
@@ -46,6 +47,7 @@ const rejectionReasons = [
 const VOTES_REQUIRED = 2;
 
 const Verify = () => {
+  const { t } = useTranslation();
   const [communityScores, setCommunityScores] = useState<PendingScore[]>([]);
   const [myPendingScores, setMyPendingScores] = useState<PendingScore[]>([]);
   const [loading, setLoading] = useState(true);
@@ -553,10 +555,10 @@ const Verify = () => {
         >
           <div className="inline-flex items-center gap-3 mb-4">
             <Eye className="text-primary" size={28} />
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Verify Scores</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("verify.title")}</h1>
           </div>
           <p className="text-muted-foreground max-w-lg mx-auto">
-            Help the community by verifying scores that couldn't be automatically validated.
+            {t("verify.subtitle")}
           </p>
         </motion.div>
 
@@ -567,7 +569,7 @@ const Verify = () => {
             className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-6 max-w-4xl mx-auto text-center"
           >
             <p className="text-amber-600 dark:text-amber-400">
-              <Link to="/auth" className="font-semibold underline">Sign in</Link> to vote on scores
+              <Link to="/auth" className="font-semibold underline">{t("auth.signIn")}</Link> {t("verify.signInToVote")}
             </p>
           </motion.div>
         )}
@@ -583,7 +585,7 @@ const Verify = () => {
             <TabsList className="w-full mb-6">
               <TabsTrigger value="community" className="flex-1 gap-2">
                 <Eye size={16} />
-                Community Reviews
+                {t("verify.communityReviews")}
                 {communityScores.length > 0 && (
                   <span className="ml-1 px-2 py-0.5 bg-primary text-primary-foreground text-xs rounded-full">
                     {communityScores.length}
@@ -592,7 +594,7 @@ const Verify = () => {
               </TabsTrigger>
               <TabsTrigger value="pending" className="flex-1 gap-2">
                 <Clock size={16} />
-                My Pending
+                {t("verify.myPending")}
                 {myPendingScores.length > 0 && (
                   <span className="ml-1 px-2 py-0.5 bg-muted text-muted-foreground text-xs rounded-full">
                     {myPendingScores.length}
@@ -611,8 +613,8 @@ const Verify = () => {
                   <div className="w-20 h-20 rounded-full bg-emerald-500/10 flex items-center justify-center mx-auto mb-4">
                     <span className="text-4xl">✅</span>
                   </div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">All caught up!</h2>
-                  <p className="text-muted-foreground">No scores pending your review</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">{t("verify.allCaughtUp")}</h2>
+                  <p className="text-muted-foreground">{t("verify.noScoresPending")}</p>
                 </motion.div>
               ) : (
                 <div className="grid gap-4">
@@ -635,7 +637,7 @@ const Verify = () => {
                   animate={{ opacity: 1 }}
                   className="text-center py-20"
                 >
-                  <p className="text-muted-foreground">Sign in to see your pending scores</p>
+                  <p className="text-muted-foreground">{t("verify.signInToSee")}</p>
                 </motion.div>
               ) : myPendingScores.length === 0 ? (
                 <motion.div
@@ -646,10 +648,10 @@ const Verify = () => {
                   <div className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-4">
                     <CheckCircle className="text-primary" size={40} />
                   </div>
-                  <h2 className="text-xl font-semibold text-foreground mb-2">No pending scores</h2>
-                  <p className="text-muted-foreground mb-4">All your scores have been verified</p>
+                  <h2 className="text-xl font-semibold text-foreground mb-2">{t("verify.noPendingScores")}</h2>
+                  <p className="text-muted-foreground mb-4">{t("verify.allVerified")}</p>
                   <Link to="/capture">
-                    <Button>Submit a Score</Button>
+                    <Button>{t("verify.submitScore")}</Button>
                   </Link>
                 </motion.div>
               ) : (

@@ -310,10 +310,10 @@ const Settings = () => {
           >
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
               <SettingsIcon className="text-primary" />
-              Settings
+              {t("settings.title")}
             </h1>
             <p className="text-muted-foreground">
-              Manage your account preferences
+              {t("settings.managePreferences")}
             </p>
           </motion.div>
 
@@ -326,12 +326,12 @@ const Settings = () => {
           >
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
               <User size={18} className="text-primary" />
-              Profile
+              {t("settings.profile")}
             </h2>
             <div className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
                 <div className="space-y-2">
-                  <Label htmlFor="firstName" className="text-foreground">First Name</Label>
+                  <Label htmlFor="firstName" className="text-foreground">{t("settings.firstName")}</Label>
                   <Input
                     id="firstName"
                     value={firstName}
@@ -341,7 +341,7 @@ const Settings = () => {
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="lastName" className="text-foreground">Last Name</Label>
+                  <Label htmlFor="lastName" className="text-foreground">{t("settings.lastName")}</Label>
                   <Input
                     id="lastName"
                     value={lastName}
@@ -352,8 +352,8 @@ const Settings = () => {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="username" className="text-foreground">Username</Label>
-                <p className="text-xs text-muted-foreground">Visible to other players</p>
+                <Label htmlFor="username" className="text-foreground">{t("settings.username")}</Label>
+                <p className="text-xs text-muted-foreground">{t("settings.usernameVisible")}</p>
                 <Input
                   id="username"
                   value={username}
@@ -363,7 +363,7 @@ const Settings = () => {
                 />
               </div>
               <div className="space-y-2">
-                <Label className="text-foreground">Avatar</Label>
+                <Label className="text-foreground">{t("settings.avatar")}</Label>
                 <div className="flex items-center gap-4">
                   <div className="w-16 h-16 rounded-full bg-gradient-to-br from-primary to-secondary flex items-center justify-center overflow-hidden">
                     {avatarUrl ? (
@@ -392,15 +392,15 @@ const Settings = () => {
                       ) : (
                         <Upload size={16} className="mr-2" />
                       )}
-                      {uploading ? "Uploading..." : "Upload Photo"}
+                      {uploading ? t("onboarding.uploading") : t("onboarding.uploadPhoto")}
                     </Button>
-                    <p className="text-xs text-muted-foreground mt-1">Max 2MB, JPG/PNG</p>
+                    <p className="text-xs text-muted-foreground mt-1">{t("settings.maxFileSize")}</p>
                   </div>
                 </div>
               </div>
               <Button variant="gradient" onClick={handleSaveProfile} disabled={saving}>
                 {saving ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                Save Profile
+                {t("settings.saveProfile")}
               </Button>
             </div>
           </motion.div>
@@ -414,13 +414,13 @@ const Settings = () => {
           >
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
               <Bell size={18} className="text-secondary" />
-              Notifications
+              {t("settings.notifications")}
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="score-notifications" className="text-foreground">Score Updates</Label>
-                  <p className="text-sm text-muted-foreground">Get notified when your scores are verified</p>
+                  <Label htmlFor="score-notifications" className="text-foreground">{t("settings.scoreUpdates")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.scoreUpdatesDesc")}</p>
                 </div>
                 <Switch 
                   id="score-notifications" 
@@ -431,8 +431,8 @@ const Settings = () => {
               <Separator />
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="friend-notifications" className="text-foreground">Friend Activity</Label>
-                  <p className="text-sm text-muted-foreground">Get notified about friend requests</p>
+                  <Label htmlFor="friend-notifications" className="text-foreground">{t("settings.friendActivity")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.friendActivityDesc")}</p>
                 </div>
                 <Switch 
                   id="friend-notifications" 
@@ -452,13 +452,13 @@ const Settings = () => {
           >
             <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
               <Shield size={18} className="text-primary" />
-              Privacy
+              {t("settings.privacy")}
             </h2>
             <div className="space-y-4">
               <div className="flex items-center justify-between">
                 <div>
-                  <Label htmlFor="public-profile" className="text-foreground">Public Profile</Label>
-                  <p className="text-sm text-muted-foreground">Allow others to see your profile and scores</p>
+                  <Label htmlFor="public-profile" className="text-foreground">{t("settings.publicProfile")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.publicProfileDesc")}</p>
                 </div>
                 <Switch 
                   id="public-profile" 
@@ -530,33 +530,32 @@ const Settings = () => {
           >
             <h2 className="font-semibold text-destructive flex items-center gap-2 mb-4">
               <Trash2 size={18} />
-              Danger Zone
+              {t("settings.dangerZone")}
             </h2>
             <p className="text-sm text-muted-foreground mb-4">
-              Once you delete your account, there is no going back. Please be certain.
+              {t("settings.deleteWarning")}
             </p>
             <AlertDialog>
               <AlertDialogTrigger asChild>
                 <Button variant="destructive" size="sm" disabled={deleting}>
                   {deleting ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                  Delete Account
+                  {t("settings.deleteAccount")}
                 </Button>
               </AlertDialogTrigger>
               <AlertDialogContent>
                 <AlertDialogHeader>
-                  <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                  <AlertDialogTitle>{t("settings.deleteConfirmTitle")}</AlertDialogTitle>
                   <AlertDialogDescription>
-                    This action cannot be undone. This will permanently delete your account
-                    and remove all your data including scores, friends, and profile information.
+                    {t("settings.deleteConfirmDesc")}
                   </AlertDialogDescription>
                 </AlertDialogHeader>
                 <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                  <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
                   <AlertDialogAction
                     onClick={handleDeleteAccount}
                     className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
                   >
-                    Yes, delete my account
+                    {t("settings.yesDelete")}
                   </AlertDialogAction>
                 </AlertDialogFooter>
               </AlertDialogContent>

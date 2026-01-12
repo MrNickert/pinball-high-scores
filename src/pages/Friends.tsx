@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
+import { useTranslation } from "react-i18next";
 
 interface Profile {
   id: string;
@@ -36,6 +37,7 @@ interface SuggestedUser {
 }
 
 const Friends = () => {
+  const { t } = useTranslation();
   const { user } = useAuth();
   const [friends, setFriends] = useState<Friendship[]>([]);
   const [pendingReceived, setPendingReceived] = useState<Friendship[]>([]);
@@ -167,7 +169,7 @@ const Friends = () => {
 
     const q = searchQuery.trim();
     if (q.length < 2) {
-      toast.error("Search needs at least 2 characters");
+      toast.error(t("friends.searchMinChars"));
       return;
     }
 
@@ -180,7 +182,7 @@ const Friends = () => {
       if (error) {
         // Edge functions surface HTTP errors here
         if ((error as any)?.context?.status === 429) {
-          toast.error("Too many searches. Please wait a moment and try again.");
+          toast.error(t("friends.tooManySearches"));
           return;
         }
         throw error;
@@ -189,7 +191,7 @@ const Friends = () => {
       setSearchResults(((data as any)?.profiles as Profile[]) || []);
     } catch (error) {
       console.error("Error searching users:", error);
-      toast.error("Failed to search users");
+      toast.error(t("friends.failedToSearch"));
     } finally {
       setSearching(false);
     }
@@ -296,10 +298,10 @@ const Friends = () => {
           >
             <h1 className="text-2xl md:text-3xl font-bold text-foreground mb-2 flex items-center gap-3">
               <Users className="text-primary" />
-              Friends
+              {t("friends.title")}
             </h1>
             <p className="text-muted-foreground">
-              Connect with other players and see their activity
+              {t("friends.subtitle")}
             </p>
           </motion.div>
 
@@ -312,7 +314,7 @@ const Friends = () => {
           >
             <div className="flex gap-2">
               <Input
-                placeholder="Search by username..."
+                placeholder={t("friends.searchPlaceholder")}
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && handleSearch()}
@@ -363,26 +365,26 @@ const Friends = () => {
             <Tabs defaultValue="friends">
               <TabsList className="w-full mb-4 grid grid-cols-4">
                 <TabsTrigger value="friends">
-                  Friends ({friends.length})
+                  {t("friends.title")} ({friends.length})
                 </TabsTrigger>
                 <TabsTrigger value="nearby">
                   <MapPin size={14} className="mr-1" />
-                  Nearby
+                  {t("friends.nearby")}
                 </TabsTrigger>
                 <TabsTrigger value="requests">
-                  Requests ({pendingReceived.length})
+                  {t("friends.requests")} ({pendingReceived.length})
                 </TabsTrigger>
                 <TabsTrigger value="sent">
-                  Sent ({pendingSent.length})
+                  {t("friends.sent")} ({pendingSent.length})
                 </TabsTrigger>
               </TabsList>
 
               <TabsContent value="friends">
                 {loading ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading...</div>
+                  <div className="text-center py-8 text-muted-foreground">{t("common.loading")}</div>
                 ) : friends.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No friends yet. Search for users to connect!
+                    {t("friends.noFriendsYet")}
                   </div>
                 ) : (
                   <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -412,12 +414,12 @@ const Friends = () => {
 
               <TabsContent value="nearby">
                 {loadingSuggestions ? (
-                  <div className="text-center py-8 text-muted-foreground">Loading nearby players...</div>
+                  <div className="text-center py-8 text-muted-foreground">{t("friends.loadingNearby")}</div>
                 ) : suggestedUsers.filter(u => !isAlreadyFriendOrPending(u.user_id)).length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
                     <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
-                    <p className="mb-2">No players found at your venues yet</p>
-                    <p className="text-sm">Play at more locations to discover other players!</p>
+                    <p className="mb-2">{t("friends.noPlayersNearby")}</p>
+                    <p className="text-sm">{t("friends.playMoreLocations")}</p>
                   </div>
                 ) : (
                   <div className="bg-card rounded-xl border border-border overflow-hidden">

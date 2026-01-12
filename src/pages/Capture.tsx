@@ -7,6 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { useNavigate, Link } from "react-router-dom";
 import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
@@ -15,6 +17,7 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
+  DialogDescription,
 } from "@/components/ui/dialog";
 interface PinballLocation {
   id: number;
@@ -50,6 +53,8 @@ interface AllMachine {
 }
 
 const Capture = () => {
+  const { t } = useTranslation();
+  const { useMetric } = useLanguage();
   const [step, setStep] = useState(1);
   const [selectedLocation, setSelectedLocation] = useState<PinballLocation | null>(null);
   const [selectedMachine, setSelectedMachine] = useState("");
@@ -417,6 +422,10 @@ const Capture = () => {
 
   const formatDistance = (distance?: number): string => {
     if (!distance) return "";
+    if (useMetric) {
+      const km = distance * 1.60934;
+      return km < 1 ? `${(km * 1000).toFixed(0)} m` : `${km.toFixed(1)} km`;
+    }
     return distance < 1 ? `${(distance * 5280).toFixed(0)} ft` : `${distance.toFixed(1)} mi`;
   };
 
@@ -667,10 +676,10 @@ const Capture = () => {
         >
           <div className="inline-flex items-center gap-3 mb-4">
             <Camera className="text-primary" size={28} />
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Capture Score</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("capture.title")}</h1>
           </div>
           <p className="text-muted-foreground">
-            Upload your high score photo to join the leaderboard
+            {t("capture.subtitle")}
           </p>
         </motion.div>
 
