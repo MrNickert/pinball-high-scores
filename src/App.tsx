@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { LanguageProvider } from "@/contexts/LanguageContext";
 import { useValidationNotifications } from "@/hooks/useValidationNotifications";
 import { RequireAuth } from "@/components/RequireAuth";
 import Index from "./pages/Index";
@@ -27,27 +28,29 @@ const NotificationListener = () => {
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <AuthProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <NotificationListener />
-        <BrowserRouter>
-          <Routes>
-            <Route path="/" element={<Index />} />
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
-            <Route path="/leaderboard" element={<Leaderboard />} />
-            <Route path="/capture" element={<Capture />} />
-            <Route path="/profile" element={<Profile />} />
-            <Route path="/profile/:userId" element={<Profile />} />
-            <Route path="/verify" element={<RequireAuth><Verify /></RequireAuth>} />
-            <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
-            <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
-            {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
+      <LanguageProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <NotificationListener />
+          <BrowserRouter>
+            <Routes>
+              <Route path="/" element={<Index />} />
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
+              <Route path="/leaderboard" element={<Leaderboard />} />
+              <Route path="/capture" element={<Capture />} />
+              <Route path="/profile" element={<Profile />} />
+              <Route path="/profile/:userId" element={<Profile />} />
+              <Route path="/verify" element={<RequireAuth><Verify /></RequireAuth>} />
+              <Route path="/friends" element={<RequireAuth><Friends /></RequireAuth>} />
+              <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
+              {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </LanguageProvider>
     </AuthProvider>
   </QueryClientProvider>
 );

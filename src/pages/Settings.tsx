@@ -1,8 +1,10 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload, Globe } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
@@ -23,6 +25,13 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const usernameSchema = z
   .string()
@@ -33,6 +42,8 @@ const usernameSchema = z
 
 const Settings = () => {
   const { user, loading, signOut } = useAuth();
+  const { language, setLanguage, useMetric, setUseMetric } = useLanguage();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
@@ -454,6 +465,58 @@ const Settings = () => {
                   checked={isPublic}
                   onCheckedChange={handleTogglePublic}
                 />
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Preferences Section */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-card rounded-2xl border border-border p-6 mb-6"
+          >
+            <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+              <Globe size={18} className="text-primary" />
+              {t("settings.preferences")}
+            </h2>
+            <div className="space-y-4">
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-foreground">{t("settings.language")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.languageDesc")}</p>
+                </div>
+                <Select
+                  value={language}
+                  onValueChange={(value: "en" | "nl") => setLanguage(value)}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="en">{t("onboarding.english")}</SelectItem>
+                    <SelectItem value="nl">{t("onboarding.dutch")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Separator />
+              <div className="flex items-center justify-between">
+                <div>
+                  <Label className="text-foreground">{t("settings.units")}</Label>
+                  <p className="text-sm text-muted-foreground">{t("settings.unitsDesc")}</p>
+                </div>
+                <Select
+                  value={useMetric ? "metric" : "imperial"}
+                  onValueChange={(value) => setUseMetric(value === "metric")}
+                >
+                  <SelectTrigger className="w-[140px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="metric">{t("settings.metric")}</SelectItem>
+                    <SelectItem value="imperial">{t("settings.imperial")}</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </motion.div>

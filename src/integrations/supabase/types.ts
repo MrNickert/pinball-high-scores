@@ -81,6 +81,7 @@ export type Database = {
           first_name: string | null
           id: string
           is_public: boolean
+          language: string
           last_location_id: number | null
           last_location_lat: number | null
           last_location_lon: number | null
@@ -91,6 +92,7 @@ export type Database = {
           notify_score_updates: boolean
           onboarding_completed: boolean
           updated_at: string
+          use_metric: boolean
           user_id: string
           username: string
         }
@@ -100,6 +102,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           is_public?: boolean
+          language?: string
           last_location_id?: number | null
           last_location_lat?: number | null
           last_location_lon?: number | null
@@ -110,6 +113,7 @@ export type Database = {
           notify_score_updates?: boolean
           onboarding_completed?: boolean
           updated_at?: string
+          use_metric?: boolean
           user_id: string
           username: string
         }
@@ -119,6 +123,7 @@ export type Database = {
           first_name?: string | null
           id?: string
           is_public?: boolean
+          language?: string
           last_location_id?: number | null
           last_location_lat?: number | null
           last_location_lon?: number | null
@@ -129,6 +134,7 @@ export type Database = {
           notify_score_updates?: boolean
           onboarding_completed?: boolean
           updated_at?: string
+          use_metric?: boolean
           user_id?: string
           username?: string
         }
