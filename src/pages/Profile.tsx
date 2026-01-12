@@ -237,8 +237,8 @@ const Profile = () => {
                   {t("profile.editProfile")}
                 </Button>
               </Link>
+            )}
           </div>
-        </motion.div>
         </motion.div>
 
         {/* Stats Grid */}
