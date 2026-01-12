@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge, ValidationIndicator } from "@/components/ValidationBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useTranslation } from "react-i18next";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -45,6 +46,7 @@ const getInitials = (username: string) => {
 };
 
 const Leaderboard = () => {
+  const { t } = useTranslation();
   const [searchParams] = useSearchParams();
   const machineFromUrl = searchParams.get("machine");
 
@@ -191,9 +193,9 @@ const Leaderboard = () => {
         <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="text-center mb-8">
           <div className="inline-flex items-center gap-3 mb-4">
             <Trophy className="text-primary" size={28} />
-            <h1 className="text-2xl md:text-3xl font-bold text-foreground">Leaderboard</h1>
+            <h1 className="text-2xl md:text-3xl font-bold text-foreground">{t("leaderboard.title")}</h1>
           </div>
-          <p className="text-muted-foreground">Select a machine to view high scores</p>
+          <p className="text-muted-foreground">{t("leaderboard.selectMachine")}</p>
         </motion.div>
 
         {/* Machine Selector */}
@@ -205,7 +207,7 @@ const Leaderboard = () => {
         >
           <Select value={selectedMachine} onValueChange={setSelectedMachine}>
             <SelectTrigger className="w-full h-12 text-base">
-              <SelectValue placeholder="Select a pinball machine" />
+              <SelectValue placeholder={t("leaderboard.selectPlaceholder")} />
             </SelectTrigger>
             <SelectContent>
               {machines.map((machine) => (
@@ -228,7 +230,7 @@ const Leaderboard = () => {
             <div className="relative flex-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
-                placeholder="Search player or location..."
+                placeholder={t("leaderboard.searchPlaceholder")}
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
                 className="pl-10"
@@ -238,7 +240,7 @@ const Leaderboard = () => {
               <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="gap-2">
                   <Filter size={16} />
-                  Validation
+                  {t("common.validation")}
                   {activeFilterCount > 0 && (
                     <span className="ml-1 px-1.5 py-0.5 text-xs bg-primary/20 text-primary rounded-full">
                       {activeFilterCount}
@@ -248,10 +250,10 @@ const Leaderboard = () => {
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuCheckboxItem checked={showAccepted} onCheckedChange={setShowAccepted}>
-                  ✅ Accepted
+                  ✅ {t("leaderboard.accepted")}
                 </DropdownMenuCheckboxItem>
                 <DropdownMenuCheckboxItem checked={showPending} onCheckedChange={setShowPending}>
-                  👀 Pending Review
+                  👀 {t("leaderboard.pending")}
                 </DropdownMenuCheckboxItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -261,8 +263,8 @@ const Leaderboard = () => {
         {machines.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
             <Trophy className="mx-auto mb-4 text-muted-foreground" size={64} />
-            <h2 className="text-xl font-semibold text-foreground mb-2">No scores yet</h2>
-            <p className="text-muted-foreground">Be the first to submit a score!</p>
+            <h2 className="text-xl font-semibold text-foreground mb-2">{t("leaderboard.noScoresYet")}</h2>
+            <p className="text-muted-foreground">{t("leaderboard.beFirst")}</p>
           </motion.div>
         ) : loadingScores ? (
           <div className="flex items-center justify-center py-20">
@@ -271,8 +273,8 @@ const Leaderboard = () => {
         ) : filteredScores.length === 0 ? (
           <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-center py-20">
             <Eye className="mx-auto mb-4 text-muted-foreground" size={48} />
-            <h2 className="text-lg font-semibold text-foreground mb-2">No verified scores</h2>
-            <p className="text-muted-foreground mb-4">Adjust filters to see more scores</p>
+            <h2 className="text-lg font-semibold text-foreground mb-2">{t("leaderboard.noVerifiedScores")}</h2>
+            <p className="text-muted-foreground mb-4">{t("leaderboard.adjustFilters")}</p>
             <Button
               variant="outline"
               onClick={() => {
@@ -281,7 +283,7 @@ const Leaderboard = () => {
                 setShowDeclined(true);
               }}
             >
-              Show All Scores
+              {t("leaderboard.showAllScores")}
             </Button>
           </motion.div>
         ) : (
@@ -326,7 +328,7 @@ const Leaderboard = () => {
                         <ValidationIndicator status={entry.validation_status} />
                       </div>
                       <p className="text-xs text-muted-foreground mt-1 truncate">
-                        {entry.location_name || "Unknown location"}
+                        {entry.location_name || t("leaderboard.unknownLocation")}
                       </p>
                     </motion.div>
                   );
@@ -342,7 +344,7 @@ const Leaderboard = () => {
               className="bg-card rounded-2xl overflow-hidden border border-border shadow-sm max-w-4xl mx-auto"
             >
               <div className="p-4 border-b border-border">
-                <h2 className="font-semibold text-foreground">{selectedMachine} Rankings</h2>
+                <h2 className="font-semibold text-foreground">{selectedMachine} {t("leaderboard.rankings")}</h2>
               </div>
               <div className="divide-y divide-border">
                 {filteredScores.map((entry, index) => (
@@ -366,7 +368,7 @@ const Leaderboard = () => {
                     <div className="flex-1 min-w-0">
                       <Link to={`/profile/${entry.user_id}`} className="font-medium text-foreground truncate hover:text-primary transition-colors">{entry.username}</Link>
                       <p className="text-sm text-muted-foreground truncate">
-                        {entry.location_name || "Unknown location"}
+                        {entry.location_name || t("leaderboard.unknownLocation")}
                       </p>
                     </div>
                     <div className="flex items-center gap-2">
