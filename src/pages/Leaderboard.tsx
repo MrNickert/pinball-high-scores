@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Crown, Search, Loader2, ChevronDown, Filter, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -21,6 +21,7 @@ interface LeaderboardEntry {
   machine_name: string;
   location_name: string | null;
   created_at: string;
+  user_id: string;
   username: string;
   avatar_url: string | null;
   validation_status: "accepted" | "pending" | "declined" | null;
@@ -133,6 +134,7 @@ const Leaderboard = () => {
             machine_name: score.machine_name,
             location_name: score.location_name,
             created_at: score.created_at,
+            user_id: score.user_id,
             username: profile?.username || "Anonymous",
             avatar_url: profile?.avatar_url || null,
             validation_status: score.validation_status as LeaderboardEntry["validation_status"],
@@ -318,7 +320,7 @@ const Leaderboard = () => {
                       <div className="flex justify-center mb-2">
                         {getRankDisplay(orderIndex === 0 ? 1 : orderIndex === 1 ? 2 : 3)}
                       </div>
-                      <p className="font-semibold text-foreground truncate">{entry.username}</p>
+                      <Link to={`/profile/${entry.user_id}`} className="font-semibold text-foreground truncate hover:text-primary transition-colors">{entry.username}</Link>
                       <div className="flex items-center justify-center gap-1 mt-1">
                         <p className="text-lg font-bold text-primary">{entry.score.toLocaleString()}</p>
                         <ValidationIndicator status={entry.validation_status} />
@@ -362,7 +364,7 @@ const Leaderboard = () => {
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="font-medium text-foreground truncate">{entry.username}</p>
+                      <Link to={`/profile/${entry.user_id}`} className="font-medium text-foreground truncate hover:text-primary transition-colors">{entry.username}</Link>
                       <p className="text-sm text-muted-foreground truncate">
                         {entry.location_name || "Unknown location"}
                       </p>
