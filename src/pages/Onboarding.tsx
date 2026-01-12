@@ -134,17 +134,18 @@ const Onboarding = () => {
         return;
       }
 
-      // Check if username is already taken (use public_profiles view to bypass RLS)
+      // Check if username is already taken using secure database function
       setCheckingUsername(true);
       try {
-        const { data: existingProfile } = await supabase
-          .from("public_profiles")
-          .select("id")
-          .eq("username", parsed.data)
-          .neq("user_id", user?.id || "")
-          .maybeSingle();
+        const { data: isAvailable, error } = await supabase
+          .rpc("is_username_available", {
+            check_username: parsed.data,
+            exclude_user_id: user?.id || null,
+          });
 
-        if (existingProfile) {
+        if (error) throw error;
+
+        if (!isAvailable) {
           toast.error("This username is already taken. Please choose another.");
           return;
         }

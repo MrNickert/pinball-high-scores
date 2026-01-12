@@ -290,6 +290,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      is_username_available: {
+        Args: { check_username: string; exclude_user_id?: string }
+        Returns: boolean
+      }
     }
     Enums: {
       rejection_reason:
