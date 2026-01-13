@@ -223,20 +223,42 @@ const Capture = () => {
   const fetchMachinesForLocation = async (locationId: number) => {
     setIsLoadingMachines(true);
     try {
+      // Fetch from Pinball Map API
       const response = await fetch(
         `https://pinballmap.com/api/v1/locations/${locationId}/machine_details.json`
       );
       const data = await response.json();
       
+      let apiMachines: PinballMachine[] = [];
       if (data.machines && Array.isArray(data.machines)) {
-        setMachines(data.machines.map((m: any) => ({
+        apiMachines = data.machines.map((m: any) => ({
           id: m.id,
           name: m.name,
           manufacturer: m.manufacturer || "",
           year: m.year || 0,
-        })));
+        }));
+      }
+      
+      // Fetch locally-added machines from our database
+      const { data: localMachines, error } = await supabase
+        .from("local_machines")
+        .select("*")
+        .eq("location_id", locationId);
+      
+      if (!error && localMachines) {
+        // Merge local machines with API machines, avoiding duplicates
+        const localMachinesMapped: PinballMachine[] = localMachines
+          .filter(lm => !apiMachines.some(am => am.id === lm.machine_id))
+          .map(lm => ({
+            id: lm.machine_id,
+            name: lm.machine_name,
+            manufacturer: lm.manufacturer || "",
+            year: lm.year || 0,
+          }));
+        
+        setMachines([...apiMachines, ...localMachinesMapped]);
       } else {
-        setMachines([]);
+        setMachines(apiMachines);
       }
     } catch (error) {
       console.error("Error fetching machines:", error);
@@ -339,10 +361,11 @@ const Capture = () => {
   };
 
   const addMachineToLocation = async (machine: AllMachine) => {
-    if (!selectedLocation) return;
+    if (!selectedLocation || !user) return;
     
     setIsAddingMachine(true);
     try {
+      // Call Pinball Map API to add machine
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pinballmap-add-machine`,
         {
@@ -361,6 +384,17 @@ const Capture = () => {
       const data = await response.json();
       
       if (response.ok) {
+        // Save to local_machines table for immediate visibility
+        await supabase.from("local_machines").insert({
+          location_id: selectedLocation.id,
+          location_name: selectedLocation.name,
+          machine_id: machine.id,
+          machine_name: machine.name,
+          manufacturer: machine.manufacturer || null,
+          year: machine.year || null,
+          added_by: user.id,
+        });
+        
         // Add to local machines list
         setMachines(prev => [...prev, {
           id: machine.id,

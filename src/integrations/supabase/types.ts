@@ -41,6 +41,42 @@ export type Database = {
         }
         Relationships: []
       }
+      local_machines: {
+        Row: {
+          added_by: string
+          created_at: string
+          id: string
+          location_id: number
+          location_name: string
+          machine_id: number
+          machine_name: string
+          manufacturer: string | null
+          year: number | null
+        }
+        Insert: {
+          added_by: string
+          created_at?: string
+          id?: string
+          location_id: number
+          location_name: string
+          machine_id: number
+          machine_name: string
+          manufacturer?: string | null
+          year?: number | null
+        }
+        Update: {
+          added_by?: string
+          created_at?: string
+          id?: string
+          location_id?: number
+          location_name?: string
+          machine_id?: number
+          machine_name?: string
+          manufacturer?: string | null
+          year?: number | null
+        }
+        Relationships: []
+      }
       notifications: {
         Row: {
           created_at: string
