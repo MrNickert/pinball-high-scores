@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      auth_handoff_codes: {
+        Row: {
+          access_token: string
+          code: string
+          created_at: string
+          expires_at: string
+          id: string
+          refresh_token: string
+        }
+        Insert: {
+          access_token: string
+          code: string
+          created_at?: string
+          expires_at: string
+          id?: string
+          refresh_token: string
+        }
+        Update: {
+          access_token?: string
+          code?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          refresh_token?: string
+        }
+        Relationships: []
+      }
       friendships: {
         Row: {
           addressee_id: string
@@ -332,6 +359,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      cleanup_expired_handoff_codes: { Args: never; Returns: undefined }
       is_username_available: {
         Args: { check_username: string; exclude_user_id?: string }
         Returns: boolean
