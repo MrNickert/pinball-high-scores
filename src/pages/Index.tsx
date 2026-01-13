@@ -218,8 +218,7 @@ const Index = () => {
                         {latestScore.location_name}
                       </p>
                     )}
-                    <p className="text-muted-foreground text-sm mt-1">by @{latestScore.username}</p>
-                    <p className="text-muted-foreground/70 text-xs mt-1">
+                    <p className="text-muted-foreground/70 text-xs mt-2">
                       {formatDistanceToNow(new Date(latestScore.created_at), { addSuffix: true })}
                     </p>
                   </div>
