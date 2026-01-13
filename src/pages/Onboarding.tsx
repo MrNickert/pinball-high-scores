@@ -341,7 +341,7 @@ const Onboarding = () => {
               </motion.div>
             )}
 
-            {/* Step 2: Avatar & Username */}
+            {/* Step 2: Username & Avatar */}
             {step === 2 && (
               <motion.div
                 key="step2"
@@ -355,8 +355,33 @@ const Onboarding = () => {
                   <span className="font-medium text-foreground">{t("onboarding.yourIdentity")}</span>
                 </div>
 
-                {/* Avatar */}
-                <div className="flex flex-col items-center gap-4 mb-6">
+                {/* Username first */}
+                <div>
+                  <Label htmlFor="username" className="text-foreground">
+                    {t("onboarding.username")} <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-2">
+                    {t("onboarding.usernameVisible")}
+                  </p>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setUsernameError("");
+                    }}
+                    placeholder="pinball_wizard"
+                    maxLength={30}
+                    className={usernameError ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {usernameError && (
+                    <p className="text-sm text-destructive mt-2">{usernameError}</p>
+                  )}
+                </div>
+
+                {/* Avatar second */}
+                <div className="flex flex-col items-center gap-4 pt-4">
                   <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
                     <img 
                       src={avatarUrl || defaultAvatarUrl} 
@@ -388,31 +413,6 @@ const Onboarding = () => {
                     </Button>
                     <p className="text-xs text-muted-foreground mt-2">{t("onboarding.maxFileSize")}</p>
                   </div>
-                </div>
-
-                {/* Username */}
-                <div>
-                  <Label htmlFor="username" className="text-foreground">
-                    {t("onboarding.username")} <span className="text-destructive">*</span>
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1 mb-2">
-                    {t("onboarding.usernameVisible")}
-                  </p>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setUsernameError("");
-                    }}
-                    placeholder="pinball_wizard"
-                    maxLength={30}
-                    className={usernameError ? "border-destructive focus-visible:ring-destructive" : ""}
-                  />
-                  {usernameError && (
-                    <p className="text-sm text-destructive mt-2">{usernameError}</p>
-                  )}
                 </div>
               </motion.div>
             )}
