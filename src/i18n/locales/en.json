@@ -60,7 +60,9 @@
     "magicLinkSentDesc": "Click the link in your email to sign in",
     "magicLinkSentTo": "We sent a sign-in link to",
     "magicLinkFailed": "Failed to send magic link",
-    "tryDifferentEmail": "Try a different email"
+    "tryDifferentEmail": "Try a different email",
+    "resendMagicLink": "Resend magic link",
+    "resendIn": "Resend in {{seconds}}s"
   },
   "onboarding": {
     "setupProfile": "Set up your profile",
