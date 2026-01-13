@@ -161,6 +161,7 @@ export const NotificationBell = () => {
   const getNotificationIcon = (type: string) => {
     switch (type) {
       case "score_verified":
+      case "score_verified_ai":
       case "score_accepted":
         return "✅";
       case "score_rejected":

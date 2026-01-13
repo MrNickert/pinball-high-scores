@@ -369,6 +369,8 @@
     "score_pending_message": "Je score wacht op verificatie.",
     "score_verified_title": "Score geverifieerd! ✅",
     "score_verified_message": "Je score is geverifieerd door de community.",
+    "score_verified_ai_title": "Score geverifieerd door AI! ✅",
+    "score_verified_ai_message": "Je score is automatisch geverifieerd.",
     "score_rejected_title": "Score afgewezen",
     "score_rejected_message": "Je score is niet geverifieerd.",
     "friend_request_title": "Vriendschapsverzoek",

@@ -600,7 +600,7 @@ const Capture = () => {
       if (validationStatus === "accepted") {
         await createNotification({
           userId: user.id,
-          type: NotificationTypes.SCORE_VERIFIED,
+          type: NotificationTypes.SCORE_VERIFIED_AI,
           title: t("notificationCapture.scoreVerifiedByAiTitle"),
           message: t("notificationCapture.scoreVerifiedByAiMessage", { score: numericScore.toLocaleString(), machine: selectedMachine }),
           data: { machine: selectedMachine, score: numericScore },
