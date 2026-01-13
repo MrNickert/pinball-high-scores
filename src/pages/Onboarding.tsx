@@ -304,33 +304,25 @@ const Onboarding = () => {
                   <span className="font-medium text-foreground">{t("onboarding.chooseLanguage")}</span>
                 </div>
 
-                <p className="text-sm text-muted-foreground mb-4">
-                  {t("onboarding.languageDesc")}
-                </p>
-
-                <div className="grid gap-3">
+                <div className="flex justify-center gap-6 py-8">
                   {languages.map((lang) => (
                     <motion.button
                       key={lang.code}
                       onClick={() => setLanguage(lang.code as "en" | "nl")}
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
-                      className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
+                      whileHover={{ scale: 1.1 }}
+                      whileTap={{ scale: 0.95 }}
+                      className={`relative w-20 h-20 text-5xl rounded-2xl border-2 transition-all flex items-center justify-center ${
                         language === lang.code
-                          ? "border-primary bg-primary/5 shadow-md"
+                          ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/30"
                           : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
                       }`}
                     >
-                      <span className="text-4xl">{lang.flag}</span>
-                      <div className="text-left flex-1">
-                        <p className="font-semibold text-foreground">{lang.nativeName}</p>
-                        <p className="text-sm text-muted-foreground">{lang.name}</p>
-                      </div>
+                      {lang.flag}
                       {language === lang.code && (
                         <motion.div
                           initial={{ scale: 0 }}
                           animate={{ scale: 1 }}
-                          className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+                          className="absolute -bottom-2 -right-2 w-6 h-6 rounded-full bg-primary flex items-center justify-center shadow-md"
                         >
                           <Check size={14} className="text-primary-foreground" />
                         </motion.div>
