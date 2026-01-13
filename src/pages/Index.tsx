@@ -16,6 +16,7 @@ interface LatestScore {
   machine_name: string;
   username: string;
   created_at: string;
+  location_name: string | null;
 }
 
 const Index = () => {
@@ -55,7 +56,7 @@ const Index = () => {
       try {
         const { data: scores, error } = await supabase
           .from("scores")
-          .select("score, machine_name, user_id, created_at")
+          .select("score, machine_name, user_id, created_at, location_name")
           .order("created_at", { ascending: false })
           .limit(1);
 
@@ -76,6 +77,7 @@ const Index = () => {
             machine_name: recentScore.machine_name,
             username: profile?.username || "Anonymous",
             created_at: recentScore.created_at,
+            location_name: recentScore.location_name,
           });
         }
       } catch (error) {
@@ -187,15 +189,20 @@ const Index = () => {
             transition={{ delay: 0.3, duration: 0.6 }}
             className="mt-16 max-w-md mx-auto"
           >
-            <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
-              <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">{t("landing.latestScore")}</p>
-                {loadingLatestScore ? (
+            {loadingLatestScore ? (
+              <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">{t("landing.latestScore")}</p>
                   <div className="py-4">
                     <Loader2 className="animate-spin text-primary mx-auto" size={24} />
                   </div>
-                ) : latestScore ? (
-                  <>
+                </div>
+              </div>
+            ) : latestScore ? (
+              <Link to={`/leaderboard?machine=${encodeURIComponent(latestScore.machine_name)}`}>
+                <div className="bg-card rounded-2xl p-6 shadow-lg border border-border hover:border-primary/50 hover:shadow-xl transition-all cursor-pointer">
+                  <div className="text-center">
+                    <p className="text-sm text-muted-foreground mb-2">{t("landing.latestScore")}</p>
                     <motion.div
                       className="text-4xl font-bold text-foreground score-display"
                       initial={{ scale: 0.9 }}
@@ -205,19 +212,30 @@ const Index = () => {
                       {latestScore.score.toLocaleString()}
                     </motion.div>
                     <p className="text-primary mt-2 font-semibold">{latestScore.machine_name}</p>
-                    <p className="text-muted-foreground text-sm">by @{latestScore.username}</p>
+                    {latestScore.location_name && (
+                      <p className="text-muted-foreground text-xs flex items-center justify-center gap-1 mt-1">
+                        <MapPin size={12} />
+                        {latestScore.location_name}
+                      </p>
+                    )}
+                    <p className="text-muted-foreground text-sm mt-1">by @{latestScore.username}</p>
                     <p className="text-muted-foreground/70 text-xs mt-1">
                       {formatDistanceToNow(new Date(latestScore.created_at), { addSuffix: true })}
                     </p>
-                  </>
-                ) : (
+                  </div>
+                </div>
+              </Link>
+            ) : (
+              <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground mb-2">{t("landing.latestScore")}</p>
                   <div className="py-2">
                     <p className="text-muted-foreground text-lg">{t("landing.noScoresYet")}</p>
                     <p className="text-sm text-muted-foreground mt-1">{t("landing.beTheFirst")}</p>
                   </div>
-                )}
+                </div>
               </div>
-            </div>
+            )}
           </motion.div>
         </div>
       </section>
