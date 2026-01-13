@@ -25,7 +25,19 @@ export const useLanguage = () => {
 export const LanguageProvider = ({ children }: { children: ReactNode }) => {
   const { i18n } = useTranslation();
   const { user } = useAuth();
-  const [language, setLanguageState] = useState<Language>((i18n.language as Language) || "en");
+  
+  // Get initial language from i18n (which uses browser detection) or localStorage
+  const getInitialLanguage = (): Language => {
+    const storedLang = localStorage.getItem("i18nextLng");
+    if (storedLang === "nl" || storedLang === "en") {
+      return storedLang;
+    }
+    const browserLang = i18n.language?.substring(0, 2);
+    if (browserLang === "nl") return "nl";
+    return "en";
+  };
+  
+  const [language, setLanguageState] = useState<Language>(getInitialLanguage());
   const [useMetric, setUseMetricState] = useState(true);
 
   // Load preferences from database when user is authenticated
@@ -34,14 +46,18 @@ export const LanguageProvider = ({ children }: { children: ReactNode }) => {
       if (user) {
         const { data: profile } = await supabase
           .from("profiles")
-          .select("language, use_metric")
+          .select("language, use_metric, onboarding_completed")
           .eq("user_id", user.id)
           .maybeSingle();
 
         if (profile) {
-          const lang = (profile.language as Language) || "en";
-          setLanguageState(lang);
-          i18n.changeLanguage(lang);
+          // Only use database language if user has completed onboarding
+          // Otherwise, keep the browser/localStorage detected language
+          if (profile.onboarding_completed) {
+            const lang = (profile.language as Language) || "en";
+            setLanguageState(lang);
+            i18n.changeLanguage(lang);
+          }
           setUseMetricState(profile.use_metric ?? true);
         }
       }
