@@ -62,7 +62,8 @@
     "magicLinkFailed": "Magic link verzenden mislukt",
     "tryDifferentEmail": "Probeer een ander e-mailadres",
     "resendMagicLink": "Magic link opnieuw verzenden",
-    "resendIn": "Opnieuw verzenden in {{seconds}}s"
+    "resendIn": "Opnieuw verzenden in {{seconds}}s",
+    "rememberDevice": "Dit apparaat onthouden"
   },
   "onboarding": {
     "setupProfile": "Stel je profiel in",

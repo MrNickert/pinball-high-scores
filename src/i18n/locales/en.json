@@ -62,7 +62,8 @@
     "magicLinkFailed": "Failed to send magic link",
     "tryDifferentEmail": "Try a different email",
     "resendMagicLink": "Resend magic link",
-    "resendIn": "Resend in {{seconds}}s"
+    "resendIn": "Resend in {{seconds}}s",
+    "rememberDevice": "Remember this device"
   },
   "onboarding": {
     "setupProfile": "Set up your profile",
