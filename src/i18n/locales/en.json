@@ -101,7 +101,10 @@
     "deleteConfirmTitle": "Are you absolutely sure?",
     "deleteConfirmDesc": "This action cannot be undone. This will permanently delete your account and remove all your data including scores, friends, and profile information.",
     "yesDelete": "Yes, delete my account",
-    "accountDeleted": "Your account has been deleted"
+    "accountDeleted": "Your account has been deleted",
+    "firstName": "Firstname",
+    "lastName": "Lastname",
+    "username": "Username",
   },
   "navbar": {
     "home": "Home",
@@ -136,8 +139,8 @@
   "dashboard": {
     "welcome": "Welcome back",
     "readyToCapture": "Ready to capture your next high score?",
-    "captureNewScore": "Capture New Score",
-    "totalScores": "Total Scores",
+    "captureNewScore": "Capture new score",
+    "totalScores": "Total scores",
     "verified": "Verified",
     "machinesPlayed": "Machines Played",
     "lastMachine": "Last Machine",
@@ -149,9 +152,10 @@
     "on": "on"
   },
   "capture": {
-    "title": "Capture Score",
+    "title": "Capture score",
     "distance": "Distance",
     "away": "away"
+    "subtitle": "Submit your score and climb the leaderboard",
   },
   "profile": {
     "scores": "Scores",
@@ -182,13 +186,17 @@
     "decline": "Decline"
   },
   "verify": {
-    "title": "Verify Scores",
+    "subtitle": "Help the community by confirming high scores",
+    "title": "Verify scores",
     "approve": "Approve",
     "reject": "Reject",
     "communityReviews": "Community reviews",
     "myPending": "My pending scores",
     "allCaughtUp": "All caught up!",
     "noScoresPending": "There are no scores pending verification."
+    "allVerified": "All caught up!",
+    "noPendingScores": "There are no scores pending verification.",
+    "submitScore": "Capture new score",
   },
   "errors": {
     "somethingWrong": "Something went wrong",
