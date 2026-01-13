@@ -194,7 +194,7 @@ export const NotificationBell = () => {
         .maybeSingle();
 
       if (findError || !friendship) {
-        toast.error("Friend request not found or already handled");
+        toast.error(t("toasts.friendRequestNotFound"));
         // Remove the notification anyway
         await supabase.from("notifications").delete().eq("id", notification.id);
         setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
@@ -210,7 +210,7 @@ export const NotificationBell = () => {
 
         if (error) throw error;
 
-        toast.success("Friend request accepted!");
+        toast.success(t("toasts.friendRequestAccepted"));
       } else {
         // Decline the friend request
         const { error } = await supabase
@@ -219,7 +219,7 @@ export const NotificationBell = () => {
           .eq("id", friendship.id);
 
         if (error) throw error;
-        toast.success("Friend request declined");
+        toast.success(t("toasts.friendRequestDeclined"));
       }
 
       // Remove the notification
@@ -228,7 +228,7 @@ export const NotificationBell = () => {
       setUnreadCount((prev) => Math.max(0, prev - (notification.read ? 0 : 1)));
     } catch (error) {
       console.error("Error handling friend request:", error);
-      toast.error("Failed to handle friend request");
+      toast.error(t("toasts.failedHandleFriendRequest"));
     }
   };
 

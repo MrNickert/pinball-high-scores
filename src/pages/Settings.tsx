@@ -130,13 +130,13 @@ const Settings = () => {
 
     // Validate file type
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
+      toast.error(t("toasts.pleaseUploadImage"));
       return;
     }
 
     // Validate file size (max 2MB)
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be less than 2MB");
+      toast.error(t("toasts.imageTooLarge"));
       return;
     }
 
@@ -172,10 +172,10 @@ const Settings = () => {
       if (updateError) throw updateError;
 
       setAvatarUrl(urlWithTimestamp);
-      toast.success("Avatar updated successfully!");
+      toast.success(t("toasts.avatarUpdated"));
     } catch (error) {
       console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload avatar");
+      toast.error(t("toasts.failedUploadAvatar"));
     } finally {
       setUploading(false);
     }
@@ -204,16 +204,16 @@ const Settings = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
-      toast.success("Profile updated successfully!");
+      toast.success(t("toasts.profileUpdated"));
     } catch (error: any) {
       console.error("Error updating profile:", error);
 
       if (error?.code === "23505") {
-        toast.error("This username is already taken. Please choose another.");
+        toast.error(t("toasts.usernameTaken"));
       } else if (error?.code === "23514") {
-        toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
+        toast.error(t("toasts.usernameInvalid"));
       } else {
-        toast.error("Failed to update profile");
+        toast.error(t("toasts.failedUpdateProfile"));
       }
     } finally {
       setSaving(false);
@@ -234,11 +234,11 @@ const Settings = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
-      toast.success(checked ? "Profile is now public" : "Profile is now private");
+      toast.success(checked ? t("settings.profilePublic") : t("settings.profilePrivate"));
     } catch (error) {
       console.error("Error updating privacy:", error);
       setIsPublic(!checked); // Revert on error
-      toast.error("Failed to update privacy setting");
+      toast.error(t("toasts.failedUpdatePrivacy"));
     }
   };
 
@@ -256,11 +256,11 @@ const Settings = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
-      toast.success(checked ? "Score notifications enabled" : "Score notifications disabled");
+      toast.success(checked ? t("settings.scoreNotificationsEnabled") : t("settings.scoreNotificationsDisabled"));
     } catch (error) {
       console.error("Error updating notification setting:", error);
       setNotifyScoreUpdates(!checked);
-      toast.error("Failed to update notification setting");
+      toast.error(t("toasts.failedUpdateNotification"));
     }
   };
 
@@ -278,11 +278,11 @@ const Settings = () => {
         .eq("user_id", user.id);
 
       if (error) throw error;
-      toast.success(checked ? "Friend notifications enabled" : "Friend notifications disabled");
+      toast.success(checked ? t("settings.friendNotificationsEnabled") : t("settings.friendNotificationsDisabled"));
     } catch (error) {
       console.error("Error updating notification setting:", error);
       setNotifyFriendActivity(!checked);
-      toast.error("Failed to update notification setting");
+      toast.error(t("toasts.failedUpdateNotification"));
     }
   };
 
@@ -294,7 +294,7 @@ const Settings = () => {
       const { data: { session } } = await supabase.auth.getSession();
       
       if (!session) {
-        toast.error("Please sign in again to delete your account");
+        toast.error(t("toasts.signInToDelete"));
         return;
       }
 
@@ -310,7 +310,7 @@ const Settings = () => {
 
       // Sign out and redirect
       await signOut();
-      toast.success("Your account has been deleted");
+      toast.success(t("toasts.accountDeleted"));
       navigate("/");
     } catch (error: any) {
       console.error("Error deleting account:", error);
