@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
 import confetti from "canvas-confetti";
+import { AdBanner } from "@/components/AdBanner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -415,44 +416,48 @@ const Leaderboard = () => {
               <div className="divide-y divide-border">
                 {filteredScores.map((entry, index) => {
                   const isHighlighted = entry.id === highlightedScoreId;
+                  const showAd = (index + 1) % 15 === 0 && index < filteredScores.length - 1;
                   return (
-                  <motion.div
-                    key={entry.id}
-                    initial={{ opacity: 0, x: -20 }}
-                    animate={{ 
-                      opacity: 1, 
-                      x: 0,
-                      backgroundColor: isHighlighted ? ["hsl(var(--primary) / 0.2)", "hsl(var(--primary) / 0.05)", "hsl(var(--primary) / 0.2)"] : undefined,
-                    }}
-                    transition={{ 
-                      delay: 0.05 * Math.min(index, 10),
-                      backgroundColor: isHighlighted ? { duration: 1.5, repeat: 3, ease: "easeInOut" } : undefined,
-                    }}
-                    className={`flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors ${
-                      isHighlighted ? "ring-2 ring-primary/50 ring-inset bg-primary/10" : ""
-                    }`}
-                  >
-                    <div className="w-10 h-10 flex justify-center">{getRankDisplay(index + 1)}</div>
-                    <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
-                      {entry.avatar_url ? (
-                        <img src={entry.avatar_url} alt={entry.username} className="w-full h-full object-cover" />
-                      ) : (
-                        <span className="text-sm font-semibold text-muted-foreground">
-                          {getInitials(entry.username)}
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <Link to={`/profile/${entry.user_id}`} className="font-medium text-foreground truncate hover:text-primary transition-colors">{entry.username}</Link>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {entry.location_name || t("leaderboard.unknownLocation")}
-                      </p>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <ValidationBadge status={entry.validation_status} size="sm" />
-                      <p className="font-bold text-primary">{entry.score.toLocaleString()}</p>
-                    </div>
-                  </motion.div>
+                    <>
+                      <motion.div
+                        key={entry.id}
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ 
+                          opacity: 1, 
+                          x: 0,
+                          backgroundColor: isHighlighted ? ["hsl(var(--primary) / 0.2)", "hsl(var(--primary) / 0.05)", "hsl(var(--primary) / 0.2)"] : undefined,
+                        }}
+                        transition={{ 
+                          delay: 0.05 * Math.min(index, 10),
+                          backgroundColor: isHighlighted ? { duration: 1.5, repeat: 3, ease: "easeInOut" } : undefined,
+                        }}
+                        className={`flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors ${
+                          isHighlighted ? "ring-2 ring-primary/50 ring-inset bg-primary/10" : ""
+                        }`}
+                      >
+                        <div className="w-10 h-10 flex justify-center">{getRankDisplay(index + 1)}</div>
+                        <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
+                          {entry.avatar_url ? (
+                            <img src={entry.avatar_url} alt={entry.username} className="w-full h-full object-cover" />
+                          ) : (
+                            <span className="text-sm font-semibold text-muted-foreground">
+                              {getInitials(entry.username)}
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <Link to={`/profile/${entry.user_id}`} className="font-medium text-foreground truncate hover:text-primary transition-colors">{entry.username}</Link>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {entry.location_name || t("leaderboard.unknownLocation")}
+                          </p>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <ValidationBadge status={entry.validation_status} size="sm" />
+                          <p className="font-bold text-primary">{entry.score.toLocaleString()}</p>
+                        </div>
+                      </motion.div>
+                      {showAd && <AdBanner key={`ad-${index}`} format="horizontal" className="mx-4" />}
+                    </>
                   );
                 })}
               </div>

@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, Fragment } from "react";
 import { motion } from "framer-motion";
 import { Link } from "react-router-dom";
 import { Users, UserPlus, Check, X, Search, UserMinus, MapPin } from "lucide-react";
@@ -12,6 +12,7 @@ import { toast } from "sonner";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
 import { useTranslation } from "react-i18next";
+import { AdBanner } from "@/components/AdBanner";
 
 interface Profile {
   id: string;
@@ -389,26 +390,29 @@ const Friends = () => {
                   </div>
                 ) : (
                   <div className="bg-card rounded-xl border border-border overflow-hidden">
-                    {friends.map((friendship) => (
-                      <div
-                        key={friendship.id}
-                        className="flex items-center justify-between p-4 border-b border-border last:border-b-0"
-                      >
-                        <Link to={`/profile/${friendship.profile?.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
-                          <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
-                            {friendship.profile?.avatar_url ? (
-                              <img src={friendship.profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
-                            ) : (
-                              "👤"
-                            )}
+                    {friends.map((friendship, index) => {
+                      const showAd = (index + 1) % 15 === 0 && index < friends.length - 1;
+                      return (
+                        <Fragment key={friendship.id}>
+                          <div className="flex items-center justify-between p-4 border-b border-border last:border-b-0">
+                            <Link to={`/profile/${friendship.profile?.user_id}`} className="flex items-center gap-3 hover:opacity-80 transition-opacity">
+                              <div className="w-10 h-10 rounded-full bg-primary/20 flex items-center justify-center text-lg">
+                                {friendship.profile?.avatar_url ? (
+                                  <img src={friendship.profile.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
+                                ) : (
+                                  "👤"
+                                )}
+                              </div>
+                              <span className="font-medium text-foreground hover:text-primary transition-colors">{friendship.profile?.username || "Unknown"}</span>
+                            </Link>
+                            <Button variant="ghost" size="sm" onClick={() => removeFriend(friendship.id)}>
+                              <UserMinus size={16} className="text-destructive" />
+                            </Button>
                           </div>
-                          <span className="font-medium text-foreground hover:text-primary transition-colors">{friendship.profile?.username || "Unknown"}</span>
-                        </Link>
-                        <Button variant="ghost" size="sm" onClick={() => removeFriend(friendship.id)}>
-                          <UserMinus size={16} className="text-destructive" />
-                        </Button>
-                      </div>
-                    ))}
+                          {showAd && <AdBanner format="horizontal" className="mx-4" />}
+                        </Fragment>
+                      );
+                    })}
                   </div>
                 )}
               </TabsContent>
