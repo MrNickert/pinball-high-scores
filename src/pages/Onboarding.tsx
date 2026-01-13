@@ -108,12 +108,12 @@ const Onboarding = () => {
     if (!file || !user) return;
 
     if (!file.type.startsWith("image/")) {
-      toast.error("Please upload an image file");
+      toast.error(t("toasts.pleaseUploadImage"));
       return;
     }
 
     if (file.size > 2 * 1024 * 1024) {
-      toast.error("Image must be less than 2MB");
+      toast.error(t("toasts.imageTooLarge"));
       return;
     }
 
@@ -134,10 +134,10 @@ const Onboarding = () => {
 
       const urlWithTimestamp = `${publicUrl}?t=${Date.now()}`;
       setAvatarUrl(urlWithTimestamp);
-      toast.success("Photo uploaded!");
+      toast.success(t("toasts.photoUploaded"));
     } catch (error) {
       console.error("Error uploading avatar:", error);
-      toast.error("Failed to upload photo");
+      toast.error(t("toasts.failedUploadPhoto"));
     } finally {
       setUploading(false);
     }
@@ -169,14 +169,14 @@ const Onboarding = () => {
         if (error) throw error;
 
         if (!isAvailable) {
-          const errorMsg = "This username is already taken. Please choose another.";
+          const errorMsg = t("toasts.usernameTaken");
           setUsernameError(errorMsg);
           toast.error(errorMsg);
           return;
         }
       } catch (error) {
         console.error("Error checking username:", error);
-        toast.error("Failed to verify username availability");
+        toast.error(t("toasts.failedVerifyUsername"));
         return;
       } finally {
         setCheckingUsername(false);
@@ -216,18 +216,18 @@ const Onboarding = () => {
 
       if (error) throw error;
 
-      toast.success("Profile set up successfully!");
+      toast.success(t("toasts.profileSetupSuccess"));
       navigate("/");
     } catch (error: any) {
       console.error("Error saving profile:", error);
       if (error?.code === "23505") {
-        toast.error("This username is already taken. Please choose another.");
+        toast.error(t("toasts.usernameTaken"));
         setStep(2);
       } else if (error?.code === "23514") {
-        toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
+        toast.error(t("toasts.usernameInvalid"));
         setStep(2);
       } else {
-        toast.error("Failed to save profile");
+        toast.error(t("toasts.failedSaveProfile"));
       }
     } finally {
       setSaving(false);

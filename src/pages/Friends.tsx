@@ -209,19 +209,19 @@ const Friends = () => {
 
       if (error) {
         if (error.code === "23505") {
-          toast.error("Friend request already exists");
+          toast.error(t("toasts.friendRequestExists"));
         } else {
           throw error;
         }
       } else {
         // Notification is now handled by database trigger
-        toast.success("Friend request sent!");
+        toast.success(t("toasts.friendRequestSent"));
         setSearchResults((prev) => prev.filter((p) => p.user_id !== addresseeId));
         fetchFriendships();
       }
     } catch (error) {
       console.error("Error sending friend request:", error);
-      toast.error("Failed to send friend request");
+      toast.error(t("toasts.failedSendRequest"));
     }
   };
 
@@ -237,19 +237,19 @@ const Friends = () => {
         if (error) throw error;
 
         // Notification is now handled by database trigger
-        toast.success("Friend request accepted!");
+        toast.success(t("toasts.friendRequestAccepted"));
       } else {
         const { error } = await supabase
           .from("friendships")
           .delete()
           .eq("id", friendshipId);
         if (error) throw error;
-        toast.success("Friend request declined");
+        toast.success(t("toasts.friendRequestDeclined"));
       }
       fetchFriendships();
     } catch (error) {
       console.error("Error responding to request:", error);
-      toast.error("Failed to respond to request");
+      toast.error(t("toasts.failedRespondRequest"));
     }
   };
 
@@ -260,11 +260,11 @@ const Friends = () => {
         .delete()
         .eq("id", friendshipId);
       if (error) throw error;
-      toast.success("Friend removed");
+      toast.success(t("toasts.friendRemoved"));
       fetchFriendships();
     } catch (error) {
       console.error("Error removing friend:", error);
-      toast.error("Failed to remove friend");
+      toast.error(t("toasts.failedRemoveFriend"));
     }
   };
 
