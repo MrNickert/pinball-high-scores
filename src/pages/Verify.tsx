@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Eye, Loader2, MapPin, Calendar, ExternalLink, ThumbsUp, ThumbsDown, CheckCircle, Clock } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge } from "@/components/ValidationBadge";
@@ -533,17 +534,17 @@ const Verify = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="animate-spin text-primary" size={32} />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout>
       <Navbar />
 
       <div className="container mx-auto px-4 pt-24 pb-24">
@@ -716,7 +717,7 @@ const Verify = () => {
       </Dialog>
 
       <div className="h-20 md:h-0" />
-    </div>
+    </PageLayout>
   );
 };
 

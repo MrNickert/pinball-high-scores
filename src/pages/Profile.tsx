@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { User, Trophy, Target, Calendar, Settings, Loader2, MapPin, CheckCircle } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -115,12 +116,12 @@ const Profile = () => {
 
   if (loading || loadingData) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="animate-spin text-primary" size={32} />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -154,7 +155,7 @@ const Profile = () => {
 
   if (!targetUserId || (!isOwnProfile && !profile)) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="container mx-auto px-4 pt-24 pb-24 flex items-center justify-center min-h-[80vh]">
           <motion.div
@@ -171,7 +172,7 @@ const Profile = () => {
             </p>
           </motion.div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
@@ -185,7 +186,7 @@ const Profile = () => {
   ];
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout>
       <Navbar />
 
       <div className="container mx-auto px-4 pt-24 pb-24 max-w-4xl">
@@ -318,7 +319,7 @@ const Profile = () => {
       </div>
 
       <div className="h-20 md:h-0" />
-    </div>
+    </PageLayout>
   );
 };
 

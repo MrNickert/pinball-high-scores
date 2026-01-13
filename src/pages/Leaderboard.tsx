@@ -3,6 +3,7 @@ import { useSearchParams, Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Crown, Search, Loader2, ChevronDown, Filter, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PageLayout } from "@/components/PageLayout";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
@@ -173,19 +174,19 @@ const Leaderboard = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="animate-spin text-primary" size={32} />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   const topThree = filteredScores.slice(0, 3);
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout>
       <Navbar />
 
       <div className="container mx-auto px-4 pt-24 pb-24">
@@ -384,7 +385,7 @@ const Leaderboard = () => {
       </div>
 
       <div className="h-20 md:h-0" />
-    </div>
+    </PageLayout>
   );
 };
 

@@ -5,6 +5,7 @@ import { Users, UserPlus, Check, X, Search, UserMinus, MapPin } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Navbar } from "@/components/Navbar";
+import { PageLayout } from "@/components/PageLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -277,17 +278,17 @@ const Friends = () => {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="pt-24 px-4 text-center">
           <p className="text-muted-foreground">{t("auth.signInToViewProfiles")}</p>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout>
       <Navbar />
       <div className="pt-24 pb-24 px-4">
         <div className="container mx-auto max-w-2xl">
@@ -525,7 +526,7 @@ const Friends = () => {
         </div>
       </div>
       <div className="h-20 md:h-0" />
-    </div>
+    </PageLayout>
   );
 };
 

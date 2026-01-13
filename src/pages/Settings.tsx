@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
 import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload, Globe, Lock, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PageLayout } from "@/components/PageLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "react-i18next";
@@ -316,7 +317,7 @@ const Settings = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout>
       <Navbar />
       <div className="pt-24 pb-24 px-4">
         <div className="container mx-auto max-w-2xl">
@@ -669,7 +670,7 @@ const Settings = () => {
         </div>
       </div>
       <div className="h-20 md:h-0" />
-    </div>
+    </PageLayout>
   );
 };
 

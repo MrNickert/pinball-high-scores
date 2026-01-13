@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Camera, MapPin, Upload, X, Search, Check, Loader2, Navigation, Plus } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
+import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -626,18 +627,18 @@ const Capture = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="flex items-center justify-center min-h-[80vh]">
           <Loader2 className="animate-spin text-primary" size={32} />
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-background">
+      <PageLayout>
         <Navbar />
         <div className="container mx-auto px-4 pt-24 pb-24 flex items-center justify-center min-h-[80vh]">
           <motion.div
@@ -659,12 +660,12 @@ const Capture = () => {
             </Link>
           </motion.div>
         </div>
-      </div>
+      </PageLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <PageLayout>
       <Navbar />
 
       <div className="container mx-auto px-4 pt-24 pb-24 max-w-2xl">
@@ -1141,7 +1142,7 @@ const Capture = () => {
           </p>
         </DialogContent>
       </Dialog>
-    </div>
+    </PageLayout>
   );
 };
 

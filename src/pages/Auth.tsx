@@ -5,6 +5,7 @@ import { Mail, Lock, ArrowLeft, Loader2, Circle, Eye, EyeOff } from "lucide-reac
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { PageLayout } from "@/components/PageLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
@@ -117,13 +118,8 @@ const Auth = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent rounded-full blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
+    <PageLayout className="flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
         <Link
           to="/"
           className="inline-flex items-center gap-2 text-muted-foreground hover:text-foreground transition-colors mb-8"
@@ -262,7 +258,7 @@ const Auth = () => {
           </div>
         </motion.div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
