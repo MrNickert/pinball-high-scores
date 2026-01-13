@@ -429,6 +429,7 @@ const Capture = () => {
 
   const openAddMachineModal = () => {
     setShowAddMachineModal(true);
+    setAddMachineSearch(machineSearchQuery); // Pre-fill with current search
     fetchAllMachines();
   };
 
@@ -771,6 +772,11 @@ const Capture = () => {
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" && searchQuery.trim()) {
+                    searchLocationsByCity(searchQuery);
+                  }
+                }}
               />
             </div>
 
