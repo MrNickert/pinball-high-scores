@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
-import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft, Loader2, Circle, Smartphone } from "lucide-react";
+import { Link, useNavigate, useSearchParams } from "react-router-dom";
+import { Mail, ArrowLeft, Loader2, Circle, Smartphone, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,8 +11,10 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
+import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 
 const Auth = () => {
+  const [searchParams] = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
@@ -21,10 +23,21 @@ const Auth = () => {
   const [rememberDevice, setRememberDevice] = useState(() => {
     return localStorage.getItem("rememberDevice") === "true";
   });
+  const [showCodeEntry, setShowCodeEntry] = useState(false);
+  const [handoffCode, setHandoffCode] = useState("");
+  const [isVerifyingCode, setIsVerifyingCode] = useState(false);
+  
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
+
+  // Check if we need to show code entry (PWA returning from Safari)
+  useEffect(() => {
+    if (searchParams.get("showCodeEntry") === "true") {
+      setShowCodeEntry(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const checkOnboardingStatus = async () => {
@@ -83,7 +96,7 @@ const Auth = () => {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
-          emailRedirectTo: window.location.origin,
+          emailRedirectTo: `${window.location.origin}/auth/callback`,
           shouldCreateUser: true,
         },
       });
@@ -107,6 +120,90 @@ const Auth = () => {
     }
   };
 
+  const handleCodeSubmit = async () => {
+    if (handoffCode.length !== 6) {
+      toast({
+        title: t("common.error"),
+        description: t("auth.enterFullCode", { defaultValue: "Please enter the full 6-character code" }),
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsVerifyingCode(true);
+    
+    try {
+      // Try to get the handoff data from localStorage
+      // Note: This won't work cross-browser, so we need a server-side solution
+      const handoffDataStr = localStorage.getItem(`pwa_handoff_${handoffCode.toUpperCase()}`);
+      
+      if (!handoffDataStr) {
+        // Try fetching from an edge function instead
+        const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/verify-handoff-code`, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+          },
+          body: JSON.stringify({ code: handoffCode.toUpperCase() }),
+        });
+
+        if (!response.ok) {
+          throw new Error(t("auth.invalidCode", { defaultValue: "Invalid or expired code. Please try again." }));
+        }
+
+        const { accessToken, refreshToken } = await response.json();
+        
+        const { error } = await supabase.auth.setSession({
+          access_token: accessToken,
+          refresh_token: refreshToken,
+        });
+
+        if (error) throw error;
+        
+        toast({
+          title: t("common.success"),
+          description: t("auth.signedIn", { defaultValue: "Successfully signed in!" }),
+        });
+        navigate("/");
+        return;
+      }
+
+      const handoffData = JSON.parse(handoffDataStr);
+      
+      // Check if expired
+      if (Date.now() > handoffData.expiresAt) {
+        localStorage.removeItem(`pwa_handoff_${handoffCode.toUpperCase()}`);
+        throw new Error(t("auth.codeExpired", { defaultValue: "Code has expired. Please request a new magic link." }));
+      }
+
+      // Set the session
+      const { error } = await supabase.auth.setSession({
+        access_token: handoffData.accessToken,
+        refresh_token: handoffData.refreshToken,
+      });
+
+      if (error) throw error;
+
+      // Clean up
+      localStorage.removeItem(`pwa_handoff_${handoffCode.toUpperCase()}`);
+      
+      toast({
+        title: t("common.success"),
+        description: t("auth.signedIn", { defaultValue: "Successfully signed in!" }),
+      });
+      navigate("/");
+    } catch (error: any) {
+      toast({
+        title: t("common.error"),
+        description: error.message || t("auth.verificationFailed", { defaultValue: "Verification failed" }),
+        variant: "destructive",
+      });
+    } finally {
+      setIsVerifyingCode(false);
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -114,6 +211,12 @@ const Auth = () => {
       </div>
     );
   }
+
+  // Check if running as PWA
+  const isStandalone = typeof window !== "undefined" && (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    (window.navigator as any).standalone === true
+  );
 
   return (
     <PageLayout className="flex items-center justify-center px-4">
@@ -131,113 +234,206 @@ const Auth = () => {
           animate={{ opacity: 1, y: 0 }}
           className="bg-card rounded-2xl p-8 shadow-lg border border-border"
         >
-          <div className="text-center mb-8">
-            <div className="flex justify-center mb-4">
-              <div className="relative">
-                <Circle className="w-12 h-12 text-primary fill-primary/20" strokeWidth={2.5} />
-                <Mail
-                  className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                  strokeWidth={2}
-                />
-              </div>
-            </div>
-            <h1 className="text-2xl font-bold text-foreground mb-2">
-              {magicLinkSent ? t("auth.checkYourEmail") : t("auth.signInTitle")}
-            </h1>
-            <p className="text-muted-foreground text-sm">
-              {magicLinkSent ? t("auth.magicLinkSentDesc") : t("auth.magicLinkDesc")}
-            </p>
-          </div>
-
-          {magicLinkSent ? (
-            <div className="text-center space-y-4">
-              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                <Mail className="w-8 h-8 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">
-                  {t("auth.magicLinkSentTo")} <span className="font-medium text-foreground">{email}</span>
-                </p>
-              </div>
-              
-              {/* iOS PWA hint */}
-              <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
-                <div className="flex items-start gap-2">
-                  <Smartphone className="w-4 h-4 mt-0.5 flex-shrink-0" />
-                  <p>
-                    {t("auth.iosPwaHint", { 
-                      defaultValue: "On iOS home screen apps: The link will open in Safari. After signing in, return to this app manually." 
-                    })}
-                  </p>
+          {showCodeEntry ? (
+            // Code entry view for PWA users returning from Safari
+            <div className="text-center space-y-6">
+              <div className="flex justify-center mb-4">
+                <div className="relative">
+                  <Circle className="w-12 h-12 text-primary fill-primary/20" strokeWidth={2.5} />
+                  <KeyRound
+                    className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                    strokeWidth={2}
+                  />
                 </div>
               </div>
               
+              <div>
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                  {t("auth.enterCode", { defaultValue: "Enter your code" })}
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {t("auth.enterCodeDesc", { defaultValue: "Enter the 6-character code shown in Safari after clicking the magic link." })}
+                </p>
+              </div>
+
+              <div className="flex justify-center">
+                <InputOTP
+                  value={handoffCode}
+                  onChange={setHandoffCode}
+                  maxLength={6}
+                >
+                  <InputOTPGroup>
+                    <InputOTPSlot index={0} />
+                    <InputOTPSlot index={1} />
+                    <InputOTPSlot index={2} />
+                    <InputOTPSlot index={3} />
+                    <InputOTPSlot index={4} />
+                    <InputOTPSlot index={5} />
+                  </InputOTPGroup>
+                </InputOTP>
+              </div>
+
               <Button
                 variant="gradient"
                 className="w-full"
-                onClick={() => handleMagicLink()}
-                disabled={!canResend || isLoading}
+                onClick={handleCodeSubmit}
+                disabled={isVerifyingCode || handoffCode.length !== 6}
+                size="lg"
               >
-                {isLoading ? (
+                {isVerifyingCode ? (
                   <Loader2 className="animate-spin" size={20} />
-                ) : canResend ? (
-                  t("auth.resendMagicLink")
                 ) : (
-                  t("auth.resendIn", { seconds: resendCountdown })
+                  t("auth.verifyCode", { defaultValue: "Verify Code" })
                 )}
               </Button>
+
               <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => {
-                  setMagicLinkSent(false);
-                  setEmail("");
-                  setCanResend(false);
+                  setShowCodeEntry(false);
+                  setHandoffCode("");
                 }}
               >
-                {t("auth.tryDifferentEmail")}
+                {t("auth.backToSignIn", { defaultValue: "Back to Sign In" })}
               </Button>
             </div>
           ) : (
             <>
-              <form onSubmit={handleMagicLink} className="space-y-5">
-                <div>
-                  <Label htmlFor="email" className="text-foreground">
-                    {t("auth.email")}
-                  </Label>
-                  <div className="relative mt-2">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                    <Input
-                      id="email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="pl-10"
-                      required
+              <div className="text-center mb-8">
+                <div className="flex justify-center mb-4">
+                  <div className="relative">
+                    <Circle className="w-12 h-12 text-primary fill-primary/20" strokeWidth={2.5} />
+                    <Mail
+                      className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                      strokeWidth={2}
                     />
                   </div>
                 </div>
+                <h1 className="text-2xl font-bold text-foreground mb-2">
+                  {magicLinkSent ? t("auth.checkYourEmail") : t("auth.signInTitle")}
+                </h1>
+                <p className="text-muted-foreground text-sm">
+                  {magicLinkSent ? t("auth.magicLinkSentDesc") : t("auth.magicLinkDesc")}
+                </p>
+              </div>
 
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="rememberDevice"
-                    checked={rememberDevice}
-                    onCheckedChange={(checked) => setRememberDevice(checked === true)}
-                  />
-                  <Label
-                    htmlFor="rememberDevice"
-                    className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5"
+              {magicLinkSent ? (
+                <div className="text-center space-y-4">
+                  <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                    <Mail className="w-8 h-8 text-primary" />
+                  </div>
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {t("auth.magicLinkSentTo")} <span className="font-medium text-foreground">{email}</span>
+                    </p>
+                  </div>
+                  
+                  {/* iOS PWA hint with code entry option */}
+                  {isStandalone && (
+                    <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                      <div className="flex items-start gap-2">
+                        <Smartphone className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                        <div className="text-left">
+                          <p className="mb-2">
+                            {t("auth.iosPwaHintNew", { 
+                              defaultValue: "The link will open in Safari. After clicking it, you'll get a code to enter here." 
+                            })}
+                          </p>
+                          <Button
+                            variant="link"
+                            size="sm"
+                            className="h-auto p-0 text-xs text-primary"
+                            onClick={() => setShowCodeEntry(true)}
+                          >
+                            {t("auth.iHaveCode", { defaultValue: "I have a code →" })}
+                          </Button>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  <Button
+                    variant="gradient"
+                    className="w-full"
+                    onClick={() => handleMagicLink()}
+                    disabled={!canResend || isLoading}
                   >
-                    <Smartphone size={14} />
-                    {t("auth.rememberDevice")}
-                  </Label>
+                    {isLoading ? (
+                      <Loader2 className="animate-spin" size={20} />
+                    ) : canResend ? (
+                      t("auth.resendMagicLink")
+                    ) : (
+                      t("auth.resendIn", { seconds: resendCountdown })
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="w-full"
+                    onClick={() => {
+                      setMagicLinkSent(false);
+                      setEmail("");
+                      setCanResend(false);
+                    }}
+                  >
+                    {t("auth.tryDifferentEmail")}
+                  </Button>
                 </div>
+              ) : (
+                <>
+                  <form onSubmit={handleMagicLink} className="space-y-5">
+                    <div>
+                      <Label htmlFor="email" className="text-foreground">
+                        {t("auth.email")}
+                      </Label>
+                      <div className="relative mt-2">
+                        <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
+                        <Input
+                          id="email"
+                          type="email"
+                          value={email}
+                          onChange={(e) => setEmail(e.target.value)}
+                          placeholder="you@example.com"
+                          className="pl-10"
+                          required
+                        />
+                      </div>
+                    </div>
 
-                <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : t("auth.sendMagicLink")}
-                </Button>
-              </form>
+                    <div className="flex items-center gap-2">
+                      <Checkbox
+                        id="rememberDevice"
+                        checked={rememberDevice}
+                        onCheckedChange={(checked) => setRememberDevice(checked === true)}
+                      />
+                      <Label
+                        htmlFor="rememberDevice"
+                        className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5"
+                      >
+                        <Smartphone size={14} />
+                        {t("auth.rememberDevice")}
+                      </Label>
+                    </div>
+
+                    <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
+                      {isLoading ? <Loader2 className="animate-spin" size={20} /> : t("auth.sendMagicLink")}
+                    </Button>
+                  </form>
+
+                  {/* Show "Enter code" option for PWA users */}
+                  {isStandalone && (
+                    <div className="mt-6 text-center">
+                      <Button
+                        variant="link"
+                        className="text-sm text-muted-foreground"
+                        onClick={() => setShowCodeEntry(true)}
+                      >
+                        {t("auth.alreadyHaveCode", { defaultValue: "Already have a code from Safari?" })}
+                      </Button>
+                    </div>
+                  )}
+                </>
+              )}
             </>
           )}
         </motion.div>
