@@ -184,7 +184,7 @@
   "verify": {
     "title": "Verify Scores",
     "approve": "Approve",
-    "reject": "Reject"    
+    "reject": "Reject",
     "communityReviews": "Community reviews",
     "myPending": "My pending scores",
     "allCaughtUp": "All caught up!",
