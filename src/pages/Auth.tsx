@@ -159,6 +159,19 @@ const Auth = () => {
                   {t("auth.magicLinkSentTo")} <span className="font-medium text-foreground">{email}</span>
                 </p>
               </div>
+              
+              {/* iOS PWA hint */}
+              <div className="bg-muted/50 rounded-lg p-3 text-xs text-muted-foreground">
+                <div className="flex items-start gap-2">
+                  <Smartphone className="w-4 h-4 mt-0.5 flex-shrink-0" />
+                  <p>
+                    {t("auth.iosPwaHint", { 
+                      defaultValue: "On iOS home screen apps: The link will open in Safari. After signing in, return to this app manually." 
+                    })}
+                  </p>
+                </div>
+              </div>
+              
               <Button
                 variant="gradient"
                 className="w-full"
