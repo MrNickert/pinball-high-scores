@@ -108,7 +108,15 @@
     "lastName": "Last Name",
     "username": "Username",
     "usernameVisible": "This will be visible to other players",
-    "maxFileSize": "Max 2MB, JPG/PNG"
+    "maxFileSize": "Max 2MB, JPG/PNG",
+    "changePassword": "Change Password",
+    "newPassword": "New Password",
+    "confirmPassword": "Confirm Password",
+    "updatePassword": "Update Password",
+    "passwordMinLength": "Password must be at least 6 characters",
+    "passwordsDontMatch": "Passwords don't match",
+    "passwordChanged": "Password updated successfully!",
+    "passwordChangeFailed": "Failed to update password"
   },
   "navbar": {
     "home": "Home",
