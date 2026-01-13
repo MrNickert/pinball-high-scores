@@ -40,7 +40,10 @@
   "onboarding": {
     "setupProfile": "Stel je profiel in",
     "readyToTrack": "Laten we je klaar maken om je scores bij te houden",
+    "chooseLanguage": "Kies je taal",
+    "yourIdentity": "Je identiteit",
     "yourName": "Je naam",
+    "nameOptional": "Dit is optioneel maar helpt je ervaring te personaliseren",
     "firstName": "Voornaam",
     "lastName": "Achternaam",
     "username": "Gebruikersnaam",
@@ -53,6 +56,7 @@
     "uploading": "Uploaden...",
     "maxFileSize": "Max 2MB, JPG/PNG (optioneel)",
     "privacySettings": "Privacy-instellingen",
+    "finalSettings": "Laatste instellingen",
     "publicProfile": "Openbaar profiel",
     "publicProfileDesc": "Anderen kunnen je profiel en scores zien",
     "readyToGo": "Klaar om te beginnen!",
@@ -64,7 +68,7 @@
     "english": "Engels",
     "dutch": "Nederlands",
     "units": "Afstandseenheden",
-    "unitsDesc": "Kies hoe afstanden worden weergegeven",
+    "unitsDesc": "Hoe afstanden weergeven",
     "metric": "Metrisch (km)",
     "imperial": "Imperiaal (mijlen)"
   },

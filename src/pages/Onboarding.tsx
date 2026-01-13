@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useNavigate } from "react-router-dom";
-import { User, Upload, Loader2, ArrowRight, ArrowLeft, Shield, Check, Circle, Globe } from "lucide-react";
+import { User, Upload, Loader2, ArrowRight, ArrowLeft, Shield, Check, Circle, Globe, Ruler } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -146,7 +146,8 @@ const Onboarding = () => {
   const handleNext = async () => {
     setUsernameError("");
     
-    if (step === 1) {
+    // Step 2 validates username
+    if (step === 2) {
       // Validate username format
       const parsed = usernameSchema.safeParse(username);
       if (!parsed.success) {
@@ -194,7 +195,7 @@ const Onboarding = () => {
     const parsedUsername = usernameSchema.safeParse(username);
     if (!parsedUsername.success) {
       toast.error(parsedUsername.error.issues[0]?.message || "Invalid username");
-      setStep(1);
+      setStep(2);
       return;
     }
 
@@ -221,10 +222,10 @@ const Onboarding = () => {
       console.error("Error saving profile:", error);
       if (error?.code === "23505") {
         toast.error("This username is already taken. Please choose another.");
-        setStep(1);
+        setStep(2);
       } else if (error?.code === "23514") {
         toast.error("Username must be 3–30 chars and use only letters, numbers, _ or -");
-        setStep(1);
+        setStep(2);
       } else {
         toast.error("Failed to save profile");
       }
@@ -244,6 +245,11 @@ const Onboarding = () => {
   if (!user) {
     return null;
   }
+
+  const languages = [
+    { code: "en", name: "English", flag: "🇬🇧", nativeName: "English" },
+    { code: "nl", name: "Dutch", flag: "🇳🇱", nativeName: "Nederlands" },
+  ];
 
   return (
     <PageLayout className="flex items-center justify-center px-4">
@@ -284,7 +290,7 @@ const Onboarding = () => {
 
           {/* Step content */}
           <AnimatePresence mode="wait">
-            {/* Step 1: Name & Username */}
+            {/* Step 1: Language Selector */}
             {step === 1 && (
               <motion.div
                 key="step1"
@@ -294,9 +300,140 @@ const Onboarding = () => {
                 className="space-y-5"
               >
                 <div className="flex items-center gap-2 mb-4">
+                  <Globe size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">{t("onboarding.chooseLanguage")}</span>
+                </div>
+
+                <p className="text-sm text-muted-foreground mb-4">
+                  {t("onboarding.languageDesc")}
+                </p>
+
+                <div className="grid gap-3">
+                  {languages.map((lang) => (
+                    <motion.button
+                      key={lang.code}
+                      onClick={() => setLanguage(lang.code as "en" | "nl")}
+                      whileHover={{ scale: 1.02 }}
+                      whileTap={{ scale: 0.98 }}
+                      className={`w-full p-4 rounded-xl border-2 transition-all flex items-center gap-4 ${
+                        language === lang.code
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
+                      }`}
+                    >
+                      <span className="text-4xl">{lang.flag}</span>
+                      <div className="text-left flex-1">
+                        <p className="font-semibold text-foreground">{lang.nativeName}</p>
+                        <p className="text-sm text-muted-foreground">{lang.name}</p>
+                      </div>
+                      {language === lang.code && (
+                        <motion.div
+                          initial={{ scale: 0 }}
+                          animate={{ scale: 1 }}
+                          className="w-6 h-6 rounded-full bg-primary flex items-center justify-center"
+                        >
+                          <Check size={14} className="text-primary-foreground" />
+                        </motion.div>
+                      )}
+                    </motion.button>
+                  ))}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 2: Avatar & Username */}
+            {step === 2 && (
+              <motion.div
+                key="step2"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
+                  <User size={18} className="text-primary" />
+                  <span className="font-medium text-foreground">{t("onboarding.yourIdentity")}</span>
+                </div>
+
+                {/* Avatar */}
+                <div className="flex flex-col items-center gap-4 mb-6">
+                  <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden ring-4 ring-primary/20">
+                    <img 
+                      src={avatarUrl || defaultAvatarUrl} 
+                      alt="Avatar" 
+                      className="w-full h-full object-cover" 
+                    />
+                  </div>
+                  <div className="text-center">
+                    <input
+                      ref={fileInputRef}
+                      type="file"
+                      accept="image/*"
+                      onChange={handleAvatarUpload}
+                      className="hidden"
+                    />
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => fileInputRef.current?.click()}
+                      disabled={uploading}
+                    >
+                      {uploading ? (
+                        <Loader2 className="animate-spin mr-2" size={16} />
+                      ) : (
+                        <Upload size={16} className="mr-2" />
+                      )}
+                      {uploading ? t("onboarding.uploading") : avatarUrl ? t("onboarding.changePhoto") : t("onboarding.uploadPhoto")}
+                    </Button>
+                    <p className="text-xs text-muted-foreground mt-2">{t("onboarding.maxFileSize")}</p>
+                  </div>
+                </div>
+
+                {/* Username */}
+                <div>
+                  <Label htmlFor="username" className="text-foreground">
+                    {t("onboarding.username")} <span className="text-destructive">*</span>
+                  </Label>
+                  <p className="text-xs text-muted-foreground mt-1 mb-2">
+                    {t("onboarding.usernameVisible")}
+                  </p>
+                  <Input
+                    id="username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      setUsernameError("");
+                    }}
+                    placeholder="pinball_wizard"
+                    maxLength={30}
+                    className={usernameError ? "border-destructive focus-visible:ring-destructive" : ""}
+                  />
+                  {usernameError && (
+                    <p className="text-sm text-destructive mt-2">{usernameError}</p>
+                  )}
+                </div>
+              </motion.div>
+            )}
+
+            {/* Step 3: First Name & Last Name */}
+            {step === 3 && (
+              <motion.div
+                key="step3"
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -20 }}
+                className="space-y-5"
+              >
+                <div className="flex items-center gap-2 mb-4">
                   <User size={18} className="text-primary" />
                   <span className="font-medium text-foreground">{t("onboarding.yourName")}</span>
                 </div>
+
+                <p className="text-sm text-muted-foreground mb-4">
+                  {t("onboarding.nameOptional")}
+                </p>
 
                 <div>
                   <Label htmlFor="firstName" className="text-foreground">
@@ -327,140 +464,10 @@ const Onboarding = () => {
                     maxLength={50}
                   />
                 </div>
-
-                <div>
-                  <Label htmlFor="username" className="text-foreground">
-                    {t("onboarding.username")} <span className="text-destructive">*</span>
-                  </Label>
-                  <p className="text-xs text-muted-foreground mt-1 mb-2">
-                    {t("onboarding.usernameVisible")}
-                  </p>
-                  <Input
-                    id="username"
-                    type="text"
-                    value={username}
-                    onChange={(e) => {
-                      setUsername(e.target.value);
-                      setUsernameError("");
-                    }}
-                    placeholder="pinball_wizard"
-                    maxLength={30}
-                    className={usernameError ? "border-destructive focus-visible:ring-destructive" : ""}
-                  />
-                  {usernameError && (
-                    <p className="text-sm text-destructive mt-2">{usernameError}</p>
-                  )}
-                </div>
               </motion.div>
             )}
 
-            {/* Step 2: Language & Distance */}
-            {step === 2 && (
-              <motion.div
-                key="step2"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-5"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Globe size={18} className="text-primary" />
-                  <span className="font-medium text-foreground">{t("onboarding.preferences")}</span>
-                </div>
-
-                <div className="bg-muted/50 rounded-xl p-4 space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <Label className="text-foreground font-medium">{t("onboarding.language")}</Label>
-                      <p className="text-sm text-muted-foreground mt-1">{t("onboarding.languageDesc")}</p>
-                    </div>
-                    <Select
-                      value={language}
-                      onValueChange={(value: "en" | "nl") => setLanguage(value)}
-                    >
-                      <SelectTrigger className="w-[130px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="en">{t("onboarding.english")}</SelectItem>
-                        <SelectItem value="nl">{t("onboarding.dutch")}</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="border-t border-border pt-4">
-                    <div className="flex items-center justify-between">
-                      <div>
-                        <Label className="text-foreground font-medium">{t("onboarding.units")}</Label>
-                        <p className="text-sm text-muted-foreground mt-1">{t("onboarding.unitsDesc")}</p>
-                      </div>
-                      <Select
-                        value={useMetric ? "metric" : "imperial"}
-                        onValueChange={(value) => setUseMetric(value === "metric")}
-                      >
-                        <SelectTrigger className="w-[130px]">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="metric">{t("onboarding.metric")}</SelectItem>
-                          <SelectItem value="imperial">{t("onboarding.imperial")}</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Step 3: Profile Picture */}
-            {step === 3 && (
-              <motion.div
-                key="step3"
-                initial={{ opacity: 0, x: 20 }}
-                animate={{ opacity: 1, x: 0 }}
-                exit={{ opacity: 0, x: -20 }}
-                className="space-y-5"
-              >
-                <div className="flex items-center gap-2 mb-4">
-                  <Upload size={18} className="text-primary" />
-                  <span className="font-medium text-foreground">{t("onboarding.profilePicture")}</span>
-                </div>
-
-                <div className="flex flex-col items-center gap-4">
-                  <div className="w-24 h-24 rounded-full bg-muted flex items-center justify-center overflow-hidden">
-                    <img 
-                      src={avatarUrl || defaultAvatarUrl} 
-                      alt="Avatar" 
-                      className="w-full h-full object-cover" 
-                    />
-                  </div>
-                  <div className="text-center">
-                    <input
-                      ref={fileInputRef}
-                      type="file"
-                      accept="image/*"
-                      onChange={handleAvatarUpload}
-                      className="hidden"
-                    />
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => fileInputRef.current?.click()}
-                      disabled={uploading}
-                    >
-                      {uploading ? (
-                        <Loader2 className="animate-spin mr-2" size={16} />
-                      ) : (
-                        <Upload size={16} className="mr-2" />
-                      )}
-                      {uploading ? t("onboarding.uploading") : avatarUrl ? t("onboarding.changePhoto") : t("onboarding.uploadPhoto")}
-                    </Button>
-                    <p className="text-xs text-muted-foreground mt-2">{t("onboarding.maxFileSize")}</p>
-                  </div>
-                </div>
-              </motion.div>
-            )}
-
-            {/* Step 4: Privacy */}
+            {/* Step 4: Settings (Metric/Imperial & Privacy) */}
             {step === 4 && (
               <motion.div
                 key="step4"
@@ -471,18 +478,51 @@ const Onboarding = () => {
               >
                 <div className="flex items-center gap-2 mb-4">
                   <Shield size={18} className="text-primary" />
-                  <span className="font-medium text-foreground">{t("onboarding.privacySettings")}</span>
+                  <span className="font-medium text-foreground">{t("onboarding.finalSettings")}</span>
                 </div>
 
-                <div className="bg-muted/50 rounded-xl p-4">
+                <div className="bg-muted/50 rounded-xl p-4 space-y-4">
+                  {/* Distance Units */}
                   <div className="flex items-center justify-between">
-                    <div>
-                      <Label htmlFor="public-profile" className="text-foreground font-medium">
-                        {t("onboarding.publicProfile")}
-                      </Label>
-                      <p className="text-sm text-muted-foreground mt-1">
-                        {t("onboarding.publicProfileDesc")}
-                      </p>
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Ruler size={18} className="text-primary" />
+                      </div>
+                      <div>
+                        <Label className="text-foreground font-medium">{t("onboarding.units")}</Label>
+                        <p className="text-sm text-muted-foreground">{t("onboarding.unitsDesc")}</p>
+                      </div>
+                    </div>
+                    <Select
+                      value={useMetric ? "metric" : "imperial"}
+                      onValueChange={(value) => setUseMetric(value === "metric")}
+                    >
+                      <SelectTrigger className="w-[120px]">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="metric">{t("onboarding.metric")}</SelectItem>
+                        <SelectItem value="imperial">{t("onboarding.imperial")}</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  
+                  <div className="border-t border-border" />
+
+                  {/* Public Profile */}
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                        <Globe size={18} className="text-primary" />
+                      </div>
+                      <div>
+                        <Label htmlFor="public-profile" className="text-foreground font-medium">
+                          {t("onboarding.publicProfile")}
+                        </Label>
+                        <p className="text-sm text-muted-foreground">
+                          {t("onboarding.publicProfileDesc")}
+                        </p>
+                      </div>
                     </div>
                     <Switch
                       id="public-profile"
@@ -517,7 +557,7 @@ const Onboarding = () => {
             )}
 
             {step < totalSteps ? (
-              <Button variant="gradient" onClick={handleNext} disabled={checkingUsername}>
+              <Button variant="gradient" onClick={handleNext} disabled={checkingUsername || (step === 2 && !username.trim())}>
                 {checkingUsername ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
                 {t("common.next")}
                 <ArrowRight size={16} className="ml-2" />
