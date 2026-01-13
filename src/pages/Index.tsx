@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
 import { Trophy, Camera, MapPin, Zap, ArrowRight, Loader2 } from "lucide-react";
+import { formatDistanceToNow } from "date-fns";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Dashboard } from "@/components/Dashboard";
@@ -205,6 +206,9 @@ const Index = () => {
                     </motion.div>
                     <p className="text-primary mt-2 font-semibold">{latestScore.machine_name}</p>
                     <p className="text-muted-foreground text-sm">by @{latestScore.username}</p>
+                    <p className="text-muted-foreground/70 text-xs mt-1">
+                      {formatDistanceToNow(new Date(latestScore.created_at), { addSuffix: true })}
+                    </p>
                   </>
                 ) : (
                   <div className="py-2">
