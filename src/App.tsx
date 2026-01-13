@@ -9,6 +9,7 @@ import { useValidationNotifications } from "@/hooks/useValidationNotifications";
 import { RequireAuth } from "@/components/RequireAuth";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
+import ResetPassword from "./pages/ResetPassword";
 import Onboarding from "./pages/Onboarding";
 import Leaderboard from "./pages/Leaderboard";
 import Capture from "./pages/Capture";
@@ -37,6 +38,7 @@ const App = () => (
             <Routes>
               <Route path="/" element={<Index />} />
               <Route path="/auth" element={<Auth />} />
+              <Route path="/reset-password" element={<ResetPassword />} />
               <Route path="/onboarding" element={<RequireAuth><Onboarding /></RequireAuth>} />
               <Route path="/leaderboard" element={<Leaderboard />} />
               <Route path="/capture" element={<Capture />} />
