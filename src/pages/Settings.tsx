@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload, Globe, Lock, Eye, EyeOff } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload, Globe } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { PageLayout } from "@/components/PageLayout";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,22 +41,6 @@ const usernameSchema = z
   .max(30, "Username must be 30 characters or less")
   .regex(/^[A-Za-z0-9_-]+$/, "Use only letters, numbers, underscore, or dash");
 
-const getPasswordStrength = (password: string): { level: number; label: string } => {
-  let score = 0;
-  
-  if (password.length >= 6) score++;
-  if (password.length >= 10) score++;
-  if (/[A-Z]/.test(password)) score++;
-  if (/[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-  
-  if (score <= 2) return { level: 1, label: "passwordWeak" };
-  if (score <= 3) return { level: 2, label: "passwordFair" };
-  if (score <= 4) return { level: 3, label: "passwordGood" };
-  return { level: 4, label: "passwordStrong" };
-};
-
 const Settings = () => {
   const { user, loading, signOut } = useAuth();
   const { language, setLanguage, useMetric, setUseMetric } = useLanguage();
@@ -73,30 +57,14 @@ const Settings = () => {
   const [uploading, setUploading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [deleting, setDeleting] = useState(false);
-  const [isEmailProvider, setIsEmailProvider] = useState(false);
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [newPassword, setNewPassword] = useState("");
-  const [confirmPassword, setConfirmPassword] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [changingPassword, setChangingPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
-      checkAuthProvider();
     }
   }, [user]);
 
-  const checkAuthProvider = async () => {
-    if (!user) return;
-    // Check if user signed up with email/password (not OAuth)
-    const { data } = await supabase.auth.getSession();
-    const provider = data.session?.user?.app_metadata?.provider;
-    setIsEmailProvider(provider === "email");
-  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -554,184 +522,6 @@ const Settings = () => {
               </div>
             </div>
           </motion.div>
-
-          {/* Change Password Section - only for email/password users */}
-          {isEmailProvider && (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.35 }}
-              className="bg-card rounded-2xl border border-border p-6 mb-6"
-            >
-              <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
-                <Lock size={18} className="text-primary" />
-                {t("settings.changePassword")}
-              </h2>
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="currentPassword" className="text-foreground">{t("settings.currentPassword")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="currentPassword"
-                      type={showCurrentPassword ? "text" : "password"}
-                      value={currentPassword}
-                      onChange={(e) => setCurrentPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pr-10"
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="newPassword" className="text-foreground">{t("settings.newPassword")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="newPassword"
-                      type={showNewPassword ? "text" : "password"}
-                      value={newPassword}
-                      onChange={(e) => setNewPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pr-10"
-                      minLength={6}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowNewPassword(!showNewPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                  {/* Password strength indicator */}
-                  {newPassword && (
-                    <div className="space-y-2">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4].map((level) => {
-                          const strength = getPasswordStrength(newPassword);
-                          const isActive = level <= strength.level;
-                          return (
-                            <div
-                              key={level}
-                              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                                isActive
-                                  ? strength.level <= 1
-                                    ? "bg-destructive"
-                                    : strength.level === 2
-                                    ? "bg-amber-500"
-                                    : strength.level === 3
-                                    ? "bg-primary"
-                                    : "bg-green-500"
-                                  : "bg-muted"
-                              }`}
-                            />
-                          );
-                        })}
-                      </div>
-                      <p className={`text-xs ${
-                        getPasswordStrength(newPassword).level <= 1
-                          ? "text-destructive"
-                          : getPasswordStrength(newPassword).level === 2
-                          ? "text-amber-500"
-                          : getPasswordStrength(newPassword).level === 3
-                          ? "text-primary"
-                          : "text-green-500"
-                      }`}>
-                        {t(`settings.${getPasswordStrength(newPassword).label}`)}
-                      </p>
-                    </div>
-                  )}
-                  {/* Password requirements */}
-                  <div className="text-xs text-muted-foreground space-y-1 mt-2">
-                    <p className="font-medium">{t("settings.passwordRequirements")}</p>
-                    <ul className="list-disc list-inside space-y-0.5 ml-1">
-                      <li className={newPassword.length >= 6 ? "text-green-500" : ""}>{t("settings.reqMinLength")}</li>
-                      <li className={/[A-Z]/.test(newPassword) ? "text-green-500" : ""}>{t("settings.reqUppercase")}</li>
-                      <li className={/[a-z]/.test(newPassword) ? "text-green-500" : ""}>{t("settings.reqLowercase")}</li>
-                      <li className={/[0-9]/.test(newPassword) ? "text-green-500" : ""}>{t("settings.reqNumber")}</li>
-                    </ul>
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="confirmPassword" className="text-foreground">{t("settings.confirmPassword")}</Label>
-                  <div className="relative">
-                    <Input
-                      id="confirmPassword"
-                      type={showConfirmPassword ? "text" : "password"}
-                      value={confirmPassword}
-                      onChange={(e) => setConfirmPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pr-10"
-                      minLength={6}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                    >
-                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-                </div>
-                <Button
-                  variant="gradient"
-                  onClick={async () => {
-                    if (!currentPassword) {
-                      toast.error(t("settings.currentPasswordRequired"));
-                      return;
-                    }
-                    if (newPassword.length < 6) {
-                      toast.error(t("settings.passwordMinLength"));
-                      return;
-                    }
-                    if (newPassword !== confirmPassword) {
-                      toast.error(t("settings.passwordsDontMatch"));
-                      return;
-                    }
-                    setChangingPassword(true);
-                    try {
-                      // First verify current password by re-authenticating
-                      const { data: { session } } = await supabase.auth.getSession();
-                      if (!session?.user?.email) {
-                        throw new Error("No email found");
-                      }
-                      
-                      const { error: signInError } = await supabase.auth.signInWithPassword({
-                        email: session.user.email,
-                        password: currentPassword,
-                      });
-                      
-                      if (signInError) {
-                        toast.error(t("settings.currentPasswordIncorrect"));
-                        return;
-                      }
-                      
-                      // Current password verified, now update to new password
-                      const { error } = await supabase.auth.updateUser({ password: newPassword });
-                      if (error) throw error;
-                      toast.success(t("settings.passwordChanged"));
-                      setCurrentPassword("");
-                      setNewPassword("");
-                      setConfirmPassword("");
-                    } catch (error: any) {
-                      toast.error(error.message || t("settings.passwordChangeFailed"));
-                    } finally {
-                      setChangingPassword(false);
-                    }
-                  }}
-                  disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
-                >
-                  {changingPassword ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
-                  {t("settings.updatePassword")}
-                </Button>
-              </div>
-            </motion.div>
-          )}
 
           {/* Danger Zone */}
           <motion.div

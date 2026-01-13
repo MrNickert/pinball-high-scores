@@ -16,6 +16,8 @@ const Auth = () => {
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [magicLinkSent, setMagicLinkSent] = useState(false);
+  const [canResend, setCanResend] = useState(false);
+  const [resendCountdown, setResendCountdown] = useState(60);
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const { t } = useTranslation();
@@ -61,8 +63,26 @@ const Auth = () => {
     checkOnboardingStatus();
   }, [user, loading, navigate]);
 
-  const handleMagicLink = async (e: React.FormEvent) => {
-    e.preventDefault();
+  // Start countdown when magic link is sent
+  useEffect(() => {
+    if (magicLinkSent && !canResend) {
+      setResendCountdown(60);
+      const timer = setInterval(() => {
+        setResendCountdown((prev) => {
+          if (prev <= 1) {
+            clearInterval(timer);
+            setCanResend(true);
+            return 0;
+          }
+          return prev - 1;
+        });
+      }, 1000);
+      return () => clearInterval(timer);
+    }
+  }, [magicLinkSent, canResend]);
+
+  const handleMagicLink = async (e?: React.FormEvent) => {
+    e?.preventDefault();
     if (!email) {
       toast({
         title: t("common.error"),
@@ -84,6 +104,7 @@ const Auth = () => {
       if (error) throw error;
 
       setMagicLinkSent(true);
+      setCanResend(false);
       toast({
         title: t("common.success"),
         description: t("auth.magicLinkSent"),
@@ -152,11 +173,26 @@ const Auth = () => {
                 </p>
               </div>
               <Button
+                variant="gradient"
+                className="w-full"
+                onClick={() => handleMagicLink()}
+                disabled={!canResend || isLoading}
+              >
+                {isLoading ? (
+                  <Loader2 className="animate-spin" size={20} />
+                ) : canResend ? (
+                  t("auth.resendMagicLink")
+                ) : (
+                  t("auth.resendIn", { seconds: resendCountdown })
+                )}
+              </Button>
+              <Button
                 variant="outline"
                 className="w-full"
                 onClick={() => {
                   setMagicLinkSent(false);
                   setEmail("");
+                  setCanResend(false);
                 }}
               >
                 {t("auth.tryDifferentEmail")}
