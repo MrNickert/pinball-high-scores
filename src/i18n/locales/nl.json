@@ -108,7 +108,15 @@
     "lastName": "Achternaam",
     "username": "Gebruikersnaam",
     "usernameVisible": "Dit is zichtbaar voor andere spelers",
-    "maxFileSize": "Max 2MB, JPG/PNG"
+    "maxFileSize": "Max 2MB, JPG/PNG",
+    "changePassword": "Wachtwoord wijzigen",
+    "newPassword": "Nieuw wachtwoord",
+    "confirmPassword": "Bevestig wachtwoord",
+    "updatePassword": "Wachtwoord bijwerken",
+    "passwordMinLength": "Wachtwoord moet minimaal 6 tekens bevatten",
+    "passwordsDontMatch": "Wachtwoorden komen niet overeen",
+    "passwordChanged": "Wachtwoord succesvol bijgewerkt!",
+    "passwordChangeFailed": "Wachtwoord bijwerken mislukt"
   },
   "navbar": {
     "home": "Home",

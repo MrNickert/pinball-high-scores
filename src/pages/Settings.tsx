@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { motion } from "framer-motion";
-import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload, Globe } from "lucide-react";
+import { Settings as SettingsIcon, Bell, Shield, Trash2, User, Loader2, Upload, Globe, Lock, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
@@ -56,13 +56,30 @@ const Settings = () => {
   const [uploading, setUploading] = useState(false);
   const [loadingProfile, setLoadingProfile] = useState(true);
   const [deleting, setDeleting] = useState(false);
+  const [isEmailProvider, setIsEmailProvider] = useState(false);
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [confirmPassword, setConfirmPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [changingPassword, setChangingPassword] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     if (user) {
       fetchProfile();
+      checkAuthProvider();
     }
   }, [user]);
+
+  const checkAuthProvider = async () => {
+    if (!user) return;
+    // Check if user signed up with email/password (not OAuth)
+    const { data } = await supabase.auth.getSession();
+    const provider = data.session?.user?.app_metadata?.provider;
+    setIsEmailProvider(provider === "email");
+  };
 
   const fetchProfile = async () => {
     if (!user) return;
@@ -520,6 +537,94 @@ const Settings = () => {
               </div>
             </div>
           </motion.div>
+
+          {/* Change Password Section - only for email/password users */}
+          {isEmailProvider && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.35 }}
+              className="bg-card rounded-2xl border border-border p-6 mb-6"
+            >
+              <h2 className="font-semibold text-foreground flex items-center gap-2 mb-4">
+                <Lock size={18} className="text-primary" />
+                {t("settings.changePassword")}
+              </h2>
+              <div className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="newPassword" className="text-foreground">{t("settings.newPassword")}</Label>
+                  <div className="relative">
+                    <Input
+                      id="newPassword"
+                      type={showNewPassword ? "text" : "password"}
+                      value={newPassword}
+                      onChange={(e) => setNewPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="pr-10"
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowNewPassword(!showNewPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showNewPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-foreground">{t("settings.confirmPassword")}</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? "text" : "password"}
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="pr-10"
+                      minLength={6}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showConfirmPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <Button
+                  variant="gradient"
+                  onClick={async () => {
+                    if (newPassword.length < 6) {
+                      toast.error(t("settings.passwordMinLength"));
+                      return;
+                    }
+                    if (newPassword !== confirmPassword) {
+                      toast.error(t("settings.passwordsDontMatch"));
+                      return;
+                    }
+                    setChangingPassword(true);
+                    try {
+                      const { error } = await supabase.auth.updateUser({ password: newPassword });
+                      if (error) throw error;
+                      toast.success(t("settings.passwordChanged"));
+                      setNewPassword("");
+                      setConfirmPassword("");
+                    } catch (error: any) {
+                      toast.error(error.message || t("settings.passwordChangeFailed"));
+                    } finally {
+                      setChangingPassword(false);
+                    }
+                  }}
+                  disabled={changingPassword || !newPassword || !confirmPassword}
+                >
+                  {changingPassword ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
+                  {t("settings.updatePassword")}
+                </Button>
+              </div>
+            </motion.div>
+          )}
 
           {/* Danger Zone */}
           <motion.div
