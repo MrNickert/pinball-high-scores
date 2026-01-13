@@ -279,7 +279,11 @@
     "proPlayer": "Pro Player",
     "newPlayer": "New Player",
     "profileNotFound": "Profile Not Found",
-    "profileNotFoundDesc": "This player profile doesn't exist or has been removed."
+    "profileNotFoundDesc": "This player profile doesn't exist or has been removed.",
+    "deleteScoreTitle": "Delete this score?",
+    "deleteScoreDesc": "This will permanently delete your {{machine}} score of {{score}}. This action cannot be undone.",
+    "scoreDeleted": "Score deleted successfully",
+    "deleteScoreFailed": "Failed to delete score"
   },
   "leaderboard": {
     "title": "Leaderboard",
