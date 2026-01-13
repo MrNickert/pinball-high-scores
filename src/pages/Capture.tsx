@@ -601,13 +601,13 @@ const Capture = () => {
         await createNotification({
           userId: user.id,
           type: NotificationTypes.SCORE_VERIFIED,
-          title: "Score Verified! ✅",
-          message: `Your ${numericScore.toLocaleString()} score on ${selectedMachine} has been verified.`,
+          title: "Score Verified by AI! ✅",
+          message: `Your ${numericScore.toLocaleString()} score on ${selectedMachine} has been automatically verified.`,
           data: { machine: selectedMachine, score: numericScore },
         });
         toast({
-          title: "Score accepted! ✅",
-          description: "Your score has been verified and added to the leaderboard.",
+          title: "Score verified by AI! ✅",
+          description: "Your score has been automatically verified and added to the leaderboard.",
         });
       } else {
         // All other statuses (pending, null, etc.) are pending community review
