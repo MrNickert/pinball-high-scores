@@ -32,13 +32,39 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        
+        // If user just signed in and "remember device" is not checked,
+        // store session in sessionStorage instead (expires on browser close)
+        if (event === 'SIGNED_IN' && session) {
+          const rememberDevice = localStorage.getItem("rememberDevice") === "true";
+          if (!rememberDevice) {
+            // Mark session as temporary - will be cleared on tab/browser close
+            sessionStorage.setItem("tempSession", "true");
+          } else {
+            sessionStorage.removeItem("tempSession");
+          }
+        }
       }
     );
 
     // THEN check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
+      // Check if this was a temporary session that should have expired
+      const isTempSession = sessionStorage.getItem("tempSession") === "true";
+      const isNewBrowserSession = !sessionStorage.getItem("browserSessionActive");
+      
+      if (isTempSession && isNewBrowserSession && session) {
+        // This is a new browser session but we have a "temp" session stored
+        // Sign out to clear it
+        supabase.auth.signOut();
+        sessionStorage.removeItem("tempSession");
+      } else {
+        setSession(session);
+        setUser(session?.user ?? null);
+      }
+      
+      // Mark browser session as active
+      sessionStorage.setItem("browserSessionActive", "true");
       setLoading(false);
     });
 

@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, ArrowLeft, Loader2, Circle } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, Circle, Smartphone } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
 import { PageLayout } from "@/components/PageLayout";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
@@ -18,6 +19,9 @@ const Auth = () => {
   const [magicLinkSent, setMagicLinkSent] = useState(false);
   const [canResend, setCanResend] = useState(false);
   const [resendCountdown, setResendCountdown] = useState(60);
+  const [rememberDevice, setRememberDevice] = useState(() => {
+    return localStorage.getItem("rememberDevice") === "true";
+  });
   const { toast } = useToast();
   const { user, loading } = useAuth();
   const { t } = useTranslation();
@@ -93,11 +97,15 @@ const Auth = () => {
     }
 
     setIsLoading(true);
+    // Save remember device preference
+    localStorage.setItem("rememberDevice", rememberDevice.toString());
+    
     try {
       const { error } = await supabase.auth.signInWithOtp({
         email,
         options: {
           emailRedirectTo: window.location.origin,
+          shouldCreateUser: true,
         },
       });
 
@@ -217,6 +225,21 @@ const Auth = () => {
                       required
                     />
                   </div>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <Checkbox
+                    id="rememberDevice"
+                    checked={rememberDevice}
+                    onCheckedChange={(checked) => setRememberDevice(checked === true)}
+                  />
+                  <Label
+                    htmlFor="rememberDevice"
+                    className="text-sm text-muted-foreground cursor-pointer flex items-center gap-1.5"
+                  >
+                    <Smartphone size={14} />
+                    {t("auth.rememberDevice")}
+                  </Label>
                 </div>
 
                 <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
