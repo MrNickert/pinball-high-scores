@@ -119,7 +119,16 @@
     "passwordMinLength": "Password must be at least 6 characters",
     "passwordsDontMatch": "Passwords don't match",
     "passwordChanged": "Password updated successfully!",
-    "passwordChangeFailed": "Failed to update password"
+    "passwordChangeFailed": "Failed to update password",
+    "passwordWeak": "Weak password",
+    "passwordFair": "Fair password",
+    "passwordGood": "Good password",
+    "passwordStrong": "Strong password",
+    "passwordRequirements": "Password requirements:",
+    "reqMinLength": "At least 6 characters",
+    "reqUppercase": "One uppercase letter",
+    "reqLowercase": "One lowercase letter",
+    "reqNumber": "One number"
   },
   "navbar": {
     "home": "Home",
