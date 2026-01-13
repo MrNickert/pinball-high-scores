@@ -311,7 +311,7 @@ const Onboarding = () => {
                       onClick={() => setLanguage(lang.code as "en" | "nl")}
                       whileHover={{ scale: 1.1 }}
                       whileTap={{ scale: 0.95 }}
-                      className={`relative w-20 h-20 rounded-2xl border-2 transition-all flex items-center justify-center overflow-hidden ${
+                      className={`relative w-20 h-20 rounded-2xl border-2 transition-all flex items-center justify-center ${
                         language === lang.code
                           ? "border-primary bg-primary/10 shadow-lg ring-2 ring-primary/30"
                           : "border-border bg-muted/30 hover:border-primary/50 hover:bg-muted/50"
