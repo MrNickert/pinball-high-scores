@@ -375,5 +375,32 @@
     "friend_request_message": "{{username}} wants to be your friend.",
     "friend_accepted_title": "Friend request accepted",
     "friend_accepted_message": "{{username}} accepted your friend request."
+  },
+  "toastCapture": {
+    "scoreVerifiedByAiTitle": "Score verified by AI! ✅",
+    "scoreVerifiedByAiDesc": "Your score has been automatically verified and added to the leaderboard.",
+    "scoreSubmittedTitle": "Score submitted! 👀",
+    "scoreSubmittedDesc": "The community will review and validate your score.",
+    "scoresDetected": "Found {{count}} score(s) in your photo",
+    "scoresDetectedTitle": "Scores detected! 🎯",
+    "errorTitle": "Error",
+    "failedSubmitScore": "Failed to submit score",
+    "machineAddedTitle": "Machine added! 🎉",
+    "machineAddedDesc": "{{machine}} has been added to {{location}} on Pinball Map",
+    "failedAddMachine": "Failed to add machine to location",
+    "notAuthenticated": "Not authenticated",
+    "welcomeBackTitle": "Welcome back! 🎮",
+    "welcomeBackDesc": "Continuing at {{location}}",
+    "failedFetchArcades": "Failed to fetch nearby arcades",
+    "failedFetchMachines": "Failed to fetch machines for this location",
+    "searchError": "Search Error",
+    "failedSearchCity": "Failed to search for locations in that city",
+    "failedLoadMachineDb": "Failed to load machine database"
+  },
+  "notificationCapture": {
+    "scoreVerifiedByAiTitle": "Score Verified by AI! ✅",
+    "scoreVerifiedByAiMessage": "Your {{score}} score on {{machine}} has been automatically verified.",
+    "scoreSubmittedTitle": "Score Submitted ⏳",
+    "scoreSubmittedMessage": "Your {{score}} score on {{machine}} is pending community review."
   }
 }

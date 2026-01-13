@@ -171,8 +171,8 @@ const Capture = () => {
       setSkippedLocationStep(true);
       setStep(2);
       toast({
-        title: "Welcome back! 🎮",
-        description: `Continuing at ${locationDetails.name}`,
+        title: t("toastCapture.welcomeBackTitle"),
+        description: t("toastCapture.welcomeBackDesc", { location: locationDetails.name }),
       });
     };
 
@@ -211,8 +211,8 @@ const Capture = () => {
     } catch (error) {
       console.error("Error fetching locations:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch nearby arcades",
+        title: t("toastCapture.errorTitle"),
+        description: t("toastCapture.failedFetchArcades"),
         variant: "destructive",
       });
     } finally {
@@ -263,8 +263,8 @@ const Capture = () => {
     } catch (error) {
       console.error("Error fetching machines:", error);
       toast({
-        title: "Error",
-        description: "Failed to fetch machines for this location",
+        title: t("toastCapture.errorTitle"),
+        description: t("toastCapture.failedFetchMachines"),
         variant: "destructive",
       });
     } finally {
@@ -321,8 +321,8 @@ const Capture = () => {
     } catch (error) {
       console.error("Error searching locations:", error);
       toast({
-        title: "Search Error",
-        description: "Failed to search for locations in that city",
+        title: t("toastCapture.searchError"),
+        description: t("toastCapture.failedSearchCity"),
         variant: "destructive",
       });
     } finally {
@@ -351,8 +351,8 @@ const Capture = () => {
     } catch (error) {
       console.error("Error fetching all machines:", error);
       toast({
-        title: "Error",
-        description: "Failed to load machine database",
+        title: t("toastCapture.errorTitle"),
+        description: t("toastCapture.failedLoadMachineDb"),
         variant: "destructive",
       });
     } finally {
@@ -367,7 +367,7 @@ const Capture = () => {
     try {
       // Call backend function to add machine
       if (!session?.access_token) {
-        throw new Error("Not authenticated");
+        throw new Error(t("toastCapture.notAuthenticated"));
       }
 
       const response = await fetch(
@@ -413,17 +413,17 @@ const Capture = () => {
         setAddMachineSearch("");
         
         toast({
-          title: "Machine added! 🎉",
-          description: `${machine.name} has been added to ${selectedLocation.name} on Pinball Map`,
+          title: t("toastCapture.machineAddedTitle"),
+          description: t("toastCapture.machineAddedDesc", { machine: machine.name, location: selectedLocation.name }),
         });
       } else {
-        throw new Error(data.errors || "Failed to add machine");
+        throw new Error(data.errors || t("toastCapture.failedAddMachine"));
       }
     } catch (error: any) {
       console.error("Error adding machine:", error);
       toast({
-        title: "Error",
-        description: error.message || "Failed to add machine to location",
+        title: t("toastCapture.errorTitle"),
+        description: error.message || t("toastCapture.failedAddMachine"),
         variant: "destructive",
       });
     } finally {
@@ -498,8 +498,8 @@ const Capture = () => {
           if (data.scores && Array.isArray(data.scores) && data.scores.length > 0) {
             setDetectedScores(data.scores);
             toast({
-              title: "Scores detected! 🎯",
-              description: `Found ${data.scores.length} score(s) in your photo`,
+              title: t("toastCapture.scoresDetectedTitle"),
+              description: t("toastCapture.scoresDetected", { count: data.scores.length }),
             });
           }
         } catch (error) {
@@ -601,26 +601,26 @@ const Capture = () => {
         await createNotification({
           userId: user.id,
           type: NotificationTypes.SCORE_VERIFIED,
-          title: "Score Verified by AI! ✅",
-          message: `Your ${numericScore.toLocaleString()} score on ${selectedMachine} has been automatically verified.`,
+          title: t("notificationCapture.scoreVerifiedByAiTitle"),
+          message: t("notificationCapture.scoreVerifiedByAiMessage", { score: numericScore.toLocaleString(), machine: selectedMachine }),
           data: { machine: selectedMachine, score: numericScore },
         });
         toast({
-          title: "Score verified by AI! ✅",
-          description: "Your score has been automatically verified and added to the leaderboard.",
+          title: t("toastCapture.scoreVerifiedByAiTitle"),
+          description: t("toastCapture.scoreVerifiedByAiDesc"),
         });
       } else {
         // All other statuses (pending, null, etc.) are pending community review
         await createNotification({
           userId: user.id,
           type: NotificationTypes.SCORE_PENDING,
-          title: "Score Submitted ⏳",
-          message: `Your ${numericScore.toLocaleString()} score on ${selectedMachine} is pending community review.`,
+          title: t("notificationCapture.scoreSubmittedTitle"),
+          message: t("notificationCapture.scoreSubmittedMessage", { score: numericScore.toLocaleString(), machine: selectedMachine }),
           data: { machine: selectedMachine, score: numericScore },
         });
         toast({
-          title: "Score submitted! 👀",
-          description: "The community will review and validate your score.",
+          title: t("toastCapture.scoreSubmittedTitle"),
+          description: t("toastCapture.scoreSubmittedDesc"),
         });
       }
 
@@ -636,8 +636,8 @@ const Capture = () => {
       navigate(`/leaderboard?machine=${encodeURIComponent(selectedMachine)}`);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message || "Failed to submit score",
+        title: t("toastCapture.errorTitle"),
+        description: error.message || t("toastCapture.failedSubmitScore"),
         variant: "destructive",
       });
     } finally {

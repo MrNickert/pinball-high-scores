@@ -375,5 +375,32 @@
     "friend_request_message": "{{username}} wil je vriend worden.",
     "friend_accepted_title": "Vriendschapsverzoek geaccepteerd",
     "friend_accepted_message": "{{username}} heeft je vriendschapsverzoek geaccepteerd."
+  },
+  "toastCapture": {
+    "scoreVerifiedByAiTitle": "Score geverifieerd door AI! ✅",
+    "scoreVerifiedByAiDesc": "Je score is automatisch geverifieerd en toegevoegd aan het klassement.",
+    "scoreSubmittedTitle": "Score ingediend! 👀",
+    "scoreSubmittedDesc": "De community zal je score beoordelen en valideren.",
+    "scoresDetected": "{{count}} score(s) gevonden in je foto",
+    "scoresDetectedTitle": "Scores gedetecteerd! 🎯",
+    "errorTitle": "Fout",
+    "failedSubmitScore": "Score indienen mislukt",
+    "machineAddedTitle": "Kast toegevoegd! 🎉",
+    "machineAddedDesc": "{{machine}} is toegevoegd aan {{location}} op Pinball Map",
+    "failedAddMachine": "Kast toevoegen aan locatie mislukt",
+    "notAuthenticated": "Niet ingelogd",
+    "welcomeBackTitle": "Welkom terug! 🎮",
+    "welcomeBackDesc": "Doorgaan bij {{location}}",
+    "failedFetchArcades": "Nabijgelegen arcades ophalen mislukt",
+    "failedFetchMachines": "Kasten voor deze locatie ophalen mislukt",
+    "searchError": "Zoekfout",
+    "failedSearchCity": "Zoeken naar locaties in die stad mislukt",
+    "failedLoadMachineDb": "Machine database laden mislukt"
+  },
+  "notificationCapture": {
+    "scoreVerifiedByAiTitle": "Score Geverifieerd door AI! ✅",
+    "scoreVerifiedByAiMessage": "Je {{score}} score op {{machine}} is automatisch geverifieerd.",
+    "scoreSubmittedTitle": "Score Ingediend ⏳",
+    "scoreSubmittedMessage": "Je {{score}} score op {{machine}} wacht op beoordeling door de community."
   }
 }
