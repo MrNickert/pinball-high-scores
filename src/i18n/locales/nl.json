@@ -261,5 +261,25 @@
     "failedToSave": "Opslaan mislukt",
     "unauthorized": "Niet geautoriseerd",
     "notFound": "Pagina niet gevonden"
+  },
+  "notifications": {
+    "title": "Meldingen",
+    "markAllRead": "Alles gelezen",
+    "clear": "Wissen",
+    "noNotifications": "Nog geen meldingen",
+    "accept": "Accepteren",
+    "decline": "Afwijzen",
+    "welcome_title": "Welkom bij Multiball! 🎉",
+    "welcome_message": "Begin met het vastleggen van je flipperscore en strijd met vrienden.",
+    "score_pending_title": "Score ingediend",
+    "score_pending_message": "Je score wacht op verificatie.",
+    "score_verified_title": "Score geverifieerd! ✅",
+    "score_verified_message": "Je score is geverifieerd door de community.",
+    "score_rejected_title": "Score afgewezen",
+    "score_rejected_message": "Je score is niet geverifieerd.",
+    "friend_request_title": "Vriendschapsverzoek",
+    "friend_request_message": "{{username}} wil je vriend worden.",
+    "friend_accepted_title": "Vriendschapsverzoek geaccepteerd",
+    "friend_accepted_message": "{{username}} heeft je vriendschapsverzoek geaccepteerd."
   }
 }
