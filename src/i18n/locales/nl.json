@@ -166,7 +166,7 @@
     "description": "Leg elke skill shot, multiball-waanzin en epische high score vast. Strijd tegen spelers wereldwijd en stijg naar de top van het wereldwijde flipperkast ranglijst. Elke bal telt",
     "getStarted": "Gratis beginnen",
     "viewLeaderboards": "Bekijk ranglijsten",
-    "todaysTopScore": "Hoogste score van vandaag",
+    "latestScore": "Laatste High Score",
     "howItWorks": "Hoe het werkt",
     "simpleSteps": "Eenvoudige stappen om je prestaties te vereeuwigen",
     "globalLeaderboards": "Wereldwijde ranglijsten",
@@ -180,7 +180,7 @@
     "readyToStart": "Klaar om te beginnen?",
     "joinPlayers": "Sluit je aan bij spelers die hun scores bijhouden en wereldwijd concurreren.",
     "createFreeAccount": "Maak gratis account aan",
-    "noScoresToday": "Nog geen scores vandaag",
+    "noScoresYet": "Nog geen scores",
     "beTheFirst": "Wees de eerste met een high score!"
   },
   "dashboard": {

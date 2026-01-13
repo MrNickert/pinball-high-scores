@@ -10,10 +10,11 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 
-interface TodaysTopScore {
+interface LatestScore {
   score: number;
   machine_name: string;
   username: string;
+  created_at: string;
 }
 
 const Index = () => {
@@ -21,8 +22,8 @@ const Index = () => {
   const { t } = useTranslation();
   const navigate = useNavigate();
   const [checkingOnboarding, setCheckingOnboarding] = useState(false);
-  const [todaysTopScore, setTodaysTopScore] = useState<TodaysTopScore | null>(null);
-  const [loadingTopScore, setLoadingTopScore] = useState(true);
+  const [latestScore, setLatestScore] = useState<LatestScore | null>(null);
+  const [loadingLatestScore, setLoadingLatestScore] = useState(true);
 
   const features = [
     {
@@ -47,46 +48,43 @@ const Index = () => {
     },
   ];
 
-  // Fetch today's top score
+  // Fetch most recent score
   useEffect(() => {
-    const fetchTodaysTopScore = async () => {
+    const fetchLatestScore = async () => {
       try {
-        const today = new Date();
-        today.setHours(0, 0, 0, 0);
-        
         const { data: scores, error } = await supabase
           .from("scores")
-          .select("score, machine_name, user_id")
-          .gte("created_at", today.toISOString())
-          .order("score", { ascending: false })
+          .select("score, machine_name, user_id, created_at")
+          .order("created_at", { ascending: false })
           .limit(1);
 
         if (error) throw error;
 
         if (scores && scores.length > 0) {
-          const topScore = scores[0];
+          const recentScore = scores[0];
           
           // Fetch username
           const { data: profile } = await supabase
             .from("public_profiles")
             .select("username")
-            .eq("user_id", topScore.user_id)
+            .eq("user_id", recentScore.user_id)
             .maybeSingle();
 
-          setTodaysTopScore({
-            score: topScore.score,
-            machine_name: topScore.machine_name,
+          setLatestScore({
+            score: recentScore.score,
+            machine_name: recentScore.machine_name,
             username: profile?.username || "Anonymous",
+            created_at: recentScore.created_at,
           });
         }
       } catch (error) {
-        console.error("Error fetching today's top score:", error);
+        console.error("Error fetching latest score:", error);
       } finally {
-        setLoadingTopScore(false);
+        setLoadingLatestScore(false);
       }
     };
 
-    fetchTodaysTopScore();
+    fetchLatestScore();
   }, []);
 
   useEffect(() => {
@@ -190,12 +188,12 @@ const Index = () => {
           >
             <div className="bg-card rounded-2xl p-6 shadow-lg border border-border">
               <div className="text-center">
-                <p className="text-sm text-muted-foreground mb-2">{t("landing.todaysTopScore")}</p>
-                {loadingTopScore ? (
+                <p className="text-sm text-muted-foreground mb-2">{t("landing.latestScore")}</p>
+                {loadingLatestScore ? (
                   <div className="py-4">
                     <Loader2 className="animate-spin text-primary mx-auto" size={24} />
                   </div>
-                ) : todaysTopScore ? (
+                ) : latestScore ? (
                   <>
                     <motion.div
                       className="text-4xl font-bold text-foreground score-display"
@@ -203,14 +201,14 @@ const Index = () => {
                       animate={{ scale: 1 }}
                       transition={{ delay: 0.5, type: "spring" }}
                     >
-                      {todaysTopScore.score.toLocaleString()}
+                      {latestScore.score.toLocaleString()}
                     </motion.div>
-                    <p className="text-primary mt-2 font-semibold">{todaysTopScore.machine_name}</p>
-                    <p className="text-muted-foreground text-sm">by @{todaysTopScore.username}</p>
+                    <p className="text-primary mt-2 font-semibold">{latestScore.machine_name}</p>
+                    <p className="text-muted-foreground text-sm">by @{latestScore.username}</p>
                   </>
                 ) : (
                   <div className="py-2">
-                    <p className="text-muted-foreground text-lg">{t("landing.noScoresToday")}</p>
+                    <p className="text-muted-foreground text-lg">{t("landing.noScoresYet")}</p>
                     <p className="text-sm text-muted-foreground mt-1">{t("landing.beTheFirst")}</p>
                   </div>
                 )}

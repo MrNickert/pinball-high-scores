@@ -166,7 +166,7 @@
     "description": "Capture every skill shot, multiball frenzy, and epic high score. Compete with players worldwide and rise to the top of the global pinball leaderboard. Every ball counts",
     "getStarted": "Get Started Free",
     "viewLeaderboards": "View Leaderboards",
-    "todaysTopScore": "Today's Top Score",
+    "latestScore": "Latest High Score",
     "howItWorks": "How it works",
     "simpleSteps": "Simple steps to immortalize your achievements",
     "globalLeaderboards": "Global Leaderboards",
@@ -180,7 +180,7 @@
     "readyToStart": "Ready to start tracking?",
     "joinPlayers": "Join players tracking their scores and competing globally.",
     "createFreeAccount": "Create Free Account",
-    "noScoresToday": "No scores yet today",
+    "noScoresYet": "No scores yet",
     "beTheFirst": "Be the first to set a high score!"
   },
   "dashboard": {
