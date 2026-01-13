@@ -146,7 +146,9 @@
     "instantSubmitDesc": "Upload scores in seconds",
     "readyToStart": "Ready to start tracking?",
     "joinPlayers": "Join players tracking their scores and competing globally.",
-    "createFreeAccount": "Create Free Account"
+    "createFreeAccount": "Create Free Account",
+    "noScoresToday": "No scores yet today",
+    "beTheFirst": "Be the first to set a high score!"
   },
   "dashboard": {
     "welcome": "Welcome back",
