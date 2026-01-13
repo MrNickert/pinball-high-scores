@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowLeft, Loader2, Circle, Eye, EyeOff } from "lucide-react";
+import { Mail, Lock, ArrowLeft, Loader2, Circle, Eye, EyeOff, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,6 +11,20 @@ import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
 import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
+
+const getPasswordStrength = (password: string): { level: number; label: string } => {
+  let score = 0;
+  if (password.length >= 6) score++;
+  if (password.length >= 8) score++;
+  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
+  if (/[0-9]/.test(password)) score++;
+  if (/[^A-Za-z0-9]/.test(password)) score++;
+
+  if (score <= 1) return { level: 1, label: "passwordWeak" };
+  if (score === 2) return { level: 2, label: "passwordFair" };
+  if (score === 3) return { level: 3, label: "passwordGood" };
+  return { level: 4, label: "passwordStrong" };
+};
 
 const Auth = () => {
   const [isLogin, setIsLogin] = useState(true);
@@ -195,6 +209,70 @@ const Auth = () => {
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
+
+              {/* Password strength indicator - only show during signup */}
+              {!isLogin && password && (
+                <div className="mt-3 space-y-2">
+                  <div className="flex gap-1">
+                    {[1, 2, 3, 4].map((level) => {
+                      const strength = getPasswordStrength(password);
+                      const isActive = level <= strength.level;
+                      return (
+                        <div
+                          key={level}
+                          className={`h-1.5 flex-1 rounded-full transition-colors ${
+                            isActive
+                              ? strength.level <= 1
+                                ? "bg-destructive"
+                                : strength.level === 2
+                                ? "bg-amber-500"
+                                : strength.level === 3
+                                ? "bg-primary"
+                                : "bg-green-500"
+                              : "bg-muted"
+                          }`}
+                        />
+                      );
+                    })}
+                  </div>
+                  <p className={`text-xs ${
+                    getPasswordStrength(password).level <= 1
+                      ? "text-destructive"
+                      : getPasswordStrength(password).level === 2
+                      ? "text-amber-500"
+                      : getPasswordStrength(password).level === 3
+                      ? "text-primary"
+                      : "text-green-500"
+                  }`}>
+                    {t(`settings.${getPasswordStrength(password).label}`)}
+                  </p>
+                </div>
+              )}
+
+              {/* Password requirements - only show during signup */}
+              {!isLogin && (
+                <div className="text-xs text-muted-foreground space-y-1 mt-3">
+                  <p className="font-medium">{t("settings.passwordRequirements")}</p>
+                  <ul className="space-y-0.5 ml-1">
+                    <li className={`flex items-center gap-1.5 ${password.length >= 6 ? "text-green-500" : ""}`}>
+                      <Check size={12} className={password.length >= 6 ? "opacity-100" : "opacity-0"} />
+                      {t("settings.reqMinLength")}
+                    </li>
+                    <li className={`flex items-center gap-1.5 ${/[A-Z]/.test(password) ? "text-green-500" : ""}`}>
+                      <Check size={12} className={/[A-Z]/.test(password) ? "opacity-100" : "opacity-0"} />
+                      {t("settings.reqUppercase")}
+                    </li>
+                    <li className={`flex items-center gap-1.5 ${/[a-z]/.test(password) ? "text-green-500" : ""}`}>
+                      <Check size={12} className={/[a-z]/.test(password) ? "opacity-100" : "opacity-0"} />
+                      {t("settings.reqLowercase")}
+                    </li>
+                    <li className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? "text-green-500" : ""}`}>
+                      <Check size={12} className={/[0-9]/.test(password) ? "opacity-100" : "opacity-0"} />
+                      {t("settings.reqNumber")}
+                    </li>
+                  </ul>
+                </div>
+              )}
             </div>
 
             <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
