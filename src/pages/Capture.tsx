@@ -981,6 +981,28 @@ const Capture = () => {
                 animate={{ opacity: 1, y: 0 }}
               >
                 <Label className="text-foreground mb-3 block">{t("capture.uploadScorePhoto")}</Label>
+                
+                {/* Photo requirements tip */}
+                <div className="mb-4 p-3 bg-primary/5 border border-primary/20 rounded-xl">
+                  <p className="text-sm text-primary font-medium mb-1">
+                    {t("capture.photoTipTitle")}
+                  </p>
+                  <ul className="text-xs text-muted-foreground space-y-1">
+                    <li className="flex items-center gap-2">
+                      <Check size={12} className="text-primary flex-shrink-0" />
+                      {t("capture.photoTipMachine")}
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check size={12} className="text-primary flex-shrink-0" />
+                      {t("capture.photoTipScores")}
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <Check size={12} className="text-primary flex-shrink-0" />
+                      {t("capture.photoTipClear")}
+                    </li>
+                  </ul>
+                </div>
+                
                 <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
                   <Upload className="text-muted-foreground mb-2" size={32} />
                   <span className="text-sm text-muted-foreground">
