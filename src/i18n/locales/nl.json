@@ -15,15 +15,17 @@
     "filter": "Filter",
     "validation": "Validatie",
     "showAll": "Alles tonen",
-    "noneYet": "Nog geen"
+    "noneYet": "Nog geen",
+    "signInRequired": "Inloggen vereist"
   },
   "auth": {
     "signIn": "Inloggen",
     "signUp": "Registreren",
-    "signOut": "Uitloggen",
+    "signOut": "Uitgelogd",
     "createAccount": "Account aanmaken",
     "welcomeBack": "Welkom terug",
     "signInToTrack": "Log in om je scores bij te houden",
+    "signInToViewProfiles": "Log in om spelersprofielen te bekijken",
     "startTracking": "Begin met het bijhouden van je prestaties",
     "email": "E-mail",
     "password": "Wachtwoord",
@@ -101,7 +103,12 @@
     "deleteConfirmTitle": "Weet je het absoluut zeker?",
     "deleteConfirmDesc": "Deze actie kan niet ongedaan worden gemaakt. Dit verwijdert permanent je account en al je gegevens, inclusief scores, vrienden en profielinformatie.",
     "yesDelete": "Ja, verwijder mijn account",
-    "accountDeleted": "Je account is verwijderd"
+    "accountDeleted": "Je account is verwijderd",
+    "firstName": "Voornaam",
+    "lastName": "Achternaam",
+    "username": "Gebruikersnaam",
+    "usernameVisible": "Dit is zichtbaar voor andere spelers",
+    "maxFileSize": "Max 2MB, JPG/PNG"
   },
   "navbar": {
     "home": "Home",
@@ -136,27 +143,41 @@
   "dashboard": {
     "welcome": "Welkom terug",
     "readyToCapture": "Klaar om je volgende high score vast te leggen?",
-    "captureNewScore": "Nieuwe Score Vastleggen",
-    "totalScores": "Totale Scores",
+    "captureNewScore": "Nieuwe score vastleggen",
+    "totalScores": "Totale scores",
     "verified": "Geverifieerd",
-    "machinesPlayed": "Machines Gespeeld",
-    "lastMachine": "Laatste Machine",
+    "machinesPlayed": "Machines gespeeld",
+    "lastMachine": "Laatste machine",
     "friendsActivity": "Vriendenactiviteit",
     "viewAll": "Alles bekijken",
     "noFriendActivity": "Nog geen vriendenactiviteit. Maak contact met andere spelers!",
-    "findFriends": "Vind Vrienden",
+    "findFriends": "Vind vrienden",
     "scored": "scoorde",
     "on": "op"
   },
   "capture": {
     "title": "Score vastleggen",
+    "subtitle": "Dien je score in en klim in de ranglijst",
     "distance": "Afstand",
     "away": "verwijderd"
   },
   "profile": {
     "scores": "Scores",
     "friends": "Vrienden",
-    "joined": "Lid sinds"
+    "joined": "Lid sinds",
+    "editProfile": "Profiel bewerken",
+    "totalScores": "Totale scores",
+    "verifiedScores": "Geverifieerd",
+    "machinesPlayed": "Machines",
+    "memberSince": "Lid sinds",
+    "recentScores": "Recente scores",
+    "addScore": "Score toevoegen",
+    "noScoresYet": "Nog geen scores",
+    "submitFirstScore": "Dien je eerste score in",
+    "proPlayer": "Pro speler",
+    "newPlayer": "Nieuwe speler",
+    "profileNotFound": "Profiel niet gevonden",
+    "profileNotFoundDesc": "Dit spelersprofiel bestaat niet of is verwijderd."
   },
   "leaderboard": {
     "title": "Ranglijst",
@@ -167,7 +188,7 @@
     "beFirst": "Wees de eerste om een score in te dienen!",
     "noVerifiedScores": "Geen geverifieerde scores",
     "adjustFilters": "Pas filters aan om meer scores te zien",
-    "showAllScores": "Alle Scores Tonen",
+    "showAllScores": "Alle scores tonen",
     "rankings": "Ranglijst",
     "unknownLocation": "Onbekende locatie",
     "accepted": "Geaccepteerd",
@@ -175,24 +196,38 @@
   },
   "friends": {
     "title": "Vrienden",
-    "requests": "Vriendschapsverzoeken",
+    "subtitle": "Maak contact met andere flipperspelers",
+    "requests": "Verzoeken",
     "addFriend": "Vriend toevoegen",
     "removeFriend": "Vriend verwijderen",
     "accept": "Accepteren",
-    "decline": "Afwijzen"
+    "decline": "Afwijzen",
+    "nearby": "In de buurt",
+    "sent": "Verzonden",
+    "noFriendsYet": "Nog geen vrienden. Zoek spelers om contact te maken!",
+    "searchPlaceholder": "Zoek op gebruikersnaam...",
+    "searchMinChars": "Voer minimaal 2 tekens in om te zoeken",
+    "tooManySearches": "Te veel zoekverzoeken. Wacht even.",
+    "failedToSearch": "Zoeken naar gebruikers mislukt",
+    "loadingNearby": "Spelers in de buurt zoeken...",
+    "noPlayersNearby": "Geen spelers gevonden op jouw locaties",
+    "playMoreLocations": "Speel op meer locaties om spelers in de buurt te ontdekken",
+    "alreadyConnected": "Al verbonden",
+    "noPendingRequests": "Geen openstaande vriendschapsverzoeken",
+    "noPendingSent": "Geen openstaande verzonden verzoeken"
   },
   "verify": {
-    "submitScore": "Score vastleggen",
     "title": "Scores verifiëren",
+    "subtitle": "Help de community door high scores te bevestigen",
     "approve": "Goedkeuren",
     "reject": "Afwijzen",
     "communityReviews": "Community reviews",
     "myPending": "Mijn scores in review",
-    "subtitle": "Help de community door high scores te bevestigen",
     "allCaughtUp": "Alles bijgewerkt!",
-    "noScoresPending": "Er zijn geen scores in afwachting van verificatie."
+    "noScoresPending": "Er zijn geen scores in afwachting van verificatie.",
     "allVerified": "Alles bijgewerkt!",
-    "noPendingScores": "Er zijn geen scores in afwachting van verificatie."
+    "noPendingScores": "Er zijn geen scores in afwachting van verificatie.",
+    "submitScore": "Score vastleggen"
   },
   "errors": {
     "somethingWrong": "Er ging iets mis",

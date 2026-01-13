@@ -280,7 +280,7 @@ const Friends = () => {
       <div className="min-h-screen bg-background">
         <Navbar />
         <div className="pt-24 px-4 text-center">
-          <p className="text-muted-foreground">Please sign in to view friends.</p>
+          <p className="text-muted-foreground">{t("auth.signInToViewProfiles")}</p>
         </div>
       </div>
     );
@@ -342,7 +342,7 @@ const Friends = () => {
                       <span className="font-medium text-foreground hover:text-primary transition-colors">{profile.username}</span>
                     </Link>
                     {isAlreadyFriendOrPending(profile.user_id) ? (
-                      <span className="text-sm text-muted-foreground">Already connected</span>
+                      <span className="text-sm text-muted-foreground">{t("friends.alreadyConnected")}</span>
                     ) : (
                       <Button size="sm" onClick={() => sendFriendRequest(profile.user_id)}>
                         <UserPlus size={16} />
@@ -459,7 +459,7 @@ const Friends = () => {
               <TabsContent value="requests">
                 {pendingReceived.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No pending friend requests
+                    {t("friends.noPendingRequests")}
                   </div>
                 ) : (
                   <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -495,7 +495,7 @@ const Friends = () => {
               <TabsContent value="sent">
                 {pendingSent.length === 0 ? (
                   <div className="text-center py-8 text-muted-foreground">
-                    No pending sent requests
+                    {t("friends.noPendingSent")}
                   </div>
                 ) : (
                   <div className="bg-card rounded-xl border border-border overflow-hidden">
@@ -514,7 +514,7 @@ const Friends = () => {
                           </div>
                           <span className="font-medium text-foreground hover:text-primary transition-colors">{friendship.profile?.username || "Unknown"}</span>
                         </Link>
-                        <span className="text-sm text-muted-foreground">Pending</span>
+                        <span className="text-sm text-muted-foreground">{t("leaderboard.pending")}</span>
                       </div>
                     ))}
                   </div>
