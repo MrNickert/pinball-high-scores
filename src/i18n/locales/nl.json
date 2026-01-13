@@ -22,6 +22,7 @@
     "signIn": "Inloggen",
     "signUp": "Registreren",
     "signOut": "Uitgelogd",
+    "signInTitle": "Inloggen bij Multiball",
     "createAccount": "Account aanmaken",
     "welcomeBack": "Welkom terug",
     "signInToTrack": "Log in om je scores bij te houden",
@@ -52,7 +53,14 @@
     "passwordResetSuccess": "Wachtwoord succesvol gereset!",
     "passwordResetFailed": "Wachtwoord resetten mislukt",
     "invalidResetLink": "Ongeldige of verlopen link",
-    "invalidResetLinkDesc": "Deze wachtwoord reset-link is ongeldig of verlopen. Vraag een nieuwe aan."
+    "invalidResetLinkDesc": "Deze wachtwoord reset-link is ongeldig of verlopen. Vraag een nieuwe aan.",
+    "magicLinkDesc": "Vul je e-mail in en we sturen je een magic link om in te loggen",
+    "sendMagicLink": "Magic Link versturen",
+    "magicLinkSent": "Magic link verzonden! Controleer je e-mail.",
+    "magicLinkSentDesc": "Klik op de link in je e-mail om in te loggen",
+    "magicLinkSentTo": "We hebben een inloglink gestuurd naar",
+    "magicLinkFailed": "Magic link verzenden mislukt",
+    "tryDifferentEmail": "Probeer een ander e-mailadres"
   },
   "onboarding": {
     "setupProfile": "Stel je profiel in",

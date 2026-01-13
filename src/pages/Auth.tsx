@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { motion } from "framer-motion";
 import { Link, useNavigate } from "react-router-dom";
-import { Mail, Lock, ArrowLeft, Loader2, Circle, Eye, EyeOff, Check } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, Circle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -10,75 +10,20 @@ import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
-import { createNotification, NotificationTypes } from "@/hooks/useNotifications";
-
-const getPasswordStrength = (password: string): { level: number; label: string } => {
-  let score = 0;
-  if (password.length >= 6) score++;
-  if (password.length >= 8) score++;
-  if (/[A-Z]/.test(password) && /[a-z]/.test(password)) score++;
-  if (/[0-9]/.test(password)) score++;
-  if (/[^A-Za-z0-9]/.test(password)) score++;
-
-  if (score <= 1) return { level: 1, label: "passwordWeak" };
-  if (score === 2) return { level: 2, label: "passwordFair" };
-  if (score === 3) return { level: 3, label: "passwordGood" };
-  return { level: 4, label: "passwordStrong" };
-};
 
 const Auth = () => {
-  const [isLogin, setIsLogin] = useState(true);
-  const [isForgotPassword, setIsForgotPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
-  const [resetEmailSent, setResetEmailSent] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
   const { toast } = useToast();
-  const { signIn, signUp, user, loading } = useAuth();
+  const { user, loading } = useAuth();
   const { t } = useTranslation();
   const navigate = useNavigate();
-
-  const handleForgotPassword = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!email) {
-      toast({
-        title: t("common.error"),
-        description: t("auth.enterEmail"),
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setIsLoading(true);
-    try {
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}/reset-password`,
-      });
-
-      if (error) throw error;
-
-      setResetEmailSent(true);
-      toast({
-        title: t("common.success"),
-        description: t("auth.resetEmailSent"),
-      });
-    } catch (error: any) {
-      toast({
-        title: t("common.error"),
-        description: error.message || t("auth.resetEmailFailed"),
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
 
   const handleGoogleSignIn = async () => {
     setIsGoogleLoading(true);
     try {
-      // Redirect back to origin; Index page handles onboarding redirect for new users
       const { error } = await supabase.auth.signInWithOAuth({
         provider: "google",
         options: {
@@ -99,7 +44,6 @@ const Auth = () => {
   useEffect(() => {
     const checkOnboardingStatus = async () => {
       if (!loading && user) {
-        // Check if user has completed onboarding
         const { data: profile } = await supabase
           .from("profiles")
           .select("onboarding_completed")
@@ -117,42 +61,37 @@ const Auth = () => {
     checkOnboardingStatus();
   }, [user, loading, navigate]);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleMagicLink = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!email) {
+      toast({
+        title: t("common.error"),
+        description: t("auth.enterEmail"),
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsLoading(true);
-
     try {
-      if (isLogin) {
-        const { error } = await signIn(email, password);
-        if (error) throw error;
-        // Don't navigate here - let the useEffect handle redirect after checking onboarding status
-      } else {
-        // Generate a temporary username from email for signup
-        const tempUsername = email.split("@")[0].replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 20);
-        const { error, data } = await signUp(email, password, tempUsername);
-        if (error) throw error;
+      const { error } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
 
-        // Create welcome notification for new user
-        if (data?.user) {
-          await createNotification({
-            userId: data.user.id,
-            type: NotificationTypes.WELCOME,
-            title: "Welcome to Multiball! 🎉",
-            message: "Start capturing your pinball scores and compete with friends.",
-          });
-        }
+      if (error) throw error;
 
-        toast({
-          title: t("auth.accountCreated"),
-          description: t("auth.letsSetupProfile"),
-        });
-        // Navigate to onboarding for new users
-        navigate("/onboarding");
-      }
+      setMagicLinkSent(true);
+      toast({
+        title: t("common.success"),
+        description: t("auth.magicLinkSent"),
+      });
     } catch (error: any) {
       toast({
         title: t("common.error"),
-        description: error.message || t("errors.somethingWrong"),
+        description: error.message || t("auth.magicLinkFailed"),
         variant: "destructive",
       });
     } finally {
@@ -188,96 +127,44 @@ const Auth = () => {
             <div className="flex justify-center mb-4">
               <div className="relative">
                 <Circle className="w-12 h-12 text-primary fill-primary/20" strokeWidth={2.5} />
-                {isForgotPassword ? (
-                  <Mail
-                    className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                    strokeWidth={2}
-                  />
-                ) : (
-                  <Circle
-                    className="w-4 h-4 text-primary fill-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
-                    strokeWidth={0}
-                  />
-                )}
+                <Mail
+                  className="w-5 h-5 text-primary absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2"
+                  strokeWidth={2}
+                />
               </div>
             </div>
             <h1 className="text-2xl font-bold text-foreground mb-2">
-              {isForgotPassword 
-                ? t("auth.forgotPasswordTitle") 
-                : isLogin 
-                  ? t("auth.welcomeBack") 
-                  : t("auth.createAccount")}
+              {magicLinkSent ? t("auth.checkYourEmail") : t("auth.signInTitle")}
             </h1>
             <p className="text-muted-foreground text-sm">
-              {isForgotPassword 
-                ? t("auth.forgotPasswordDesc") 
-                : isLogin 
-                  ? t("auth.signInToTrack") 
-                  : t("auth.startTracking")}
+              {magicLinkSent ? t("auth.magicLinkSentDesc") : t("auth.magicLinkDesc")}
             </p>
           </div>
 
-          {/* Forgot Password Form */}
-          {isForgotPassword ? (
-            resetEmailSent ? (
-              <div className="text-center space-y-4">
-                <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
-                  <Mail className="w-8 h-8 text-primary" />
-                </div>
-                <div>
-                  <h3 className="font-semibold text-foreground">{t("auth.checkYourEmail")}</h3>
-                  <p className="text-sm text-muted-foreground mt-2">
-                    {t("auth.resetEmailSentDesc")}
-                  </p>
-                </div>
-                <Button
-                  variant="outline"
-                  className="w-full"
-                  onClick={() => {
-                    setIsForgotPassword(false);
-                    setResetEmailSent(false);
-                  }}
-                >
-                  {t("auth.backToSignIn")}
-                </Button>
+          {magicLinkSent ? (
+            <div className="text-center space-y-4">
+              <div className="w-16 h-16 bg-primary/10 rounded-full flex items-center justify-center mx-auto">
+                <Mail className="w-8 h-8 text-primary" />
               </div>
-            ) : (
-              <form onSubmit={handleForgotPassword} className="space-y-5">
-                <div>
-                  <Label htmlFor="reset-email" className="text-foreground">
-                    {t("auth.email")}
-                  </Label>
-                  <div className="relative mt-2">
-                    <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                    <Input
-                      id="reset-email"
-                      type="email"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      placeholder="you@example.com"
-                      className="pl-10"
-                      required
-                    />
-                  </div>
-                </div>
-
-                <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : t("auth.sendResetLink")}
-                </Button>
-
-                <button
-                  type="button"
-                  onClick={() => setIsForgotPassword(false)}
-                  className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {t("auth.backToSignIn")}
-                </button>
-              </form>
-            )
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  {t("auth.magicLinkSentTo")} <span className="font-medium text-foreground">{email}</span>
+                </p>
+              </div>
+              <Button
+                variant="outline"
+                className="w-full"
+                onClick={() => {
+                  setMagicLinkSent(false);
+                  setEmail("");
+                }}
+              >
+                {t("auth.tryDifferentEmail")}
+              </Button>
+            </div>
           ) : (
-            /* Login/Signup Form */
             <>
-              <form onSubmit={handleSubmit} className="space-y-5">
+              <form onSubmit={handleMagicLink} className="space-y-5">
                 <div>
                   <Label htmlFor="email" className="text-foreground">
                     {t("auth.email")}
@@ -296,112 +183,8 @@ const Auth = () => {
                   </div>
                 </div>
 
-                <div>
-                  <Label htmlFor="password" className="text-foreground">
-                    {t("auth.password")}
-                  </Label>
-                  <div className="relative mt-2">
-                    <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-                    <Input
-                      id="password"
-                      type={showPassword ? "text" : "password"}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      placeholder="••••••••"
-                      className="pl-10 pr-10"
-                      required
-                      minLength={6}
-                    />
-                    <button
-                      type="button"
-                      onClick={() => setShowPassword(!showPassword)}
-                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
-                      tabIndex={-1}
-                    >
-                      {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
-                    </button>
-                  </div>
-
-                  {/* Password strength indicator - only show during signup */}
-                  {!isLogin && password && (
-                    <div className="mt-3 space-y-2">
-                      <div className="flex gap-1">
-                        {[1, 2, 3, 4].map((level) => {
-                          const strength = getPasswordStrength(password);
-                          const isActive = level <= strength.level;
-                          return (
-                            <div
-                              key={level}
-                              className={`h-1.5 flex-1 rounded-full transition-colors ${
-                                isActive
-                                  ? strength.level <= 1
-                                    ? "bg-destructive"
-                                    : strength.level === 2
-                                    ? "bg-amber-500"
-                                    : strength.level === 3
-                                    ? "bg-primary"
-                                    : "bg-green-500"
-                                  : "bg-muted"
-                              }`}
-                            />
-                          );
-                        })}
-                      </div>
-                      <p className={`text-xs ${
-                        getPasswordStrength(password).level <= 1
-                          ? "text-destructive"
-                          : getPasswordStrength(password).level === 2
-                          ? "text-amber-500"
-                          : getPasswordStrength(password).level === 3
-                          ? "text-primary"
-                          : "text-green-500"
-                      }`}>
-                        {t(`settings.${getPasswordStrength(password).label}`)}
-                      </p>
-                    </div>
-                  )}
-
-                  {/* Password requirements - only show during signup */}
-                  {!isLogin && (
-                    <div className="text-xs text-muted-foreground space-y-1 mt-3">
-                      <p className="font-medium">{t("settings.passwordRequirements")}</p>
-                      <ul className="space-y-0.5 ml-1">
-                        <li className={`flex items-center gap-1.5 ${password.length >= 6 ? "text-green-500" : ""}`}>
-                          <Check size={12} className={password.length >= 6 ? "opacity-100" : "opacity-0"} />
-                          {t("settings.reqMinLength")}
-                        </li>
-                        <li className={`flex items-center gap-1.5 ${/[A-Z]/.test(password) ? "text-green-500" : ""}`}>
-                          <Check size={12} className={/[A-Z]/.test(password) ? "opacity-100" : "opacity-0"} />
-                          {t("settings.reqUppercase")}
-                        </li>
-                        <li className={`flex items-center gap-1.5 ${/[a-z]/.test(password) ? "text-green-500" : ""}`}>
-                          <Check size={12} className={/[a-z]/.test(password) ? "opacity-100" : "opacity-0"} />
-                          {t("settings.reqLowercase")}
-                        </li>
-                        <li className={`flex items-center gap-1.5 ${/[0-9]/.test(password) ? "text-green-500" : ""}`}>
-                          <Check size={12} className={/[0-9]/.test(password) ? "opacity-100" : "opacity-0"} />
-                          {t("settings.reqNumber")}
-                        </li>
-                      </ul>
-                    </div>
-                  )}
-                </div>
-
-                {/* Forgot password link - only show on login */}
-                {isLogin && (
-                  <div className="text-right">
-                    <button
-                      type="button"
-                      onClick={() => setIsForgotPassword(true)}
-                      className="text-sm text-primary hover:text-primary/80 transition-colors"
-                    >
-                      {t("auth.forgotPassword")}
-                    </button>
-                  </div>
-                )}
-
                 <Button type="submit" variant="gradient" className="w-full" size="lg" disabled={isLoading}>
-                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : isLogin ? t("auth.signIn") : t("auth.createAccount")}
+                  {isLoading ? <Loader2 className="animate-spin" size={20} /> : t("auth.sendMagicLink")}
                 </Button>
               </form>
 
@@ -448,17 +231,6 @@ const Auth = () => {
                   </>
                 )}
               </Button>
-
-              <div className="mt-6 text-center">
-                <button
-                  type="button"
-                  onClick={() => setIsLogin(!isLogin)}
-                  className="text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  {isLogin ? t("auth.noAccount") : t("auth.hasAccount")}
-                  <span className="text-primary font-medium ml-1">{isLogin ? t("auth.signUp") : t("auth.signIn")}</span>
-                </button>
-              </div>
             </>
           )}
         </motion.div>

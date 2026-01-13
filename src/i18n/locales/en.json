@@ -22,6 +22,7 @@
     "signIn": "Sign In",
     "signUp": "Sign Up",
     "signOut": "Signed out successfully",
+    "signInTitle": "Sign in to Multiball",
     "createAccount": "Create Account",
     "welcomeBack": "Welcome back",
     "signInToTrack": "Sign in to track your scores",
@@ -52,7 +53,14 @@
     "passwordResetSuccess": "Password reset successfully!",
     "passwordResetFailed": "Failed to reset password",
     "invalidResetLink": "Invalid or expired link",
-    "invalidResetLinkDesc": "This password reset link is invalid or has expired. Please request a new one."
+    "invalidResetLinkDesc": "This password reset link is invalid or has expired. Please request a new one.",
+    "magicLinkDesc": "Enter your email and we'll send you a magic link to sign in",
+    "sendMagicLink": "Send Magic Link",
+    "magicLinkSent": "Magic link sent! Check your email.",
+    "magicLinkSentDesc": "Click the link in your email to sign in",
+    "magicLinkSentTo": "We sent a sign-in link to",
+    "magicLinkFailed": "Failed to send magic link",
+    "tryDifferentEmail": "Try a different email"
   },
   "onboarding": {
     "setupProfile": "Set up your profile",

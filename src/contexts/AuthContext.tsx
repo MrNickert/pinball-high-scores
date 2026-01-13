@@ -6,8 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, username: string) => Promise<{ error: Error | null; data: { user: User | null } | null }>;
-  signIn: (email: string, password: string) => Promise<{ error: Error | null }>;
+  signInWithMagicLink: (email: string) => Promise<{ error: Error | null }>;
   signOut: () => Promise<void>;
 }
 
@@ -46,24 +45,12 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, username: string) => {
-    const { error, data } = await supabase.auth.signUp({
+  const signInWithMagicLink = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
       email,
-      password,
       options: {
         emailRedirectTo: window.location.origin,
-        data: {
-          username,
-        },
       },
-    });
-    return { error, data: data ? { user: data.user } : null };
-  };
-
-  const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
-      email,
-      password,
     });
     return { error };
   };
@@ -73,7 +60,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, session, loading, signUp, signIn, signOut }}>
+    <AuthContext.Provider value={{ user, session, loading, signInWithMagicLink, signOut }}>
       {children}
     </AuthContext.Provider>
   );
