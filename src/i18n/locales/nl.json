@@ -279,7 +279,11 @@
     "proPlayer": "Pro speler",
     "newPlayer": "Nieuwe speler",
     "profileNotFound": "Profiel niet gevonden",
-    "profileNotFoundDesc": "Dit spelersprofiel bestaat niet of is verwijderd."
+    "profileNotFoundDesc": "Dit spelersprofiel bestaat niet of is verwijderd.",
+    "deleteScoreTitle": "Deze score verwijderen?",
+    "deleteScoreDesc": "Dit verwijdert permanent je {{machine}} score van {{score}}. Deze actie kan niet ongedaan worden gemaakt.",
+    "scoreDeleted": "Score succesvol verwijderd",
+    "deleteScoreFailed": "Kon score niet verwijderen"
   },
   "leaderboard": {
     "title": "Ranglijst",

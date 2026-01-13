@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
-import { User, Trophy, Target, Calendar, Settings, Loader2, MapPin, CheckCircle } from "lucide-react";
+import { User, Trophy, Target, Calendar, Settings, Loader2, MapPin, CheckCircle, Trash2 } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
 import { PageLayout } from "@/components/PageLayout";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,18 @@ import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge } from "@/components/ValidationBadge";
 import { useTranslation } from "react-i18next";
+import { toast } from "sonner";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 interface Profile {
   username: string;
@@ -34,6 +46,7 @@ const Profile = () => {
   const [profile, setProfile] = useState<Profile | null>(null);
   const [scores, setScores] = useState<Score[]>([]);
   const [loadingData, setLoadingData] = useState(true);
+  const [deletingScoreId, setDeletingScoreId] = useState<string | null>(null);
 
   // Determine if viewing own profile or someone else's
   const isOwnProfile = !userId || userId === user?.id;
@@ -113,6 +126,27 @@ const Profile = () => {
     }
   };
 
+  const handleDeleteScore = async (scoreId: string) => {
+    setDeletingScoreId(scoreId);
+    try {
+      const { error } = await supabase
+        .from("scores")
+        .delete()
+        .eq("id", scoreId)
+        .eq("user_id", user?.id);
+
+      if (error) throw error;
+
+      // Remove from local state
+      setScores(prev => prev.filter(s => s.id !== scoreId));
+      toast.success(t("profile.scoreDeleted"));
+    } catch (error: any) {
+      console.error("Error deleting score:", error);
+      toast.error(t("profile.deleteScoreFailed"));
+    } finally {
+      setDeletingScoreId(null);
+    }
+  };
 
   if (loading || loadingData) {
     return (
@@ -310,6 +344,41 @@ const Profile = () => {
                     <p className="font-bold text-primary">
                       {score.score.toLocaleString()}
                     </p>
+                    {isOwnProfile && (
+                      <AlertDialog>
+                        <AlertDialogTrigger asChild>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-muted-foreground hover:text-destructive"
+                            disabled={deletingScoreId === score.id}
+                          >
+                            {deletingScoreId === score.id ? (
+                              <Loader2 className="h-4 w-4 animate-spin" />
+                            ) : (
+                              <Trash2 className="h-4 w-4" />
+                            )}
+                          </Button>
+                        </AlertDialogTrigger>
+                        <AlertDialogContent>
+                          <AlertDialogHeader>
+                            <AlertDialogTitle>{t("profile.deleteScoreTitle")}</AlertDialogTitle>
+                            <AlertDialogDescription>
+                              {t("profile.deleteScoreDesc", { machine: score.machine_name, score: score.score.toLocaleString() })}
+                            </AlertDialogDescription>
+                          </AlertDialogHeader>
+                          <AlertDialogFooter>
+                            <AlertDialogCancel>{t("common.cancel")}</AlertDialogCancel>
+                            <AlertDialogAction
+                              onClick={() => handleDeleteScore(score.id)}
+                              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                            >
+                              {t("common.delete")}
+                            </AlertDialogAction>
+                          </AlertDialogFooter>
+                        </AlertDialogContent>
+                      </AlertDialog>
+                    )}
                   </div>
                 </motion.div>
               ))}
