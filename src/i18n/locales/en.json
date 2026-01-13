@@ -261,5 +261,25 @@
     "failedToSave": "Failed to save",
     "unauthorized": "Unauthorized",
     "notFound": "Page not found"
+  },
+  "notifications": {
+    "title": "Notifications",
+    "markAllRead": "Mark all read",
+    "clear": "Clear",
+    "noNotifications": "No notifications yet",
+    "accept": "Accept",
+    "decline": "Decline",
+    "welcome_title": "Welcome to Multiball! 🎉",
+    "welcome_message": "Start capturing your pinball scores and compete with friends.",
+    "score_pending_title": "Score submitted",
+    "score_pending_message": "Your score is pending verification.",
+    "score_verified_title": "Score verified! ✅",
+    "score_verified_message": "Your score has been verified by the community.",
+    "score_rejected_title": "Score rejected",
+    "score_rejected_message": "Your score was not verified.",
+    "friend_request_title": "Friend request",
+    "friend_request_message": "{{username}} wants to be your friend.",
+    "friend_accepted_title": "Friend request accepted",
+    "friend_accepted_message": "{{username}} accepted your friend request."
   }
 }

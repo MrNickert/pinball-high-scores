@@ -10,8 +10,11 @@ import {
 import { useAuth } from "@/contexts/AuthContext";
 import { supabase } from "@/integrations/supabase/client";
 import { formatDistanceToNow } from "date-fns";
+import { enUS, nl } from "date-fns/locale";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "sonner";
+import { useTranslation } from "react-i18next";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 interface Notification {
   id: string;
@@ -25,9 +28,32 @@ interface Notification {
 
 export const NotificationBell = () => {
   const { user } = useAuth();
+  const { t } = useTranslation();
+  const { language } = useLanguage();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [open, setOpen] = useState(false);
+
+  const dateLocale = language === "nl" ? nl : enUS;
+
+  // Helper to get translated notification content
+  const getTranslatedContent = (notification: Notification) => {
+    const type = notification.type;
+    const data = notification.data || {};
+    
+    // Try to use translation keys based on notification type
+    const titleKey = `notifications.${type}_title`;
+    const messageKey = `notifications.${type}_message`;
+    
+    // Check if translation exists, otherwise fallback to stored text
+    const translatedTitle = t(titleKey, { defaultValue: "", ...data }) as string;
+    const translatedMessage = t(messageKey, { defaultValue: "", ...data }) as string;
+    
+    return {
+      title: translatedTitle || notification.title,
+      message: translatedMessage || notification.message,
+    };
+  };
 
   const fetchNotifications = async () => {
     if (!user) return;
@@ -229,16 +255,16 @@ export const NotificationBell = () => {
       </PopoverTrigger>
       <PopoverContent className="w-80 p-0" align="end">
         <div className="flex items-center justify-between p-3 border-b border-border">
-          <h3 className="font-semibold text-foreground">Notifications</h3>
+          <h3 className="font-semibold text-foreground">{t("notifications.title")}</h3>
           {notifications.length > 0 && (
             <div className="flex gap-2">
               {unreadCount > 0 && (
                 <Button variant="ghost" size="sm" className="text-xs h-7" onClick={markAllAsRead}>
-                  Mark all read
+                  {t("notifications.markAllRead")}
                 </Button>
               )}
               <Button variant="ghost" size="sm" className="text-xs h-7 text-muted-foreground" onClick={clearAll}>
-                Clear
+                {t("notifications.clear")}
               </Button>
             </div>
           )}
@@ -248,7 +274,7 @@ export const NotificationBell = () => {
           {notifications.length === 0 ? (
             <div className="p-8 text-center text-muted-foreground">
               <Bell size={32} className="mx-auto mb-2 opacity-50" />
-              <p className="text-sm">No notifications yet</p>
+              <p className="text-sm">{t("notifications.noNotifications")}</p>
             </div>
           ) : (
             <div className="divide-y divide-border">
@@ -268,14 +294,15 @@ export const NotificationBell = () => {
                     </span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-foreground">
-                        {notification.title}
+                        {getTranslatedContent(notification).title}
                       </p>
                       <p className="text-xs text-muted-foreground line-clamp-2">
-                        {notification.message}
+                        {getTranslatedContent(notification).message}
                       </p>
                       <p className="text-xs text-muted-foreground mt-1">
                         {formatDistanceToNow(new Date(notification.created_at), {
                           addSuffix: true,
+                          locale: dateLocale,
                         })}
                       </p>
                       
@@ -291,7 +318,7 @@ export const NotificationBell = () => {
                             }}
                           >
                             <Check size={14} className="mr-1" />
-                            Accept
+                            {t("notifications.accept")}
                           </Button>
                           <Button 
                             variant="outline" 
@@ -303,7 +330,7 @@ export const NotificationBell = () => {
                             }}
                           >
                             <X size={14} className="mr-1" />
-                            Decline
+                            {t("notifications.decline")}
                           </Button>
                         </div>
                       )}
