@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useSearchParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Crown, Search, Loader2, ChevronDown, Filter, Eye, EyeOff } from "lucide-react";
@@ -11,6 +11,7 @@ import { ValidationBadge, ValidationIndicator } from "@/components/ValidationBad
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
 import { useToast } from "@/hooks/use-toast";
+import confetti from "canvas-confetti";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -66,14 +67,62 @@ const Leaderboard = () => {
   const [showPending, setShowPending] = useState(false);
   const [showDeclined, setShowDeclined] = useState(false);
 
-  // Show toast from score submission redirect
+  // New score highlight state
+  const [highlightedScoreId, setHighlightedScoreId] = useState<string | null>(null);
+  const confettiFired = useRef(false);
+
+  // Show toast and confetti from score submission redirect
   useEffect(() => {
-    const state = location.state as { scoreSubmitted?: { title: string; description: string } } | null;
+    const state = location.state as { 
+      scoreSubmitted?: { title: string; description: string };
+      newScoreId?: string;
+      isAiVerified?: boolean;
+    } | null;
+    
     if (state?.scoreSubmitted) {
       toast({
         title: state.scoreSubmitted.title,
         description: state.scoreSubmitted.description,
       });
+      
+      // Set the highlighted score ID
+      if (state.newScoreId) {
+        setHighlightedScoreId(state.newScoreId);
+        // Clear highlight after 5 seconds
+        setTimeout(() => setHighlightedScoreId(null), 5000);
+      }
+      
+      // Fire confetti for AI-verified scores
+      if (state.isAiVerified && !confettiFired.current) {
+        confettiFired.current = true;
+        // Delay slightly to let the page render
+        setTimeout(() => {
+          confetti({
+            particleCount: 100,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#FFD700', '#FFA500', '#FF6347', '#00CED1', '#9370DB'],
+          });
+          // Second burst
+          setTimeout(() => {
+            confetti({
+              particleCount: 50,
+              angle: 60,
+              spread: 55,
+              origin: { x: 0 },
+              colors: ['#FFD700', '#FFA500', '#FF6347'],
+            });
+            confetti({
+              particleCount: 50,
+              angle: 120,
+              spread: 55,
+              origin: { x: 1 },
+              colors: ['#00CED1', '#9370DB', '#32CD32'],
+            });
+          }, 250);
+        }, 300);
+      }
+      
       // Clear the state so it doesn't show again on refresh
       window.history.replaceState({}, document.title);
     }
@@ -364,13 +413,24 @@ const Leaderboard = () => {
                 <h2 className="font-semibold text-foreground">{selectedMachine} {t("leaderboard.rankings")}</h2>
               </div>
               <div className="divide-y divide-border">
-                {filteredScores.map((entry, index) => (
+                {filteredScores.map((entry, index) => {
+                  const isHighlighted = entry.id === highlightedScoreId;
+                  return (
                   <motion.div
                     key={entry.id}
                     initial={{ opacity: 0, x: -20 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: 0.05 * Math.min(index, 10) }}
-                    className="flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors"
+                    animate={{ 
+                      opacity: 1, 
+                      x: 0,
+                      backgroundColor: isHighlighted ? ["hsl(var(--primary) / 0.2)", "hsl(var(--primary) / 0.05)", "hsl(var(--primary) / 0.2)"] : undefined,
+                    }}
+                    transition={{ 
+                      delay: 0.05 * Math.min(index, 10),
+                      backgroundColor: isHighlighted ? { duration: 1.5, repeat: 3, ease: "easeInOut" } : undefined,
+                    }}
+                    className={`flex items-center gap-4 p-4 hover:bg-muted/50 transition-colors ${
+                      isHighlighted ? "ring-2 ring-primary/50 ring-inset bg-primary/10" : ""
+                    }`}
                   >
                     <div className="w-10 h-10 flex justify-center">{getRankDisplay(index + 1)}</div>
                     <div className="w-10 h-10 rounded-full overflow-hidden bg-muted flex items-center justify-center flex-shrink-0">
@@ -393,7 +453,8 @@ const Leaderboard = () => {
                       <p className="font-bold text-primary">{entry.score.toLocaleString()}</p>
                     </div>
                   </motion.div>
-                ))}
+                  );
+                })}
               </div>
             </motion.div>
           </>

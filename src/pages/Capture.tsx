@@ -568,7 +568,7 @@ const Capture = () => {
       }
 
       // Insert score without GPS coordinates for privacy
-      const { error } = await supabase.from("scores").insert({
+      const { data: insertedScore, error } = await supabase.from("scores").insert({
         user_id: user.id,
         score: numericScore,
         machine_name: selectedMachine,
@@ -576,7 +576,7 @@ const Capture = () => {
         photo_url: photoUrl,
         validation_status: validationStatus || "pending",
         user_notified_at: validationStatus === "accepted" ? new Date().toISOString() : null,
-      });
+      }).select('id').single();
 
       if (error) throw error;
 
@@ -632,9 +632,13 @@ const Capture = () => {
       setScore("");
       setSkippedLocationStep(false);
 
-      // Navigate immediately with toast state
+      // Navigate immediately with toast state and score info for highlighting
       navigate(`/leaderboard?machine=${encodeURIComponent(machineName)}`, { 
-        state: { scoreSubmitted: toastData } 
+        state: { 
+          scoreSubmitted: toastData,
+          newScoreId: insertedScore?.id,
+          isAiVerified: validationStatus === "accepted",
+        } 
       });
     } catch (error: any) {
       toast({
