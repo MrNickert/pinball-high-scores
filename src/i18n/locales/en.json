@@ -15,7 +15,8 @@
     "filter": "Filter",
     "validation": "Validation",
     "showAll": "Show All",
-    "noneYet": "None yet"
+    "noneYet": "None yet",
+    "signInRequired": "Sign In Required"
   },
   "auth": {
     "signIn": "Sign In",
@@ -24,6 +25,7 @@
     "createAccount": "Create Account",
     "welcomeBack": "Welcome back",
     "signInToTrack": "Sign in to track your scores",
+    "signInToViewProfiles": "Please sign in to view player profiles",
     "startTracking": "Start tracking your achievements",
     "email": "Email",
     "password": "Password",
@@ -102,9 +104,11 @@
     "deleteConfirmDesc": "This action cannot be undone. This will permanently delete your account and remove all your data including scores, friends, and profile information.",
     "yesDelete": "Yes, delete my account",
     "accountDeleted": "Your account has been deleted",
-    "firstName": "Firstname",
-    "lastName": "Lastname",
+    "firstName": "First Name",
+    "lastName": "Last Name",
     "username": "Username",
+    "usernameVisible": "This will be visible to other players",
+    "maxFileSize": "Max 2MB, JPG/PNG"
   },
   "navbar": {
     "home": "Home",
@@ -153,14 +157,27 @@
   },
   "capture": {
     "title": "Capture score",
+    "subtitle": "Submit your score and climb the leaderboard",
     "distance": "Distance",
     "away": "away"
-    "subtitle": "Submit your score and climb the leaderboard",
   },
   "profile": {
     "scores": "Scores",
     "friends": "Friends",
-    "joined": "Joined"
+    "joined": "Joined",
+    "editProfile": "Edit Profile",
+    "totalScores": "Total Scores",
+    "verifiedScores": "Verified",
+    "machinesPlayed": "Machines",
+    "memberSince": "Member Since",
+    "recentScores": "Recent Scores",
+    "addScore": "Add Score",
+    "noScoresYet": "No scores yet",
+    "submitFirstScore": "Submit your first score",
+    "proPlayer": "Pro Player",
+    "newPlayer": "New Player",
+    "profileNotFound": "Profile Not Found",
+    "profileNotFoundDesc": "This player profile doesn't exist or has been removed."
   },
   "leaderboard": {
     "title": "Leaderboard",
@@ -179,24 +196,38 @@
   },
   "friends": {
     "title": "Friends",
-    "requests": "Friend Requests",
+    "subtitle": "Connect with other pinball players",
+    "requests": "Requests",
     "addFriend": "Add Friend",
     "removeFriend": "Remove Friend",
     "accept": "Accept",
-    "decline": "Decline"
+    "decline": "Decline",
+    "nearby": "Nearby",
+    "sent": "Sent",
+    "noFriendsYet": "No friends yet. Search for players to connect!",
+    "searchPlaceholder": "Search by username...",
+    "searchMinChars": "Enter at least 2 characters to search",
+    "tooManySearches": "Too many search requests. Please wait a moment.",
+    "failedToSearch": "Failed to search for users",
+    "loadingNearby": "Finding players near you...",
+    "noPlayersNearby": "No players found at your locations",
+    "playMoreLocations": "Play at more locations to discover nearby players",
+    "alreadyConnected": "Already connected",
+    "noPendingRequests": "No pending friend requests",
+    "noPendingSent": "No pending sent requests"
   },
   "verify": {
-    "subtitle": "Help the community by confirming high scores",
     "title": "Verify scores",
+    "subtitle": "Help the community by confirming high scores",
     "approve": "Approve",
     "reject": "Reject",
     "communityReviews": "Community reviews",
     "myPending": "My pending scores",
     "allCaughtUp": "All caught up!",
-    "noScoresPending": "There are no scores pending verification."
+    "noScoresPending": "There are no scores pending verification.",
     "allVerified": "All caught up!",
     "noPendingScores": "There are no scores pending verification.",
-    "submitScore": "Capture new score",
+    "submitScore": "Capture new score"
   },
   "errors": {
     "somethingWrong": "Something went wrong",
