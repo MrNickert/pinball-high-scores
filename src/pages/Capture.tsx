@@ -720,12 +720,12 @@ const Capture = () => {
             <div className="flex items-center justify-between mb-6">
               <div className="flex items-center gap-2">
                 <MapPin className="text-secondary" size={20} />
-                <h2 className="font-semibold text-foreground">Select Location</h2>
+                <h2 className="font-semibold text-foreground">{t("capture.selectLocation")}</h2>
               </div>
               {userLocation && (
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <Navigation size={12} />
-                  <span>GPS Active</span>
+                  <span>{t("capture.gpsActive")}</span>
                 </div>
               )}
             </div>
@@ -733,7 +733,7 @@ const Capture = () => {
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
               <Input
-                placeholder="Filter nearby or search by city..."
+                placeholder={t("capture.searchPlaceholder")}
                 className="pl-10"
                 value={searchQuery}
                 onChange={(e) => handleSearchChange(e.target.value)}
@@ -749,45 +749,45 @@ const Capture = () => {
             {isLoadingLocations ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="animate-spin text-primary mb-3" size={32} />
-                <p className="text-muted-foreground text-sm">Finding nearby arcades...</p>
+                <p className="text-muted-foreground text-sm">{t("capture.findingArcades")}</p>
               </div>
             ) : isSearchingApi ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="animate-spin text-primary mb-3" size={32} />
-                <p className="text-muted-foreground text-sm">Searching "{searchQuery}"...</p>
+                <p className="text-muted-foreground text-sm">{t("capture.searching")} "{searchQuery}"...</p>
               </div>
             ) : showSearchWider ? (
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
-                <p className="text-muted-foreground">No nearby arcades match "{searchQuery}"</p>
-                <p className="text-muted-foreground text-sm mt-2">Enter a city name to search elsewhere</p>
+                <p className="text-muted-foreground">{t("capture.noNearbyMatch")} "{searchQuery}"</p>
+                <p className="text-muted-foreground text-sm mt-2">{t("capture.enterCityToSearch")}</p>
                 <Button 
                   variant="outline" 
                   className="mt-4"
                   onClick={() => searchLocationsByCity(searchQuery)}
                 >
                   <Search size={16} className="mr-2" />
-                  Search arcades in "{searchQuery}"
+                  {t("capture.searchArcadesIn")} "{searchQuery}"
                 </Button>
               </div>
             ) : filteredLocations.length === 0 && !searchQuery ? (
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
                 <p className="text-muted-foreground">
-                  {userLocation ? "No arcades found nearby" : "Enter a city to find arcades"}
+                  {userLocation ? t("capture.noArcadesFound") : t("capture.enterCityToFind")}
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  Search by city name above
+                  {t("capture.searchByCityAbove")}
                 </p>
               </div>
             ) : filteredLocations.length === 0 ? (
               <div className="text-center py-12">
                 <MapPin className="mx-auto mb-3 text-muted-foreground" size={32} />
                 <p className="text-muted-foreground">
-                  {searchedViaApi ? `No arcades found in "${searchQuery}"` : `No results for "${searchQuery}"`}
+                  {searchedViaApi ? `${t("capture.noArcadesInCity")} "${searchQuery}"` : `${t("capture.noResultsFor")} "${searchQuery}"`}
                 </p>
                 <p className="text-muted-foreground text-sm mt-1">
-                  {searchedViaApi ? "Try a different city name" : "Try searching by city name"}
+                  {searchedViaApi ? t("capture.tryDifferentCity") : t("capture.trySearchingByCity")}
                 </p>
               </div>
             ) : (
@@ -807,7 +807,7 @@ const Capture = () => {
                           {location.street}, {location.city}, {location.state}
                         </p>
                         <p className="text-xs text-primary mt-1">
-                          {location.num_machines} machine{location.num_machines !== 1 ? "s" : ""}
+                          {location.num_machines} {location.num_machines !== 1 ? t("capture.machines") : t("capture.machine")}
                         </p>
                       </div>
                       <span className="text-xs text-secondary font-medium ml-2 whitespace-nowrap">
@@ -836,7 +836,7 @@ const Capture = () => {
               }}
               className="text-muted-foreground text-sm mb-4 hover:text-foreground transition-colors"
             >
-              ← {skippedLocationStep ? "Choose different location" : "Back to locations"}
+              ← {skippedLocationStep ? t("capture.chooseDifferentLocation") : t("capture.backToLocations")}
             </button>
 
             <div className="p-3 bg-muted/50 rounded-lg mb-6">
@@ -849,14 +849,14 @@ const Capture = () => {
                 </div>
                 {skippedLocationStep && (
                   <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full">
-                    Last visit
+                    {t("capture.lastVisit")}
                   </span>
                 )}
               </div>
             </div>
 
             <div className="mb-6">
-              <Label className="text-foreground mb-3 block">Select Machine ({machines.length} available)</Label>
+              <Label className="text-foreground mb-3 block">{t("capture.selectMachine")} ({machines.length} {t("capture.available")})</Label>
               
               {isLoadingMachines ? (
                 <div className="flex items-center justify-center py-8">
@@ -864,14 +864,14 @@ const Capture = () => {
                 </div>
               ) : machines.length === 0 ? (
                 <div className="text-center py-8">
-                  <p className="text-muted-foreground">No machines found at this location</p>
+                  <p className="text-muted-foreground">{t("capture.noMachinesFound")}</p>
                 </div>
               ) : (
                 <>
                   <div className="relative mb-3">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
                     <Input
-                      placeholder="Filter machines..."
+                      placeholder={t("capture.filterMachines")}
                       className="pl-9"
                       value={machineSearchQuery}
                       onChange={(e) => setMachineSearchQuery(e.target.value)}
@@ -907,7 +907,7 @@ const Capture = () => {
                       m.manufacturer?.toLowerCase().includes(machineSearchQuery.toLowerCase())
                     ).length === 0 && (
                       <p className="text-center text-muted-foreground text-sm py-4">
-                        No machines match "{machineSearchQuery}"
+                        {t("capture.noMachinesMatch")} "{machineSearchQuery}"
                       </p>
                     )}
                   </div>
@@ -919,7 +919,7 @@ const Capture = () => {
                     onClick={openAddMachineModal}
                   >
                     <Plus size={16} className="mr-2" />
-                    Machine not listed? Add it
+                    {t("capture.machineNotListed")}
                   </Button>
                 </>
               )}
@@ -930,14 +930,14 @@ const Capture = () => {
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
               >
-                <Label className="text-foreground mb-3 block">Upload Score Photo</Label>
+                <Label className="text-foreground mb-3 block">{t("capture.uploadScorePhoto")}</Label>
                 <label className="flex flex-col items-center justify-center w-full h-48 border-2 border-dashed border-border rounded-xl cursor-pointer hover:border-primary hover:bg-primary/5 transition-all">
                   <Upload className="text-muted-foreground mb-2" size={32} />
                   <span className="text-sm text-muted-foreground">
-                    Click to upload or drag & drop
+                    {t("capture.clickToUpload")}
                   </span>
                   <span className="text-xs text-muted-foreground mt-1">
-                    PNG, JPG up to 10MB
+                    {t("capture.maxFileSize")}
                   </span>
                   <input
                     type="file"
@@ -962,10 +962,10 @@ const Capture = () => {
               onClick={() => setStep(2)}
               className="text-muted-foreground text-sm mb-4 hover:text-foreground transition-colors"
             >
-              ← Back
+              ← {t("capture.back")}
             </button>
 
-            <h2 className="font-semibold text-foreground mb-6">Confirm Your Score</h2>
+            <h2 className="font-semibold text-foreground mb-6">{t("capture.confirmYourScore")}</h2>
 
             {scoreImagePreview && (
               <div className="relative mb-6 bg-muted/30 rounded-xl overflow-hidden">
@@ -989,28 +989,28 @@ const Capture = () => {
 
             <div className="space-y-4 mb-6">
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-muted-foreground">Location</span>
+                <span className="text-muted-foreground">{t("capture.location")}</span>
                 <span className="text-foreground font-medium">{selectedLocation?.name}</span>
               </div>
               <div className="flex justify-between p-3 bg-muted/50 rounded-lg">
-                <span className="text-muted-foreground">Machine</span>
+                <span className="text-muted-foreground">{t("capture.machine")}</span>
                 <span className="text-foreground font-medium">{selectedMachine}</span>
               </div>
               <div>
                 <Label className="text-foreground mb-2 block">
-                  {isExtractingScores ? "Analyzing photo..." : detectedScores.length > 0 ? "Select or enter your score" : "Enter Your Score"}
+                  {isExtractingScores ? t("capture.analyzingPhoto") : detectedScores.length > 0 ? t("capture.selectOrEnterScore") : t("capture.enterYourScore")}
                 </Label>
                 
                 {isExtractingScores && (
                   <div className="flex items-center gap-2 p-3 bg-primary/10 rounded-lg mb-3">
                     <Loader2 className="animate-spin text-primary" size={16} />
-                    <span className="text-sm text-primary">Detecting scores from photo...</span>
+                    <span className="text-sm text-primary">{t("capture.detectingScores")}</span>
                   </div>
                 )}
                 
                 {detectedScores.length > 0 && (
                   <div className="space-y-2 mb-3">
-                    <p className="text-xs text-muted-foreground">Detected scores (tap to select):</p>
+                    <p className="text-xs text-muted-foreground">{t("capture.detectedScores")}</p>
                     <div className="grid grid-cols-2 gap-2">
                       {detectedScores.map((detected, index) => (
                         <motion.button
@@ -1023,7 +1023,7 @@ const Capture = () => {
                               : "bg-muted/50 border border-transparent hover:border-border"
                           }`}
                         >
-                          <span className="text-xs text-muted-foreground block">Player {detected.player}</span>
+                          <span className="text-xs text-muted-foreground block">{t("capture.player")} {detected.player}</span>
                           <span className={`font-bold ${score === detected.formatted ? "text-primary" : "text-foreground"}`}>
                             {detected.formatted}
                           </span>
@@ -1055,7 +1055,7 @@ const Capture = () => {
               ) : (
                 <>
                   <Upload size={18} />
-                  Submit Score
+                  {t("capture.submitScore")}
                 </>
               )}
             </Button>
@@ -1071,7 +1071,7 @@ const Capture = () => {
           <DialogHeader>
             <DialogTitle className="flex items-center gap-2">
               <Plus size={20} className="text-primary" />
-              Add Machine to {selectedLocation?.name}
+              {t("capture.addMachineTitle")} {selectedLocation?.name}
             </DialogTitle>
           </DialogHeader>
           
@@ -1079,7 +1079,7 @@ const Capture = () => {
             <div className="relative mb-4">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={16} />
               <Input
-                placeholder="Search all pinball machines..."
+                placeholder={t("capture.searchAllMachines")}
                 className="pl-9"
                 value={addMachineSearch}
                 onChange={(e) => setAddMachineSearch(e.target.value)}
@@ -1090,16 +1090,16 @@ const Capture = () => {
             {isLoadingAllMachines ? (
               <div className="flex flex-col items-center justify-center py-12">
                 <Loader2 className="animate-spin text-primary mb-3" size={32} />
-                <p className="text-muted-foreground text-sm">Loading machine database...</p>
+                <p className="text-muted-foreground text-sm">{t("capture.loadingMachineDb")}</p>
               </div>
             ) : addMachineSearch.length < 2 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>Type at least 2 characters to search</p>
-                <p className="text-sm mt-1">{allMachines.length.toLocaleString()} machines available</p>
+                <p>{t("capture.typeToSearch")}</p>
+                <p className="text-sm mt-1">{allMachines.length.toLocaleString()} {t("capture.machinesAvailable")}</p>
               </div>
             ) : filteredAllMachines.length === 0 ? (
               <div className="text-center py-8 text-muted-foreground">
-                <p>No machines found matching "{addMachineSearch}"</p>
+                <p>{t("capture.noMachinesMatchSearch")} "{addMachineSearch}"</p>
               </div>
             ) : (
               <div className="flex-1 overflow-y-auto space-y-2 pr-1">
@@ -1121,7 +1121,7 @@ const Capture = () => {
                 ))}
                 {filteredAllMachines.length === 50 && (
                   <p className="text-center text-xs text-muted-foreground py-2">
-                    Showing first 50 results. Type more to narrow down.
+                    {t("capture.showingFirst50")}
                   </p>
                 )}
               </div>
@@ -1131,14 +1131,14 @@ const Capture = () => {
               <div className="absolute inset-0 bg-background/80 flex items-center justify-center rounded-lg">
                 <div className="flex flex-col items-center">
                   <Loader2 className="animate-spin text-primary mb-2" size={32} />
-                  <p className="text-sm text-muted-foreground">Adding machine to Pinball Map...</p>
+                  <p className="text-sm text-muted-foreground">{t("capture.addingToPinballMap")}</p>
                 </div>
               </div>
             )}
           </div>
           
           <p className="text-xs text-muted-foreground text-center mt-4">
-            This will add the machine to this location on Pinball Map for everyone to see.
+            {t("capture.addMachineNote")}
           </p>
         </DialogContent>
       </Dialog>
