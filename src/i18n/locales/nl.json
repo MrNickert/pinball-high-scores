@@ -119,7 +119,16 @@
     "passwordMinLength": "Wachtwoord moet minimaal 6 tekens bevatten",
     "passwordsDontMatch": "Wachtwoorden komen niet overeen",
     "passwordChanged": "Wachtwoord succesvol bijgewerkt!",
-    "passwordChangeFailed": "Wachtwoord bijwerken mislukt"
+    "passwordChangeFailed": "Wachtwoord bijwerken mislukt",
+    "passwordWeak": "Zwak wachtwoord",
+    "passwordFair": "Redelijk wachtwoord",
+    "passwordGood": "Goed wachtwoord",
+    "passwordStrong": "Sterk wachtwoord",
+    "passwordRequirements": "Wachtwoordvereisten:",
+    "reqMinLength": "Minimaal 6 tekens",
+    "reqUppercase": "Eén hoofdletter",
+    "reqLowercase": "Eén kleine letter",
+    "reqNumber": "Eén cijfer"
   },
   "navbar": {
     "home": "Home",
