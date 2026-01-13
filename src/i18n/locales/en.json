@@ -40,7 +40,10 @@
   "onboarding": {
     "setupProfile": "Set up your profile",
     "readyToTrack": "Let's get you ready to track your scores",
+    "chooseLanguage": "Choose your language",
+    "yourIdentity": "Your identity",
     "yourName": "Your name",
+    "nameOptional": "This is optional but helps personalize your experience",
     "firstName": "First Name",
     "lastName": "Last Name",
     "username": "Username",
@@ -53,6 +56,7 @@
     "uploading": "Uploading...",
     "maxFileSize": "Max 2MB, JPG/PNG (optional)",
     "privacySettings": "Privacy settings",
+    "finalSettings": "Final settings",
     "publicProfile": "Public Profile",
     "publicProfileDesc": "Allow others to see your profile and scores",
     "readyToGo": "Ready to go!",
@@ -64,7 +68,7 @@
     "english": "English",
     "dutch": "Dutch",
     "units": "Distance Units",
-    "unitsDesc": "Choose how distances are displayed",
+    "unitsDesc": "How to display distances",
     "metric": "Metric (km)",
     "imperial": "Imperial (miles)"
   },
