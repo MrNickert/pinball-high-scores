@@ -553,6 +553,26 @@ const Settings = () => {
               </h2>
               <div className="space-y-4">
                 <div className="space-y-2">
+                  <Label htmlFor="currentPassword" className="text-foreground">{t("settings.currentPassword")}</Label>
+                  <div className="relative">
+                    <Input
+                      id="currentPassword"
+                      type={showCurrentPassword ? "text" : "password"}
+                      value={currentPassword}
+                      onChange={(e) => setCurrentPassword(e.target.value)}
+                      placeholder="••••••••"
+                      className="pr-10"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                    >
+                      {showCurrentPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                    </button>
+                  </div>
+                </div>
+                <div className="space-y-2">
                   <Label htmlFor="newPassword" className="text-foreground">{t("settings.newPassword")}</Label>
                   <div className="relative">
                     <Input
@@ -597,6 +617,10 @@ const Settings = () => {
                 <Button
                   variant="gradient"
                   onClick={async () => {
+                    if (!currentPassword) {
+                      toast.error(t("settings.currentPasswordRequired"));
+                      return;
+                    }
                     if (newPassword.length < 6) {
                       toast.error(t("settings.passwordMinLength"));
                       return;
@@ -607,9 +631,27 @@ const Settings = () => {
                     }
                     setChangingPassword(true);
                     try {
+                      // First verify current password by re-authenticating
+                      const { data: { session } } = await supabase.auth.getSession();
+                      if (!session?.user?.email) {
+                        throw new Error("No email found");
+                      }
+                      
+                      const { error: signInError } = await supabase.auth.signInWithPassword({
+                        email: session.user.email,
+                        password: currentPassword,
+                      });
+                      
+                      if (signInError) {
+                        toast.error(t("settings.currentPasswordIncorrect"));
+                        return;
+                      }
+                      
+                      // Current password verified, now update to new password
                       const { error } = await supabase.auth.updateUser({ password: newPassword });
                       if (error) throw error;
                       toast.success(t("settings.passwordChanged"));
+                      setCurrentPassword("");
                       setNewPassword("");
                       setConfirmPassword("");
                     } catch (error: any) {
@@ -618,7 +660,7 @@ const Settings = () => {
                       setChangingPassword(false);
                     }
                   }}
-                  disabled={changingPassword || !newPassword || !confirmPassword}
+                  disabled={changingPassword || !currentPassword || !newPassword || !confirmPassword}
                 >
                   {changingPassword ? <Loader2 className="animate-spin mr-2" size={16} /> : null}
                   {t("settings.updatePassword")}
