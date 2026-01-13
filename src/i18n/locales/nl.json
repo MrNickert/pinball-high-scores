@@ -182,13 +182,17 @@
     "decline": "Afwijzen"
   },
   "verify": {
+    "submitScore": "Score vastleggen",
     "title": "Scores verifiëren",
     "approve": "Goedkeuren",
     "reject": "Afwijzen",
     "communityReviews": "Community reviews",
     "myPending": "Mijn scores in review",
+    "subtitle": "Help de community door high scores te bevestigen",
     "allCaughtUp": "Alles bijgewerkt!",
     "noScoresPending": "Er zijn geen scores in afwachting van verificatie."
+    "allVerified": "Alles bijgewerkt!",
+    "noPendingScores": "Er zijn geen scores in afwachting van verificatie."
   },
   "errors": {
     "somethingWrong": "Er ging iets mis",
