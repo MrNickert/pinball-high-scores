@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { useSearchParams, Link } from "react-router-dom";
+import { useSearchParams, Link, useLocation } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Trophy, Medal, Crown, Search, Loader2, ChevronDown, Filter, Eye, EyeOff } from "lucide-react";
 import { Navbar } from "@/components/Navbar";
@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ValidationBadge, ValidationIndicator } from "@/components/ValidationBadge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useTranslation } from "react-i18next";
+import { useToast } from "@/hooks/use-toast";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -48,6 +49,8 @@ const getInitials = (username: string) => {
 
 const Leaderboard = () => {
   const { t } = useTranslation();
+  const { toast } = useToast();
+  const location = useLocation();
   const [searchParams] = useSearchParams();
   const machineFromUrl = searchParams.get("machine");
 
@@ -62,6 +65,19 @@ const Leaderboard = () => {
   const [showAccepted, setShowAccepted] = useState(true);
   const [showPending, setShowPending] = useState(false);
   const [showDeclined, setShowDeclined] = useState(false);
+
+  // Show toast from score submission redirect
+  useEffect(() => {
+    const state = location.state as { scoreSubmitted?: { title: string; description: string } } | null;
+    if (state?.scoreSubmitted) {
+      toast({
+        title: state.scoreSubmitted.title,
+        description: state.scoreSubmitted.description,
+      });
+      // Clear the state so it doesn't show again on refresh
+      window.history.replaceState({}, document.title);
+    }
+  }, [location.state, toast]);
 
   useEffect(() => {
     fetchMachines();

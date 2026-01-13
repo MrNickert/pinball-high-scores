@@ -596,33 +596,32 @@ const Capture = () => {
       setLastScoreLocationId(selectedLocation.id);
       setLastScoreLocationCoords({ lat: parseFloat(selectedLocation.lat), lon: parseFloat(selectedLocation.lon) });
 
-      // Show notification and toast based on validation status
-      if (validationStatus === "accepted") {
-        await createNotification({
-          userId: user.id,
-          type: NotificationTypes.SCORE_VERIFIED_AI,
-          title: t("notificationCapture.scoreVerifiedByAiTitle"),
-          message: t("notificationCapture.scoreVerifiedByAiMessage", { score: numericScore.toLocaleString(), machine: selectedMachine }),
-          data: { machine: selectedMachine, score: numericScore },
-        });
-        toast({
-          title: t("toastCapture.scoreVerifiedByAiTitle"),
-          description: t("toastCapture.scoreVerifiedByAiDesc"),
-        });
-      } else {
-        // All other statuses (pending, null, etc.) are pending community review
-        await createNotification({
-          userId: user.id,
-          type: NotificationTypes.SCORE_PENDING,
-          title: t("notificationCapture.scoreSubmittedTitle"),
-          message: t("notificationCapture.scoreSubmittedMessage", { score: numericScore.toLocaleString(), machine: selectedMachine }),
-          data: { machine: selectedMachine, score: numericScore },
-        });
-        toast({
-          title: t("toastCapture.scoreSubmittedTitle"),
-          description: t("toastCapture.scoreSubmittedDesc"),
-        });
-      }
+      // Prepare toast message for leaderboard page
+      const toastData = validationStatus === "accepted" 
+        ? {
+            title: t("toastCapture.scoreVerifiedByAiTitle"),
+            description: t("toastCapture.scoreVerifiedByAiDesc"),
+          }
+        : {
+            title: t("toastCapture.scoreSubmittedTitle"),
+            description: t("toastCapture.scoreSubmittedDesc"),
+          };
+
+      // Create notification in background
+      createNotification({
+        userId: user.id,
+        type: validationStatus === "accepted" ? NotificationTypes.SCORE_VERIFIED_AI : NotificationTypes.SCORE_PENDING,
+        title: validationStatus === "accepted" 
+          ? t("notificationCapture.scoreVerifiedByAiTitle")
+          : t("notificationCapture.scoreSubmittedTitle"),
+        message: validationStatus === "accepted"
+          ? t("notificationCapture.scoreVerifiedByAiMessage", { score: numericScore.toLocaleString(), machine: selectedMachine })
+          : t("notificationCapture.scoreSubmittedMessage", { score: numericScore.toLocaleString(), machine: selectedMachine }),
+        data: { machine: selectedMachine, score: numericScore },
+      });
+
+      // Store machine name before reset
+      const machineName = selectedMachine;
 
       // Reset form
       setStep(1);
@@ -633,7 +632,10 @@ const Capture = () => {
       setScore("");
       setSkippedLocationStep(false);
 
-      navigate(`/leaderboard?machine=${encodeURIComponent(selectedMachine)}`);
+      // Navigate immediately with toast state
+      navigate(`/leaderboard?machine=${encodeURIComponent(machineName)}`, { 
+        state: { scoreSubmitted: toastData } 
+      });
     } catch (error: any) {
       toast({
         title: t("toastCapture.errorTitle"),
