@@ -5,6 +5,7 @@ import { Trophy, Camera, MapPin, Zap, ArrowRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Navbar } from "@/components/Navbar";
 import { Dashboard } from "@/components/Dashboard";
+import { PageLayout } from "@/components/PageLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTranslation } from "react-i18next";
 import { supabase } from "@/integrations/supabase/client";
@@ -75,25 +76,21 @@ const Index = () => {
   // Show dashboard for authenticated users
   if (user) {
     return (
-      <div className="min-h-screen bg-background overflow-hidden">
+      <PageLayout>
         <Navbar />
         <Dashboard />
         <div className="h-20 md:h-0" />
-      </div>
+      </PageLayout>
     );
   }
 
   // Landing page for non-authenticated users
   return (
-    <div className="min-h-screen bg-background overflow-hidden">
+    <PageLayout>
       <Navbar />
 
       {/* Hero Section */}
       <section className="relative pt-32 pb-20 px-4">
-        {/* Background Gradient */}
-        <div className="absolute inset-0 overflow-hidden pointer-events-none">
-          <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[600px] bg-gradient-to-br from-primary/15 via-secondary/10 to-transparent rounded-full blur-3xl" />
-        </div>
 
         <div className="container mx-auto relative z-10">
           <motion.div
@@ -220,7 +217,7 @@ const Index = () => {
 
       {/* Bottom padding for mobile nav */}
       <div className="h-20 md:h-0" />
-    </div>
+    </PageLayout>
   );
 };
 

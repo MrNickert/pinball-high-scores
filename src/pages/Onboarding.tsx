@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
+import { PageLayout } from "@/components/PageLayout";
 import { useAuth } from "@/contexts/AuthContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useTranslation } from "react-i18next";
@@ -234,9 +235,9 @@ const Onboarding = () => {
 
   if (loading || checkingProfile) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
+      <PageLayout className="flex items-center justify-center">
         <Loader2 className="animate-spin text-primary" size={32} />
-      </div>
+      </PageLayout>
     );
   }
 
@@ -245,13 +246,8 @@ const Onboarding = () => {
   }
 
   return (
-    <div className="min-h-screen bg-background flex items-center justify-center px-4 relative overflow-hidden">
-      {/* Background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
-        <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-gradient-to-br from-primary/10 via-secondary/5 to-transparent rounded-full blur-3xl" />
-      </div>
-
-      <div className="w-full max-w-md relative z-10">
+    <PageLayout className="flex items-center justify-center px-4">
+      <div className="w-full max-w-md">
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -535,7 +531,7 @@ const Onboarding = () => {
           </div>
         </motion.div>
       </div>
-    </div>
+    </PageLayout>
   );
 };
 
