@@ -696,7 +696,7 @@ const Capture = () => {
                 className={`w-10 h-10 rounded-full flex items-center justify-center text-sm font-semibold ${
                   step >= s
                     ? "bg-primary text-primary-foreground"
-                    : "bg-muted text-muted-foreground"
+                    : "bg-card text-muted-foreground border border-border"
                 }`}
                 animate={step === s ? { scale: [1, 1.05, 1] } : {}}
                 transition={{ duration: 1, repeat: step === s ? Infinity : 0 }}
@@ -704,7 +704,7 @@ const Capture = () => {
                 {step > s ? <Check size={16} /> : s}
               </motion.div>
               {s < 3 && (
-                <div className={`w-8 h-0.5 ${step > s ? "bg-primary" : "bg-muted"}`} />
+                <div className={`w-8 h-0.5 ${step > s ? "bg-primary" : "bg-card"}`} />
               )}
             </div>
           ))}
