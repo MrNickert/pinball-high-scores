@@ -89,7 +89,7 @@ const Capture = () => {
   const [isAddingMachine, setIsAddingMachine] = useState(false);
   
   const { toast } = useToast();
-  const { user, loading } = useAuth();
+  const { user, session, loading } = useAuth();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -365,14 +365,18 @@ const Capture = () => {
     
     setIsAddingMachine(true);
     try {
-      // Call Pinball Map API to add machine
+      // Call backend function to add machine
+      if (!session?.access_token) {
+        throw new Error("Not authenticated");
+      }
+
       const response = await fetch(
         `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/pinballmap-add-machine`,
         {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            "Authorization": `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+            "Authorization": `Bearer ${session.access_token}`,
           },
           body: JSON.stringify({
             location_id: selectedLocation.id,
