@@ -391,7 +391,7 @@ const Friends = () => {
                 ) : (
                   <div className="bg-card rounded-xl border border-border overflow-hidden">
                     {friends.map((friendship, index) => {
-                      const showAd = (index + 1) % 15 === 0 && index < friends.length - 1;
+                      const showAd = (index + 1) % 10 === 0 && index < friends.length - 1;
                       return (
                         <Fragment key={friendship.id}>
                           <div className="flex items-center justify-between p-4 border-b border-border last:border-b-0">
