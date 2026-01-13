@@ -369,6 +369,8 @@
     "score_pending_message": "Your score is pending verification.",
     "score_verified_title": "Score verified! ✅",
     "score_verified_message": "Your score has been verified by the community.",
+    "score_verified_ai_title": "Score verified by AI! ✅",
+    "score_verified_ai_message": "Your score has been automatically verified.",
     "score_rejected_title": "Score rejected",
     "score_rejected_message": "Your score was not verified.",
     "friend_request_title": "Friend request",

@@ -35,6 +35,7 @@ export const NotificationTypes = {
   WELCOME: "welcome",
   SCORE_PENDING: "score_pending",
   SCORE_VERIFIED: "score_verified",
+  SCORE_VERIFIED_AI: "score_verified_ai",
   SCORE_REJECTED: "score_rejected",
   FRIEND_REQUEST: "friend_request",
   FRIEND_ACCEPTED: "friend_accepted",
