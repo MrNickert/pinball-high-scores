@@ -416,7 +416,7 @@ const Leaderboard = () => {
               <div className="divide-y divide-border">
                 {filteredScores.map((entry, index) => {
                   const isHighlighted = entry.id === highlightedScoreId;
-                  const showAd = (index + 1) % 15 === 0 && index < filteredScores.length - 1;
+                  const showAd = (index + 1) % 10 === 0 && index < filteredScores.length - 1;
                   return (
                     <>
                       <motion.div
